@@ -82,6 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('active');
             }
         });
+
+        // Special case for the manual link which is not on the page
+        const manualLink = document.querySelector('.manual-link');
+        if (manualLink && window.location.pathname.includes('manual.html')) {
+            navItems.forEach(item => item.classList.remove('active'));
+            manualLink.classList.add('active');
+        }
     }
     
     // Scroll animation with Intersection Observer
@@ -103,6 +110,116 @@ document.addEventListener('DOMContentLoaded', () => {
     animatedElements.forEach(el => {
         observer.observe(el);
     });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        const isNavLink = e.target.closest('.nav-link');
+        const isMenuToggle = e.target.closest('.menu-toggle');
+        const isOpenMenu = navMenu.classList.contains('active');
+        
+        if (isOpenMenu && !isNavLink && !isMenuToggle && !navMenu.contains(e.target)) {
+            navMenu.classList.remove('active');
+            mobileMenu.classList.remove('active');
+            body.classList.remove('no-scroll');
+        }
+    });
+
+    // Contador regresivo
+    const countdownElement = {
+        days: document.getElementById('days'),
+        hours: document.getElementById('hours'),
+        minutes: document.getElementById('minutes'),
+        seconds: document.getElementById('seconds')
+    };
+    
+    if (countdownElement.days && countdownElement.hours && countdownElement.minutes && countdownElement.seconds) {
+        // Fecha del evento (año, mes [0-11], día, hora, minuto)
+        const eventDate = new Date(2025, 4, 17, 9, 0); // 17 de Mayo 2025, 9:00 AM
+        
+        function updateCountdown() {
+            const now = new Date();
+            const difference = eventDate - now;
+            
+            if (difference <= 0) {
+                // El evento ya pasó
+                countdownElement.days.textContent = '00';
+                countdownElement.hours.textContent = '00';
+                countdownElement.minutes.textContent = '00';
+                countdownElement.seconds.textContent = '00';
+                return;
+            }
+            
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            countdownElement.days.textContent = days < 10 ? '0' + days : days;
+            countdownElement.hours.textContent = hours < 10 ? '0' + hours : hours;
+            countdownElement.minutes.textContent = minutes < 10 ? '0' + minutes : minutes;
+            countdownElement.seconds.textContent = seconds < 10 ? '0' + seconds : seconds;
+        }
+        
+        // Actualizar cada segundo
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+    
+    // Botón volver arriba
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    if (backToTopButton) {
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) { // Mostrar botón después de bajar 300px
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+    }
+    
+    // Animaciones de scroll
+    const animateElements = document.querySelectorAll('.animate-on-scroll');
+    
+    function checkScroll() {
+        animateElements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementVisible = 150;
+            
+            if (elementTop < window.innerHeight - elementVisible) {
+                element.classList.add('active');
+            }
+        });
+    }
+    
+    // Disparar una vez al cargar para elementos visibles
+    checkScroll();
+    
+    window.addEventListener('scroll', checkScroll);
+    
+    // Manejo de FAQ
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    
+    if (faqQuestions) {
+        faqQuestions.forEach(question => {
+            question.addEventListener('click', function() {
+                const answer = this.nextElementSibling;
+                const isOpen = this.classList.contains('active');
+                
+                // Cerrar todos los FAQs
+                faqQuestions.forEach(q => {
+                    q.classList.remove('active');
+                    q.nextElementSibling.style.maxHeight = null;
+                });
+                
+                // Abrir el actual si estaba cerrado
+                if (!isOpen) {
+                    this.classList.add('active');
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                }
+            });
+        });
+    }
 });
 
 // Add no-scroll to body to prevent scrolling when mobile menu is open
@@ -113,5 +230,8 @@ document.head.insertAdjacentHTML('beforeend', `
         }
     </style>
 `);
+
+// Better touch handling for mobile devices
+document.addEventListener('touchstart', () => {}, {passive: true});
 
 console.log("Data Driven Day script v3 ¡cargado y listo!");

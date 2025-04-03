@@ -109,6 +109,72 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    // Add better handling for mobile navigation
+    if (window.innerWidth <= 768) {
+        tocLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // Optional: Add code here to collapse the TOC on mobile after selection
+                // This would be if you want to implement a collapsible TOC on mobile
+            });
+        });
+    }
+    
+    // Better handling for the page navigation on different screen sizes
+    const adjustPageNavigation = () => {
+        const pageNavigations = document.querySelectorAll('.page-navigation');
+        
+        pageNavigations.forEach(nav => {
+            if (window.innerWidth <= 480) {
+                // For very small screens, we could adjust navigation elements here if needed
+            }
+        });
+    };
+    
+    // Run on load and resize
+    adjustPageNavigation();
+    window.addEventListener('resize', adjustPageNavigation);
+    
+    // Add touch support for better mobile experience
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    const handleSwipe = () => {
+        if (touchStartX - touchEndX > 100) {
+            // Swipe left - go to next page
+            const activePage = document.querySelector('.manual-page.active');
+            if (activePage) {
+                const nextBtn = activePage.querySelector('.next-page');
+                if (nextBtn) {
+                    const nextPageId = nextBtn.getAttribute('href');
+                    showPage(nextPageId);
+                    history.pushState(null, null, nextPageId);
+                }
+            }
+        }
+        
+        if (touchEndX - touchStartX > 100) {
+            // Swipe right - go to previous page
+            const activePage = document.querySelector('.manual-page.active');
+            if (activePage) {
+                const prevBtn = activePage.querySelector('.prev-page');
+                if (prevBtn) {
+                    const prevPageId = prevBtn.getAttribute('href');
+                    showPage(prevPageId);
+                    history.pushState(null, null, prevPageId);
+                }
+            }
+        }
+    };
+    
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, {passive: true});
 });
 
 console.log("Manual script loaded");

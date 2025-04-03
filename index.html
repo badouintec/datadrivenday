@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Data Driven Day: Transformando Datos en Políticas Públicas para Hermosillo">
-    <meta name="keywords" content="data driven, políticas públicas, datos, Hermosillo, evento">
+    <meta name="description" content="Data Driven Day: Transformando Datos en Políticas Públicas para Hermosillo. Evento presencial el 17 de Mayo enfocado en la toma de decisiones basadas en datos.">
+    <meta name="keywords" content="data driven, políticas públicas, datos, Hermosillo, evento, análisis de datos, gestión pública, bootcamp de datos">
     <title>Data Driven Day: Transformando Datos en Políticas Públicas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Data Driven Day: Transformando Datos en Políticas Públicas">
+    <meta property="og:description" content="Únete a la jornada intensiva donde convertiremos datos en acciones concretas para el futuro de Hermosillo.">
+    <meta property="og:image" content="https://www.datadrivenday.mx/og-image.jpg">
+    <meta property="og:url" content="https://www.datadrivenday.mx">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@DataDrivenDayMx">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -41,6 +57,27 @@
                 <h1 class="animate-on-scroll fade-in-down">Data Driven Day <span class="highlight">📊</span></h1>
                 <h2 class="hero-subtitle animate-on-scroll fade-in-down" style="animation-delay: 0.1s;">Transformando Datos en Políticas Públicas <span class="highlight">🚀</span></h2>
                 <p class="subtitle animate-on-scroll fade-in-down" style="animation-delay: 0.2s;">Únete a la jornada intensiva donde convertiremos datos en acciones concretas para el futuro de Hermosillo.</p>
+                
+                <!-- Contador regresivo -->
+                <div class="countdown-container animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                    <div class="countdown-item">
+                        <span id="days">00</span>
+                        <span class="countdown-label">Días</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours">00</span>
+                        <span class="countdown-label">Horas</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes">00</span>
+                        <span class="countdown-label">Minutos</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds">00</span>
+                        <span class="countdown-label">Segundos</span>
+                    </div>
+                </div>
+                
                 <div class="event-details animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
                     <div class="detail-item">
                         <i class="far fa-calendar-alt"></i>
@@ -94,7 +131,7 @@
                     <h3>Networking</h3>
                     <p>Conecta con actores clave del ecosistema público, privado y social.</p>
                 </div>
-                 <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
                     <i class="fas fa-book-open"></i>
                     <h3>Booklet Guía</h3>
                     <p>Llévate a casa la guía exclusiva "Datos y Políticas Públicas".</p>
@@ -127,7 +164,7 @@
             <i class="section-icon fas fa-chalkboard-teacher animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Aprende de Instituciones Líderes</h2>
             <div class="logos-container animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
-                 <img src="placeholder-logo-tec.png" alt="Tec de Monterrey Logo" class="partner-logo">
+                <img src="placeholder-logo-tec.png" alt="Tec de Monterrey Logo" class="partner-logo">
                 <img src="placeholder-logo-hmo.png" alt="Hermosillo Como Vamos Logo" class="partner-logo">
                 <img src="placeholder-logo-colson.png" alt="Colegio de Sonora Logo" class="partner-logo">
             </div>
@@ -136,7 +173,7 @@
     </section>
 
     <section id="bootcamp" class="content-section">
-       <div class="container">
+        <div class="container">
             <i class="section-icon fas fa-rocket animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Bootcamp: De la Idea a la Propuesta</h2>
             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">El corazón del evento. Colabora en equipo, define propuestas (política, programa o iniciativa pública) y recibe mentoría experta. ¡Manos a la obra! 🚀💡🧠</p>
@@ -157,11 +194,11 @@
     </section>
 
     <section id="booklet" class="content-section">
-       <div class="container">
+        <div class="container">
             <i class="section-icon fas fa-book animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Recurso Exclusivo: Booklet Guía 📖💡</h2>
             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Llévate la guía "Datos y Políticas Públicas: Transformando la Gestión Pública" (digital e impresa) con conceptos, casos de éxito, ética, herramientas y más.</p>
-            </div>
+        </div>
     </section>
 
     <section id="quien" class="content-section alt-bg">
@@ -172,25 +209,25 @@
         </div>
     </section>
 
-     <section id="lugar" class="content-section">
-       <div class="container">
+    <section id="lugar" class="content-section">
+        <div class="container">
             <i class="section-icon fas fa-map-marked-alt animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Lugar y Detalles</h2>
-            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;"><strong>Lugar:</strong> [*Nombre del Recinto*]</p>
-            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;"><strong>Dirección:</strong> [*Dirección Completa y Referencias, Hermosillo, Sonora*]</p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;"><strong>Lugar:</strong> Centro de Convenciones Hermosillo</p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;"><strong>Dirección:</strong> Blvd. Rosales 123, Col. Centro, Hermosillo, Sonora</p>
             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">Contaremos con Wi-Fi y espacios colaborativos.</p>
             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;"><strong>¿Qué traer?:</strong> Laptop/tablet, cargador ¡y tu mejor actitud! 💻🔋</p>
             <div class="map-placeholder animate-on-scroll fade-in" style="animation-delay: 0.5s;">
-                 <p>Aquí va el mapa integrado</p>
-             </div>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1444.7879969177562!2d-110.95717233908721!3d29.072640475958837!2m3!1f0!2f0!3f0!3m2!1i1024!1i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjnCsDA0JzQyLjUiTiAxMTDCsDU3JzIwLjciVw!5e0!3m2!1ses-419!2smx!4v1620000000000!5m2!1ses-419!2smx" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
         </div>
     </section>
 
     <section id="organizadores" class="content-section alt-bg">
         <div class="container">
-             <i class="section-icon fas fa-sitemap animate-on-scroll fade-in"></i>
+            <i class="section-icon fas fa-sitemap animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Organizan y Colaboran</h2>
-             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Presentado por: [*Nombre(s) de la(s) organización(es) principal(es)*]</p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Presentado por: [*Nombre(s) de la(s) organización(es) principal(es)*]</p>
             <div class="logos-container animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
                 <p>[Espacio para Logos de Organizadores y Partners]</p>
             </div>
@@ -199,10 +236,10 @@
 
     <section id="registro" class="content-section cta-final">
         <div class="container">
-             <i class="section-icon fas fa-clipboard-check animate-on-scroll fade-in"></i>
+            <i class="section-icon fas fa-clipboard-check animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">¡Tu Lugar Te Espera!</h2>
             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Los cupos son limitados. No te quedes fuera de esta jornada transformadora.</p>
-            <a href="[ENLACE_A_TU_FORMULARIO_DE_REGISTRO]" target="_blank" class="cta-button large animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">¡Inscríbete Aquí!</a>
+            <a href="https://forms.gle/example123456" target="_blank" class="cta-button large animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">¡Inscríbete Aquí!</a>
         </div>
     </section>
 
@@ -210,17 +247,54 @@
         <div class="container">
             <i class="section-icon far fa-envelope animate-on-scroll fade-in"></i>
             <h2 class="animate-on-scroll fade-in-up">Contacto</h2>
-            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Email: <a href="mailto:[correo@ejemplo.com]">[correo@ejemplo.com]</a></p>
-            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Teléfono: [*Número de teléfono*]</p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Email: <a href="mailto:contacto@datadrivenday.mx">contacto@datadrivenday.mx</a></p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Teléfono: (662) 123-4567</p>
             <div class="social-media animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
                 <p>Síguenos:</p>
-                <a href="[LINK_FACEBOOK]" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                <a href="[LINK_TWITTER]" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="[LINK_LINKEDIN]" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="[LINK_INSTAGRAM]" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://facebook.com/datadrivenday" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://twitter.com/datadrivenday" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="https://linkedin.com/company/datadrivenday" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://instagram.com/datadrivenday" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 <span>@DataDrivenDayMx</span>
             </div>
-             <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">Sitio Web: <a href="http://www.datadrivenday.mx" target="_blank">www.datadrivenday.mx</a></p>
+            <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">Sitio Web: <a href="http://www.datadrivenday.mx" target="_blank">www.datadrivenday.mx</a></p>
+        </div>
+    </section>
+
+    <section id="faq" class="content-section">
+        <div class="container">
+            <i class="section-icon fas fa-question-circle animate-on-scroll fade-in"></i>
+            <h2 class="animate-on-scroll fade-in-up">Preguntas Frecuentes</h2>
+            
+            <div class="faq-container">
+                <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">
+                    <button class="faq-question">¿Necesito conocimientos previos para participar?</button>
+                    <div class="faq-answer">
+                        <p>No se requieren conocimientos técnicos avanzados. El evento está diseñado para personas con diferentes niveles de experiencia en análisis de datos y políticas públicas.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
+                    <button class="faq-question">¿El evento tiene algún costo?</button>
+                    <div class="faq-answer">
+                        <p>El Data Driven Day es un evento gratuito, pero requiere registro previo ya que los cupos son limitados.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                    <button class="faq-question">¿Recibiré alguna constancia por participar?</button>
+                    <div class="faq-answer">
+                        <p>Sí, todos los participantes recibirán una constancia digital de participación al finalizar el evento.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                    <button class="faq-question">¿Puedo formar parte del equipo organizador?</button>
+                    <div class="faq-answer">
+                        <p>¡Claro! Siempre estamos buscando voluntarios comprometidos. Escríbenos a voluntarios@datadrivenday.mx para más información.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -244,10 +318,10 @@
                 <p><i class="far fa-envelope"></i> info@datadrivenday.mx</p>
                 <p><i class="fas fa-phone"></i> (662) 123-4567</p>
                 <div class="social-media">
-                    <a href="#" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://facebook.com/datadrivenday" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://twitter.com/datadrivenday" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://linkedin.com/company/datadrivenday" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://instagram.com/datadrivenday" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
         </div>
@@ -255,6 +329,11 @@
             <p>© 2025 Data Driven Day Hermosillo. Todos los derechos reservados. | <a href="#">Política de Privacidad</a></p>
         </div>
     </footer>
+
+    <!-- Botón volver arriba -->
+    <a href="#inicio" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+        <i class="fas fa-arrow-up"></i>
+    </a>
 
     <script src="script.js"></script>
 </body>
