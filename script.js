@@ -1,37 +1,75 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Mobile menu toggle
+/**
+ * Data Driven Day - Main JavaScript
+ * Version: 4.0
+ * Fecha: 2023
+ */
+
+// Esperar a que el DOM esté completamente cargado antes de ejecutar código
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('⚡ DOM cargado - Iniciando scripts');
+    
+    // ---- Navegación ----
+    initNavigation();
+    
+    // ---- Contador regresivo ----
+    initCountdown();
+    
+    // ---- Animaciones de scroll ----
+    initScrollAnimations();
+    
+    // ---- Funcionamiento FAQ ----
+    initFaq();
+    
+    // ---- Botón volver arriba ----
+    initBackToTop();
+    
+    console.log('✅ Todos los scripts inicializados correctamente');
+});
+
+// Función para inicializar la navegación
+function initNavigation() {
+    const navbar = document.querySelector('.navbar');
     const mobileMenu = document.getElementById('mobile-menu');
     const navMenu = document.querySelector('.nav-menu');
-    const body = document.querySelector('body');
     
-    mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('active');
-        navMenu.classList.toggle('active');
-        body.classList.toggle('no-scroll'); // Prevent body scroll when menu is open
-    });
-    
-    // Close mobile menu when clicking on a nav link
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            navMenu.classList.remove('active');
-            mobileMenu.classList.remove('active');
-            body.classList.remove('no-scroll');
+    // Toggle menu móvil
+    if (mobileMenu && navMenu) {
+        mobileMenu.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            document.body.classList.toggle('no-scroll');
         });
-    });
+        
+        // Cerrar menú al hacer clic en enlaces
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileMenu.classList.remove('active');
+                navMenu.classList.remove('active');
+                document.body.classList.remove('no-scroll');
+            });
+        });
+    }
     
-    // Smooth scrolling for anchor links with offset for navbar height
+    // Cambiar estilo de navbar al hacer scroll
+    if (navbar) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    }
+    
+    // Suavizar scroll en enlaces internos
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Get the target element
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                const navbarHeight = document.querySelector('.navbar').offsetHeight;
-                const targetPosition = targetElement.offsetTop - navbarHeight;
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                const navbarHeight = navbar ? navbar.offsetHeight : 0;
+                const targetPosition = target.offsetTop - navbarHeight;
                 
                 window.scrollTo({
                     top: targetPosition,
@@ -40,198 +78,120 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    
-    // Navbar style change on scroll
-    const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-    });
-    
-    // Active menu item based on scroll position
-    const sections = document.querySelectorAll('section, header');
-    const navItems = document.querySelectorAll('.nav-link');
-    
-    // Set initial active menu item
-    setActiveMenuItem();
-    
-    // Update active menu item on scroll
-    window.addEventListener('scroll', setActiveMenuItem);
-    
-    function setActiveMenuItem() {
-        let current = '';
-        const navHeight = navbar.offsetHeight;
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.offsetHeight;
-            
-            // If our position is within this section, mark it as active
-            // Add offset for navbar height plus some padding
-            if (window.scrollY >= sectionTop - navHeight - 50) {
-                current = section.getAttribute('id');
-            }
-        });
-        
-        navItems.forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === `#${current}`) {
-                item.classList.add('active');
-            }
-        });
+}
 
-        // Special case for the manual link which is not on the page
-        const manualLink = document.querySelector('.manual-link');
-        if (manualLink && window.location.pathname.includes('manual.html')) {
-            navItems.forEach(item => item.classList.remove('active'));
-            manualLink.classList.add('active');
-        }
-    }
+// Función para inicializar el contador regresivo
+function initCountdown() {
+    const days = document.getElementById('days');
+    const hours = document.getElementById('hours');
+    const minutes = document.getElementById('minutes');
+    const seconds = document.getElementById('seconds');
     
-    // Scroll animation with Intersection Observer
-    const animatedElements = document.querySelectorAll('.animate-on-scroll');
-    
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    });
-    
-    animatedElements.forEach(el => {
-        observer.observe(el);
-    });
-
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', (e) => {
-        const isNavLink = e.target.closest('.nav-link');
-        const isMenuToggle = e.target.closest('.menu-toggle');
-        const isOpenMenu = navMenu.classList.contains('active');
-        
-        if (isOpenMenu && !isNavLink && !isMenuToggle && !navMenu.contains(e.target)) {
-            navMenu.classList.remove('active');
-            mobileMenu.classList.remove('active');
-            body.classList.remove('no-scroll');
-        }
-    });
-
-    // Contador regresivo
-    const countdownElement = {
-        days: document.getElementById('days'),
-        hours: document.getElementById('hours'),
-        minutes: document.getElementById('minutes'),
-        seconds: document.getElementById('seconds')
-    };
-    
-    if (countdownElement.days && countdownElement.hours && countdownElement.minutes && countdownElement.seconds) {
-        // Fecha del evento (año, mes [0-11], día, hora, minuto)
-        const eventDate = new Date(2025, 4, 17, 9, 0); // 17 de Mayo 2025, 9:00 AM
+    if (days && hours && minutes && seconds) {
+        // Evento: 17 de Mayo de 2025
+        const eventDate = new Date(2025, 4, 17, 9, 0, 0);
         
         function updateCountdown() {
             const now = new Date();
-            const difference = eventDate - now;
+            const diff = eventDate - now;
             
-            if (difference <= 0) {
-                // El evento ya pasó
-                countdownElement.days.textContent = '00';
-                countdownElement.hours.textContent = '00';
-                countdownElement.minutes.textContent = '00';
-                countdownElement.seconds.textContent = '00';
+            if (diff <= 0) {
+                days.textContent = '00';
+                hours.textContent = '00';
+                minutes.textContent = '00';
+                seconds.textContent = '00';
                 return;
             }
             
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
             
-            countdownElement.days.textContent = days < 10 ? '0' + days : days;
-            countdownElement.hours.textContent = hours < 10 ? '0' + hours : hours;
-            countdownElement.minutes.textContent = minutes < 10 ? '0' + minutes : minutes;
-            countdownElement.seconds.textContent = seconds < 10 ? '0' + seconds : seconds;
+            days.textContent = d < 10 ? '0' + d : d;
+            hours.textContent = h < 10 ? '0' + h : h;
+            minutes.textContent = m < 10 ? '0' + m : m;
+            seconds.textContent = s < 10 ? '0' + s : s;
         }
         
-        // Actualizar cada segundo
+        // Actualizar inicial e intervalo
         updateCountdown();
         setInterval(updateCountdown, 1000);
     }
+}
+
+// Función para inicializar animaciones de scroll
+function initScrollAnimations() {
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
     
-    // Botón volver arriba
+    if (animatedElements.length) {
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            });
+            
+            animatedElements.forEach(el => observer.observe(el));
+        } else {
+            // Fallback para navegadores antiguos
+            animatedElements.forEach(el => el.classList.add('is-visible'));
+        }
+    }
+}
+
+// Función para inicializar FAQs
+function initFaq() {
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    
+    if (faqQuestions.length) {
+        faqQuestions.forEach(question => {
+            question.addEventListener('click', function() {
+                const answer = this.nextElementSibling;
+                const isOpen = this.classList.contains('active');
+                
+                // Cerrar todos los FAQs abiertos
+                faqQuestions.forEach(q => {
+                    q.classList.remove('active');
+                    q.setAttribute('aria-expanded', 'false');
+                    
+                    if (q.nextElementSibling) {
+                        q.nextElementSibling.style.maxHeight = null;
+                    }
+                });
+                
+                // Abrir el actual si estaba cerrado
+                if (!isOpen) {
+                    this.classList.add('active');
+                    this.setAttribute('aria-expanded', 'true');
+                    
+                    if (answer) {
+                        answer.style.maxHeight = answer.scrollHeight + "px";
+                    }
+                }
+            });
+        });
+    }
+}
+
+// Función para inicializar botón volver arriba
+function initBackToTop() {
     const backToTopButton = document.getElementById('back-to-top');
     
     if (backToTopButton) {
         window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) { // Mostrar botón después de bajar 300px
+            if (window.pageYOffset > 300) {
                 backToTopButton.classList.add('visible');
             } else {
                 backToTopButton.classList.remove('visible');
             }
         });
     }
-    
-    // Animaciones de scroll
-    const animateElements = document.querySelectorAll('.animate-on-scroll');
-    
-    function checkScroll() {
-        animateElements.forEach(element => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementVisible = 150;
-            
-            if (elementTop < window.innerHeight - elementVisible) {
-                element.classList.add('active');
-            }
-        });
-    }
-    
-    // Disparar una vez al cargar para elementos visibles
-    checkScroll();
-    
-    window.addEventListener('scroll', checkScroll);
-    
-    // Manejo de FAQ
-    const faqQuestions = document.querySelectorAll('.faq-question');
-    
-    if (faqQuestions) {
-        faqQuestions.forEach(question => {
-            question.addEventListener('click', function() {
-                const answer = this.nextElementSibling;
-                const isOpen = this.classList.contains('active');
-                
-                // Cerrar todos los FAQs
-                faqQuestions.forEach(q => {
-                    q.classList.remove('active');
-                    q.nextElementSibling.style.maxHeight = null;
-                });
-                
-                // Abrir el actual si estaba cerrado
-                if (!isOpen) {
-                    this.classList.add('active');
-                    answer.style.maxHeight = answer.scrollHeight + "px";
-                }
-            });
-        });
-    }
-});
-
-// Add no-scroll to body to prevent scrolling when mobile menu is open
-document.head.insertAdjacentHTML('beforeend', `
-    <style>
-        body.no-scroll {
-            overflow: hidden;
-        }
-    </style>
-`);
-
-// Better touch handling for mobile devices
-document.addEventListener('touchstart', () => {}, {passive: true});
-
-console.log("Data Driven Day script v3 ¡cargado y listo!");
+}
