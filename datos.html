@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Data Driven Day: Fuentes de datos abiertos para análisis y políticas públicas en Hermosillo y México.">
+    <meta name="keywords" content="datos abiertos, fuentes de datos, INEGI, CONAPO, políticas públicas, análisis de datos, Hermosillo, México">
+    <title>Datos Abiertos - Data Driven Day</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Datos Abiertos - Data Driven Day">
+    <meta property="og:description" content="Accede a las mejores fuentes de datos abiertos para análisis y políticas públicas en México.">
+    <meta property="og:image" content="https://www.datadrivenday.mx/og-image.jpg">
+    <meta property="og:url" content="https://www.datadrivenday.mx/datos.html">
+    <meta property="og:type" content="website">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Incluir librería para gráficos interactivos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        /* Estilos específicos para la página de datos */
+        .data-source-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            padding: 25px;
+            transition: var(--transition);
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .data-source-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .data-source-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .data-source-logo {
+            width: 80px;
+            height: 80px;
+            background-color: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+        
+        .data-source-title h3 {
+            margin-bottom: 5px;
+            color: var(--color-bg-dark);
+        }
+        
+        .data-source-link {
+            margin-top: 15px;
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .data-source-link:hover {
+            background-color: var(--secondary-color);
+            color: var(--color-bg-dark);
+            transform: translateY(-2px);
+        }
+        
+        .access-steps {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+        }
+        
+        .access-steps h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .access-steps ol {
+            margin-left: 20px;
+            padding-left: 15px;
+        }
+        
+        .access-steps li {
+            margin-bottom: 10px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 40px 0;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .tab-container {
+            margin: 30px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            padding: 10px 15px;
+            font-weight: 600;
+            color: var(--accent-color);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tutorial-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-card h4 {
+            color: var(--color-bg-dark);
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: monospace;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Estilos para dispositivos pequeños */
+        @media (max-width: 768px) {
+            .data-source-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .data-source-logo {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">DataDrivenDay</a>
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html#inicio" class="nav-link">Inicio</a></li>
+                <li><a href="index.html#que-es" class="nav-link">¿Qué es?</a></li>
+                <li><a href="index.html#agenda" class="nav-link">Agenda</a></li>
+                <li><a href="index.html#bootcamp" class="nav-link">Bootcamp</a></li>
+                <li><a href="index.html#lugar" class="nav-link">Lugar</a></li>
+                <li><a href="blogs.html" class="nav-link">Blog</a></li>
+                <li><a href="datos.html" class="nav-link active">Datos</a></li>
+                <li><a href="manual.html" class="nav-link manual-link">Manual</a></li>
+                <li><a href="index.html#registro" class="nav-link">Registro</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero section para datos -->
+    <header class="blog-hero" role="banner">
+        <div class="overlay"></div>
+        <div class="container">
+            <h1>Datos Abiertos</h1>
+            <p class="blog-subtitle">Fuentes, herramientas y visualizaciones para políticas públicas basadas en evidencia</p>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main id="main-content" class="blog-main">
+        <div class="container">
+            <!-- Introducción -->
+            <section class="content-section">
+                <div class="container">
+                    <i class="section-icon fas fa-database animate-on-scroll fade-in"></i>
+                    <h2 class="animate-on-scroll fade-in-up">📊 Fuentes de Datos para Hermosillo y México</h2>
+                    <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Esta sección reúne plataformas y portales donde podrás explorar datos abiertos relevantes para el análisis y la toma de decisiones en políticas públicas. Conoce cómo acceder a ellos y aprovecha estos recursos para tus proyectos.</p>
+                    
+                    <!-- Selector de pestañas -->
+                    <div class="tab-container">
+                        <div class="tabs">
+                            <button class="tab-button active" data-tab="fuentes">Fuentes de Datos</button>
+                            <button class="tab-button" data-tab="visualizaciones">Visualizaciones</button>
+                            <button class="tab-button" data-tab="tutoriales">Tutoriales</button>
+                            <button class="tab-button" data-tab="proyectos">Proyectos</button>
+                        </div>
+                        
+                        <!-- Contenido de pestañas -->
+                        <!-- Pestaña: Fuentes de Datos -->
+                        <div class="tab-content active" id="fuentes">
+                            <!-- INEGI -->
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>INEGI – Instituto Nacional de Estadística y Geografía</h3>
+                                        <p>Principal fuente de datos estadísticos, económicos y demográficos de México.</p>
+                                    </div>
+                                </div>
+                                <p>Aquí encontrarás información actualizada sobre población, economía, geografía y mucho más.</p>
+                                
+                                <div class="access-steps">
+                                    <h4>Cómo acceder:</h4>
+                                    <ol>
+                                        <li>Ingresa a su portal web, consulta las secciones de bases de datos y publicaciones.</li>
+                                        <li>Utiliza su API para acceder a información en tiempo real.</li>
+                                        <li>Descarga conjuntos de datos en formato CSV, XLS o DBF para análisis locales.</li>
+                                    </ol>
+                                </div>
+                                
+                                <a href="https://www.inegi.org.mx" target="_blank" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Visitar INEGI
+                                </a>
+                            </div>
+                            
+                            <!-- CONAPO -->
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>CONAPO – Consejo Nacional de Población</h3>
+                                        <p>Proporciona datos y proyecciones demográficas de México.</p>
+                                    </div>
+                                </div>
+                                <p>Esta fuente te permitirá conocer la estructura y tendencias poblacionales en México, fundamental para la planificación de políticas públicas a largo plazo.</p>
+                                
+                                <div class="access-steps">
+                                    <h4>Cómo acceder:</h4>
+                                    <ol>
+                                        <li>Visita el sitio para consultar reportes, boletines y bases de datos descargables.</li>
+                                        <li>Explora la sección de proyecciones y análisis poblacional.</li>
+                                        <li>Consulta los indicadores demográficos por entidad federativa y municipio.</li>
+                                    </ol>
+                                </div>
+                                
+                                <a href="https://www.gob.mx/conapo" target="_blank" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Visitar CONAPO
+                                </a>
+                            </div>
+                            
+                            <!-- Hermosillo ¿Cómo Vamos? -->
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-city"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>Hermosillo ¿Cómo Vamos?</h3>
+                                        <p>Iniciativa local dedicada a mostrar indicadores clave de la ciudad de Hermosillo.</p>
+                                    </div>
+                                </div>
+                                <p>Esta plataforma abarca aspectos sociales, económicos y ambientales específicos de Hermosillo, permitiendo un análisis detallado del contexto urbano local.</p>
+                                
+                                <div class="access-steps">
+                                    <h4>Cómo acceder:</h4>
+                                    <ol>
+                                        <li>Accede a la plataforma para explorar dashboards, mapas interactivos y reportes.</li>
+                                        <li>Revisa las secciones de indicadores y visualizaciones para obtener insights sobre el rendimiento y tendencias de la ciudad.</li>
+                                        <li>Descarga los datos en formatos abiertos para realizar tus propios análisis.</li>
+                                    </ol>
+                                </div>
+                                
+                                <a href="https://hermosillo.comohamos.mx" target="_blank" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Visitar Hermosillo ¿Cómo Vamos?
+                                </a>
+                            </div>
+                            
+                            <!-- Datos.gob.mx -->
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-folder-open"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>Datos.gob.mx – Portal de Datos Abiertos del Gobierno de México</h3>
+                                        <p>Plataforma centralizada donde diversas dependencias del gobierno mexicano publican sus datasets.</p>
+                                    </div>
+                                </div>
+                                <p>Aquí podrás encontrar información sobre salud, educación, economía, medio ambiente y más, recopilada por instituciones federales, estatales y municipales.</p>
+                                
+                                <div class="access-steps">
+                                    <h4>Cómo acceder:</h4>
+                                    <ol>
+                                        <li>Navega por las categorías o utiliza el buscador para localizar datasets específicos.</li>
+                                        <li>Descarga archivos en formato CSV, JSON u otros formatos, o utiliza las APIs disponibles para integrarlos en tus proyectos.</li>
+                                        <li>Accede a las herramientas de visualización incorporadas para explorar datos directamente en el navegador.</li>
+                                    </ol>
+                                </div>
+                                
+                                <a href="https://datos.gob.mx" target="_blank" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Visitar Datos.gob.mx
+                                </a>
+                            </div>
+                            
+                            <!-- Our World in Data -->
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-globe-americas"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>Our World in Data</h3>
+                                        <p>Sitio web global que ofrece datos y visualizaciones sobre temas de salud, economía, educación, medio ambiente y más.</p>
+                                    </div>
+                                </div>
+                                <p>Ideal para comparar tendencias internacionales y comprender el contexto global que puede afectar las políticas públicas en México.</p>
+                                
+                                <div class="access-steps">
+                                    <h4>Cómo acceder:</h4>
+                                    <ol>
+                                        <li>Explora las visualizaciones interactivas y los reportes temáticos.</li>
+                                        <li>Descarga datos y utiliza las herramientas interactivas para crear tus propios análisis comparativos.</li>
+                                        <li>Explora la documentación para entender la metodología y fuentes utilizadas.</li>
+                                    </ol>
+                                </div>
+                                
+                                <a href="https://ourworldindata.org" target="_blank" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Visitar Our World in Data
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña: Visualizaciones -->
+                        <div class="tab-content" id="visualizaciones">
+                            <h3>Explora Datos de Hermosillo y México</h3>
+                            <p>Las siguientes visualizaciones interactivas muestran diferentes indicadores relevantes para la ciudad y el país. Puedes interactuar con ellas para explorar tendencias y compararlas.</p>
+                            
+                            <div class="chart-container">
+                                <h4>Población de Hermosillo (2010-2023)</h4>
+                                <canvas id="populationChart"></canvas>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h4>Comparativa de Indicadores Socioeconómicos</h4>
+                                <canvas id="economicChart"></canvas>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h4>Distribución Presupuestal por Sector (2023)</h4>
+                                <canvas id="budgetChart"></canvas>
+                            </div>
+                            
+                            <p><strong>Nota:</strong> Estas visualizaciones son ejemplos ilustrativos. Para acceder a datos actualizados, consulte las fuentes oficiales listadas en la sección "Fuentes de Datos".</p>
+                        </div>
+                        
+                        <!-- Pestaña: Tutoriales -->
+                        <div class="tab-content" id="tutoriales">
+                            <h3>Tutoriales y Guías para Acceso a Datos</h3>
+                            <p>Aprende a acceder y procesar datos de las diferentes plataformas con estos tutoriales prácticos:</p>
+                            
+                            <div class="tutorial-card">
+                                <h4><i class="fas fa-book"></i> Cómo acceder a la API del INEGI</h4>
+                                <p>Este tutorial te muestra los pasos básicos para utilizar la API del INEGI en tus proyectos de análisis de datos.</p>
+                                
+                                <div class="code-block">
+                                    <p># Python - Ejemplo de acceso a la API del INEGI</p>
+                                    <p>import requests</p>
+                                    <p>import pandas as pd</p>
+                                    <p></p>
+                                    <p># Reemplazar con tu token de la API</p>
+                                    <p>token = "tu_token_aqui"</p>
+                                    <p>url = f"https://www.inegi.org.mx/app/api/indicadores/desarrolladores/jsonxml/INDICATOR/1002000001/es/26/false/{token}"</p>
+                                    <p></p>
+                                    <p>response = requests.get(url)</p>
+                                    <p>data = response.json()</p>
+                                    <p></p>
+                                    <p># Procesar los datos</p>
+                                    <p>series = data['Series'][0]</p>
+                                    <p>values = series['OBSERVATIONS']</p>
+                                    <p></p>
+                                    <p># Convertir a DataFrame</p>
+                                    <p>df = pd.DataFrame(values)</p>
+                                    <p>print(df.head())</p>
+                                </div>
+                                
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-download"></i> Descargar Tutorial Completo
+                                </a>
+                            </div>
+                            
+                            <div class="tutorial-card">
+                                <h4><i class="fas fa-book"></i> Visualizando datos de Hermosillo con Tableau</h4>
+                                <p>Aprende a crear dashboards interactivos utilizando datos de la iniciativa "Hermosillo ¿Cómo Vamos?"</p>
+                                <img src="https://via.placeholder.com/800x400/f8f9fa/4E8AB0?text=Tutorial+Tableau" alt="Tutorial de Tableau" style="width: 100%; border-radius: var(--border-radius); margin: 15px 0;">
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-play-circle"></i> Ver Tutorial en Video
+                                </a>
+                            </div>
+                            
+                            <div class="tutorial-card">
+                                <h4><i class="fas fa-book"></i> Limpieza y preparación de datos abiertos</h4>
+                                <p>Este tutorial muestra técnicas básicas para limpiar y preparar datos gubernamentales para su análisis.</p>
+                                <div class="code-block">
+                                    <p># R - Limpieza básica de datos</p>
+                                    <p>library(tidyverse)</p>
+                                    <p>library(janitor)</p>
+                                    <p></p>
+                                    <p># Cargar datos</p>
+                                    <p>datos <- read_csv("datos_abiertos.csv")</p>
+                                    <p></p>
+                                    <p># Limpieza básica</p>
+                                    <p>datos_limpios <- datos %>%</p>
+                                    <p>  clean_names() %>% # Normalizar nombres de columnas</p>
+                                    <p>  remove_empty() %>% # Eliminar filas/columnas vacías</p>
+                                    <p>  drop_na(id, fecha) %>% # Eliminar filas sin ID o fecha</p>
+                                    <p>  mutate(</p>
+                                    <p>    fecha = as.Date(fecha, format="%d/%m/%Y"),</p>
+                                    <p>    valor = as.numeric(valor)</p>
+                                    <p>  )</p>
+                                    <p></p>
+                                    <p># Ver resumen</p>
+                                    <p>summary(datos_limpios)</p>
+                                </div>
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-file-code"></i> Descargar Notebook
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña: Proyectos -->
+                        <div class="tab-content" id="proyectos">
+                            <h3>Proyectos de la Comunidad</h3>
+                            <p>Conoce algunos proyectos destacados que utilizan datos abiertos para generar impacto en políticas públicas:</p>
+                            
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-project-diagram"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>Mapa de Movilidad Urbana</h3>
+                                        <p>Realizado por: Equipo Data Science Sonora</p>
+                                    </div>
+                                </div>
+                                <p>Este proyecto analiza patrones de movilidad en Hermosillo utilizando datos abiertos del ayuntamiento y encuestas ciudadanas para proponer mejoras en rutas de transporte público.</p>
+                                
+                                <img src="https://via.placeholder.com/800x400/f8f9fa/4E8AB0?text=Mapa+de+Movilidad+Urbana" alt="Mapa de Movilidad Urbana" style="width: 100%; border-radius: var(--border-radius); margin: 15px 0;">
+                                
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Ver Proyecto
+                                </a>
+                            </div>
+                            
+                            <div class="data-source-card">
+                                <div class="data-source-header">
+                                    <div class="data-source-logo">
+                                        <i class="fas fa-leaf"></i>
+                                    </div>
+                                    <div class="data-source-title">
+                                        <h3>Monitor de Calidad del Aire</h3>
+                                        <p>Realizado por: Estudiantes del Tec de Monterrey</p>
+                                    </div>
+                                </div>
+                                <p>Un sistema que combina datos del INEGI y sensores ciudadanos para monitorear y visualizar la calidad del aire en diferentes zonas de Hermosillo, con alertas y recomendaciones para habitantes y autoridades.</p>
+                                
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: var(--border-radius); margin: 15px 0;">
+                                    <h4>Testimonios</h4>
+                                    <p><em>"Este proyecto nos permitió identificar patrones de contaminación que no eran evidentes en los informes oficiales, y ahora estamos trabajando con autoridades municipales para implementar medidas correctivas." - María Fernández, Líder del Proyecto</em></p>
+                                </div>
+                                
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-external-link-alt"></i> Ver Dashboard Interactivo
+                                </a>
+                            </div>
+                            
+                            <div class="data-source-card">
+                                <h3 style="margin-top: 0;">¿Tienes un proyecto que utilice datos abiertos?</h3>
+                                <p>Si has desarrollado un proyecto utilizando datos abiertos que contribuya a mejorar las políticas públicas en Hermosillo o México, compártelo con nuestra comunidad.</p>
+                                
+                                <a href="#" class="data-source-link">
+                                    <i class="fas fa-upload"></i> Enviar mi Proyecto
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Foro de discusión -->
+            <section class="content-section alt-bg">
+                <div class="container">
+                    <i class="section-icon fas fa-comments animate-on-scroll fade-in"></i>
+                    <h2 class="animate-on-scroll fade-in-up">Foro de Discusión</h2>
+                    <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Únete a la conversación para compartir dudas, ideas y soluciones sobre el análisis de datos abiertos.</p>
+                    
+                    <div class="data-source-card" style="text-align: center;">
+                        <h3 style="margin-top: 0;">¿Necesitas ayuda o quieres compartir conocimiento?</h3>
+                        <p>Nuestro foro es un espacio para que la comunidad colabore y aprenda sobre datos abiertos, análisis y su aplicación en políticas públicas.</p>
+                        
+                        <a href="#" class="cta-button large animate-on-scroll pulse" style="animation-delay: 0.3s;">
+                            <i class="fas fa-sign-in-alt"></i> Acceder al Foro
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- CTA para evento -->
+    <section class="blog-cta">
+        <div class="container">
+            <h2>Aprende más sobre análisis de datos para políticas públicas</h2>
+            <p>Asiste al Data Driven Day y desarrolla habilidades prácticas con expertos del sector.</p>
+            <a href="index.html#registro" class="cta-button large">¡Regístrate Ahora!</a>
+        </div>
+    </section>
+
+    <footer role="contentinfo">
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <h3>DataDrivenDay</h3>
+                <p>Transformando datos en políticas públicas</p>
+            </div>
+            <div class="footer-links">
+                <h4>Enlaces</h4>
+                <ul>
+                    <li><a href="index.html#inicio">Inicio</a></li>
+                    <li><a href="index.html#agenda">Agenda</a></li>
+                    <li><a href="datos.html">Datos</a></li>
+                    <li><a href="index.html#registro">Registro</a></li>
+                    <li><a href="index.html#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contacto</h4>
+                <p><i class="far fa-envelope"></i> info@datadrivenday.mx</p>
+                <p><i class="fas fa-phone"></i> (662) 123-4567</p>
+                <div class="social-media">
+                    <a href="https://facebook.com/datadrivenday" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://twitter.com/datadrivenday" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://linkedin.com/company/datadrivenday" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://instagram.com/datadrivenday" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2025 Data Driven Day Hermosillo. Todos los derechos reservados. | <a href="#">Política de Privacidad</a></p>
+        </div>
+    </footer>
+
+    <!-- Botón volver arriba -->
+    <a href="#" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+        <span class="sr-only">Volver arriba</span>
+    </a>
+
+    <!-- Script para gráficos de ejemplo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar gráficos de ejemplo
+            setupCharts();
+            
+            // Configurar pestañas
+            setupTabs();
+        });
+        
+        function setupCharts() {
+            // Gráfico 1: Población de Hermosillo
+            const populationData = {
+                labels: ['2010', '2012', '2014', '2016', '2018', '2020', '2022', '2023'],
+                datasets: [{
+                    label: 'Población (miles de habitantes)',
+                    data: [715, 739, 768, 785, 812, 855, 873, 890],
+                    backgroundColor: 'rgba(78, 138, 176, 0.2)',
+                    borderColor: 'rgba(78, 138, 176, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            };
+            
+            new Chart(document.getElementById('populationChart'), {
+                type: 'line',
+                data: populationData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: { display: true, text: 'Miles de habitantes' }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico 2: Comparativa económica
+            const economicData = {
+                labels: ['Hermosillo', 'Promedio Nacional'],
+                datasets: [
+                    {
+                        label: 'Ingreso per cápita (miles de pesos)',
+                        data: [187, 168],
+                        backgroundColor: 'rgba(78, 138, 176, 0.7)'
+                    },
+                    {
+                        label: 'Desempleo (%)',
+                        data: [3.4, 4.2],
+                        backgroundColor: 'rgba(168, 213, 239, 0.7)'
+                    },
+                    {
+                        label: 'Índice de Desarrollo Humano',
+                        data: [0.82, 0.75],
+                        backgroundColor: 'rgba(30, 30, 36, 0.7)'
+                    }
+                ]
+            };
+            
+            new Chart(document.getElementById('economicChart'), {
+                type: 'bar',
+                data: economicData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+            
+            // Gráfico 3: Presupuesto
+            const budgetData = {
+                labels: [
+                    'Educación',
+                    'Salud',
+                    'Seguridad',
+                    'Infraestructura',
+                    'Servicios Públicos',
+                    'Otros'
+                ],
+                datasets: [{
+                    label: 'Presupuesto 2023 (%)',
+                    data: [28, 22, 18, 15, 12, 5],
+                    backgroundColor: [
+                        'rgba(78, 138, 176, 0.8)',
+                        'rgba(168, 213, 239, 0.8)',
+                        'rgba(109, 116, 127, 0.8)',
+                        'rgba(30, 30, 36, 0.8)',
+                        'rgba(78, 138, 176, 0.5)',
+                        'rgba(168, 213, 239, 0.5)'
+                    ],
+                    hoverOffset: 4
+                }]
+            };
+            
+            new Chart(document.getElementById('budgetChart'), {
+                type: 'pie',
+                data: budgetData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+        
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Desactivar todas las pestañas
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Activar la pestaña seleccionada
+                    button.classList.add('active');
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Si la pestaña es visualizaciones, actualizar gráficos (por si hay problemas de renderizado)
+                    if(tabId === 'visualizaciones') {
+                        setTimeout(() => {
+                            setupCharts();
+                        }, 100);
+                    }
+                });
+            });
+        }
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
