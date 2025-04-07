@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Resultados de búsqueda - Data Driven Day. Encuentra información sobre análisis de datos y políticas públicas.">
+    <meta name="robots" content="noindex, follow">
+    <title>Resultados de Búsqueda - Data Driven Day</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para la página de búsqueda */
+        .search-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--color-bg-dark));
+            padding: var(--spacing-lg) 0;
+            color: white;
+        }
+        
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto var(--spacing-md);
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .search-form input[type="search"] {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+        
+        .search-form button {
+            background-color: var(--secondary-color);
+            color: var(--color-bg-dark);
+            border: none;
+            border-radius: 30px;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .search-form button:hover {
+            background-color: white;
+        }
+        
+        .search-results-info {
+            background-color: var(--bg-alt);
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .search-results-container {
+            padding: var(--spacing-md) 0;
+            min-height: 400px;
+        }
+        
+        .search-result-item {
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-result-item h3 {
+            margin-bottom: 10px;
+        }
+        
+        .search-result-snippet {
+            margin-bottom: 10px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .search-result-url {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .search-result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: var(--spacing-md);
+            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .no-results ul {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+            padding-left: var(--spacing-md);
+        }
+        
+        .no-results li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">DataDrivenDay</a>
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html#inicio" class="nav-link">Inicio</a></li>
+                <li><a href="index.html#que-es" class="nav-link">¿Qué es?</a></li>
+                <li><a href="index.html#agenda" class="nav-link">Agenda</a></li>
+                <li><a href="index.html#bootcamp" class="nav-link">Bootcamp</a></li>
+                <li><a href="index.html#lugar" class="nav-link">Lugar</a></li>
+                <li><a href="blogs.html" class="nav-link">Blog</a></li>
+                <li><a href="datos.html" class="nav-link">Datos</a></li>
+                <li><a href="manual.html" class="nav-link manual-link">Manual</a></li>
+                <li><a href="index.html#registro" class="nav-link">Registro</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero para búsqueda -->
+    <section class="search-hero">
+        <div class="container">
+            <div class="search-container">
+                <h1>Búsqueda</h1>
+                <form class="search-form" role="search">
+                    <input type="search" id="main-search" placeholder="Buscar en Data Driven Day..." aria-label="Buscar en el sitio">
+                    <button type="submit"><i class="fas fa-search"></i> Buscar</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Info de resultados -->
+    <section class="search-results-info">
+        <div class="container">
+            <p>Resultados de búsqueda para: <strong id="search-term">término</strong></p>
+            <p>Se encontraron <span id="results-count">0</span> resultados</p>
+        </div>
+    </section>
+
+    <!-- Resultados de búsqueda -->
+    <main id="main-content" class="search-results-container">
+        <div class="container">
+            <div id="search-results-list">
+                <!-- Los resultados se cargarán dinámicamente aquí -->
+                <div class="loading-indicator">
+                    <p>Cargando resultados...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container footer-content">
+            <div class="footer-logo">
+                <h3>DataDrivenDay</h3>
+                <p>Transformando datos en políticas públicas</p>
+            </div>
+            <div class="footer-links">
+                <h4>Enlaces</h4>
+                <ul>
+                    <li><a href="index.html#inicio">Inicio</a></li>
+                    <li><a href="index.html#agenda">Agenda</a></li>
+                    <li><a href="datos.html">Datos</a></li>
+                    <li><a href="index.html#registro">Registro</a></li>
+                    <li><a href="index.html#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contacto</h4>
+                <p><i class="far fa-envelope"></i> info@datadrivenday.mx</p>
+                <p><i class="fas fa-phone"></i> (662) 123-4567</p>
+                <div class="social-media">
+                    <a href="https://facebook.com/datadrivenday" target="_blank" aria-label="Facebook" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://twitter.com/datadrivenday" target="_blank" aria-label="Twitter" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                    <a href="https://linkedin.com/company/datadrivenday" target="_blank" aria-label="LinkedIn" rel="noopener noreferrer"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://instagram.com/datadrivenday" target="_blank" aria-label="Instagram" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2025 Data Driven Day Hermosillo. Todos los derechos reservados. | <a href="#">Política de Privacidad</a></p>
+        </div>
+    </footer>
+
+    <!-- Botón volver arriba -->
+    <a href="#" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+        <span class="sr-only">Volver arriba</span>
+    </a>
+
+    <script src="script.js"></script>
+    <script src="busqueda.js"></script>
+</body>
+</html>

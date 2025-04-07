@@ -17,16 +17,24 @@
     <meta property="og:image" content="https://www.datadrivenday.mx/og-image.jpg">
     <meta property="og:url" content="https://www.datadrivenday.mx">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Data Driven Day">
+    <meta property="og:locale" content="es_MX">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@DataDrivenDayMx">
     
+    <!-- Fonts and Styles -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js para gráficas animadas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CountUp.js para KPIs animados -->
+    <script src="https://cdn.jsdelivr.net/npm/countup.js@2.0.8/dist/countUp.min.js"></script>
 </head>
 <body>
     <!-- Skip to content link for accessibility -->
@@ -60,12 +68,12 @@
         <div class="overlay"></div>
         <div class="container hero-content">
             <div class="hero-text">
-                <h1 class="animate-on-scroll fade-in-down">Data Driven Day <span class="highlight">📊</span></h1>
-                <h2 class="hero-subtitle animate-on-scroll fade-in-down" style="animation-delay: 0.1s;">Transformando Datos en Políticas Públicas <span class="highlight">🚀</span></h2>
-                <p class="subtitle animate-on-scroll fade-in-down" style="animation-delay: 0.2s;">Únete a la jornada intensiva donde convertiremos datos en acciones concretas para el futuro de Hermosillo.</p>
+                <h1 class="animate-on-scroll fade-in-down">Data Driven Day</h1>
+                <h2 class="hero-subtitle animate-on-scroll fade-in-down">Transformando Datos en Políticas Públicas</h2>
+                <p class="subtitle animate-on-scroll fade-in-down">Únete a la jornada intensiva donde convertiremos datos en acciones concretas para el futuro de Hermosillo.</p>
                 
                 <!-- Contador regresivo -->
-                <div class="countdown-container animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                <div class="countdown-container animate-on-scroll fade-in-up">
                     <div class="countdown-item">
                         <span id="days">00</span>
                         <span class="countdown-label">Días</span>
@@ -84,7 +92,7 @@
                     </div>
                 </div>
                 
-                <div class="event-details animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                <div class="event-details animate-on-scroll fade-in-up">
                     <div class="detail-item">
                         <i class="far fa-calendar-alt"></i>
                         <span><time datetime="2025-05-17">17 de Mayo</time></span>
@@ -98,7 +106,7 @@
                         <span>AVIADA, Hermosillo</span>
                     </div>
                 </div>
-                <a href="#registro" class="cta-button animate-on-scroll pulse" style="animation-delay: 0.6s;">¡Regístrate Ahora!</a>
+                <a href="#registro" class="cta-button animate-on-scroll pulse">¡Regístrate Ahora!</a>
             </div>
         </div>
     </header>
@@ -109,8 +117,15 @@
             <div class="container">
                 <i class="section-icon fas fa-cogs animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Convierte Datos en Impacto Real</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">El <strong>Data Driven Day</strong> es una experiencia inmersiva diseñada para <strong>profesionales, académicos, funcionarios y ciudadanos</strong> apasionados por la transformación digital y el bien común.</p>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Sumérgete en el mundo de las <strong>políticas públicas basadas en evidencia</strong>, el <strong>análisis de datos</strong> y la <strong>IA</strong> aplicada al sector público.</p>
+                <p class="animate-on-scroll fade-in-up">El <strong>Data Driven Day</strong> es una experiencia inmersiva diseñada para <strong>profesionales, académicos, funcionarios y ciudadanos</strong> apasionados por la transformación digital y el bien común.</p>
+                <p class="animate-on-scroll fade-in-up">Sumérgete en el mundo de las <strong>políticas públicas basadas en evidencia</strong>, el <strong>análisis de datos</strong> y la <strong>IA</strong> aplicada al sector público.</p>
+                
+                <!-- Botón de presentación -->
+                <div class="presentation-container animate-on-scroll fade-in-up">
+                    <button type="button" class="presentation-btn" id="openPresentation">
+                        <i class="fas fa-play-circle"></i> Ver Presentación
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -120,27 +135,27 @@
                 <i class="section-icon fas fa-star animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Lo Que Te Llevarás del Data Driven Day</h2>
                 <div class="benefits-grid">
-                    <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0s;">
+                    <div class="benefit-item animate-on-scroll fade-in-up">
                         <i class="fas fa-chart-line"></i>
                         <h3>Cultura Data-Driven</h3>
                         <p>Adopta el pensamiento basado en evidencia y el poder de los datos abiertos.</p>
                     </div>
-                    <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="benefit-item animate-on-scroll fade-in-up">
                         <i class="fas fa-graduation-cap"></i>
                         <h3>Capacitación Clave</h3>
                         <p>Domina conceptos esenciales de datos, análisis y gestión pública moderna.</p>
                     </div>
-                    <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
+                    <div class="benefit-item animate-on-scroll fade-in-up">
                         <i class="fas fa-lightbulb"></i>
                         <h3>Co-Creación</h3>
                         <p>Colabora en la generación de propuestas tangibles para los retos de Hermosillo.</p>
                     </div>
-                    <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                    <div class="benefit-item animate-on-scroll fade-in-up">
                         <i class="fas fa-users"></i>
                         <h3>Networking</h3>
                         <p>Conecta con actores clave del ecosistema público, privado y social.</p>
                     </div>
-                    <div class="benefit-item animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                    <div class="benefit-item animate-on-scroll fade-in-up">
                         <i class="fas fa-book-open"></i>
                         <h3>Booklet Guía</h3>
                         <p>Llévate a casa la guía exclusiva "Datos y Políticas Públicas".</p>
@@ -159,27 +174,22 @@
                     <li class="animate-on-scroll slide-in-right"><strong>9:00 AM:</strong> Inauguración y Bienvenida 🎤🏛️✨</li>
                     <li class="animate-on-scroll slide-in-left"><strong>9:30 AM:</strong> Taller Flash 1: "¿Qué es una Política Pública?" (Tec) 📚🗣️💬</li>
                     <li class="animate-on-scroll slide-in-right"><strong>10:15 AM:</strong> Taller Flash 2: "Hermosillo en Datos" (HmoCV) 📊🏙️🔍</li>
-                    <li class="animate-on-scroll slide-in-left"><strong>11:00 AM:</strong> Coffee Break y Networking ☕🍪🤝</li>
-                    <li class="animate-on-scroll slide-in-right"><strong>11:15 AM:</strong> Taller Flash 3: "Datos para el Bien Público" (ColSon) 💡🤝📈</li>
-                    <li class="animate-on-scroll slide-in-left"><strong>12:00 PM:</strong> Bootcamp: Selección y Desarrollo de Ideas 🚀💡🧠</li>
-                    <li class="animate-on-scroll slide-in-right"><strong>1:00 PM:</strong> Taller Interactivo y Mentoría 👥🛠️✍️</li>
-                    <li class="animate-on-scroll slide-in-left"><strong>2:00 PM:</strong> Pitch de Ideas Preliminares 🎤👏</li>
                     <li class="animate-on-scroll slide-in-right"><strong>2:45 PM:</strong> Próximos Pasos y Cierre 🔚</li>
                 </ul>
             </div>
         </section>
-
+        
         <!-- Sección Expertos -->
         <section id="expertos" class="content-section alt-bg">
             <div class="container">
                 <i class="section-icon fas fa-chalkboard-teacher animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Aprende de Instituciones Líderes</h2>
-                <div class="logos-container animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
-                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Tec+de+Monterrey" alt="Tec de Monterrey Logo" class="partner-logo">
-                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Hermosillo+Como+Vamos" alt="Hermosillo Como Vamos Logo" class="partner-logo">
-                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Colegio+de+Sonora" alt="Colegio de Sonora Logo" class="partner-logo">
+                <div class="logos-container animate-on-scroll fade-in-up">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Tec+de+Monterrey" alt="Logo de Tec de Monterrey - Institución educativa participante" class="partner-logo" width="200" height="100" loading="lazy">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Hermosillo+Como+Vamos" alt="Logo de Hermosillo Como Vamos - Observatorio ciudadano" class="partner-logo" width="200" height="100" loading="lazy">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Colegio+de+Sonora" alt="Logo de Colegio de Sonora - Institución académica participante" class="partner-logo" width="200" height="100" loading="lazy">
                 </div>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">Tec de Monterrey | Hermosillo ¿Cómo vamos? | Colegio de Sonora</p>
+                <p class="animate-on-scroll fade-in-up">Tec de Monterrey | Hermosillo ¿Cómo vamos? | Colegio de Sonora</p>
             </div>
         </section>
 
@@ -188,7 +198,7 @@
             <div class="container">
                 <i class="section-icon fas fa-rocket animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Bootcamp: De la Idea a la Propuesta</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">El corazón del evento. Colabora en equipo, define propuestas (política, programa o iniciativa pública) y recibe mentoría experta. ¡Manos a la obra! 🚀💡🧠</p>
+                <p class="animate-on-scroll fade-in-up">El corazón del evento. Colabora en equipo, define propuestas (política, programa o iniciativa pública) y recibe mentoría experta. ¡Manos a la obra! 🚀💡🧠</p>
             </div>
         </section>
 
@@ -197,12 +207,12 @@
             <div class="container">
                 <i class="section-icon fas fa-forward animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Tu Propuesta Tiene Futuro</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">El Data Driven Day es solo el comienzo:</p>
+                <p class="animate-on-scroll fade-in-up">El Data Driven Day es solo el comienzo:</p>
                 <ul class="post-event-list">
-                    <li class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;"><strong>Sábado Post-Evento:</strong> Sesión clave para definir y afinar el tema final. 🗳️📑🤔</li>
-                    <li class="animate-on-scroll fade-in-up" style="animation-delay: 0.3s;"><strong>Viernes 23 de Mayo:</strong> Presentación Final ante funcionarios y expertos. ¡Tu idea será escuchada! 🏛️📢🤝</li>
+                    <li class="animate-on-scroll fade-in-up"><strong>Sábado Post-Evento:</strong> Sesión clave para definir y afinar el tema final. 🗳️📑🤔</li>
+                    <li class="animate-on-scroll fade-in-up"><strong>Viernes 23 de Mayo:</strong> Presentación Final ante funcionarios y expertos. ¡Tu idea será escuchada! 🏛️📢🤝</li>
                 </ul>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;"><small>(La rúbrica de evaluación se compartirá con los participantes registrados)</small></p>
+                <p class="animate-on-scroll fade-in-up"><small>(La rúbrica de evaluación se compartirá con los participantes registrados)</small></p>
             </div>
         </section>
 
@@ -211,7 +221,7 @@
             <div class="container">
                 <i class="section-icon fas fa-book animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Recurso Exclusivo: Booklet Guía 📖💡</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Llévate la guía "Datos y Políticas Públicas: Transformando la Gestión Pública" (digital e impresa) con conceptos, casos de éxito, ética, herramientas y más.</p>
+                <p class="animate-on-scroll fade-in-up">Llévate la guía "Datos y Políticas Públicas: Transformando la Gestión Pública" (digital e impresa) con conceptos, casos de éxito, ética, herramientas y más.</p>
             </div>
         </section>
 
@@ -220,7 +230,7 @@
             <div class="container">
                 <i class="section-icon fas fa-user-friends animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">¿Este Evento Es Para Ti?</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Perfecto para funcionarios, profesionales, académicos, investigadores, estudiantes, ONGs y cualquier ciudadano comprometido con un Hermosillo basado en datos.</p>
+                <p class="animate-on-scroll fade-in-up">Perfecto para funcionarios, profesionales, académicos, investigadores, estudiantes, ONGs y cualquier ciudadano comprometido con un Hermosillo basado en datos.</p>
             </div>
         </section>
 
@@ -229,12 +239,12 @@
             <div class="container">
                 <i class="section-icon fas fa-map-marked-alt animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Lugar y Detalles</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;"><strong>Lugar:</strong> AVIADA</p>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;"><strong>Dirección:</strong> Banamichi, Las Quintas, 83240 Hermosillo, Sonora</p>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">Contaremos con Wi-Fi y espacios colaborativos.</p>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;"><strong>¿Qué traer?:</strong> Laptop/tablet, cargador ¡y tu mejor actitud! 💻🔋</p>
-                <div class="map-placeholder animate-on-scroll fade-in" style="animation-delay: 0.5s;">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.425440449306!2d-110.96426562523906!3d29.077309282143827!2m3!1f0!2f0!3f0!3m2!1i1024!1i768!4f13.1!3m3!1m2!1s0x86ce815f8815542b%3A0x486fad3c91dd41c0!2sAviada!5e0!3m2!1ses-419!2smx!4v1709533348144!5m2!1ses-419!2smx" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <p class="animate-on-scroll fade-in-up"><strong>Lugar:</strong> AVIADA</p>
+                <p class="animate-on-scroll fade-in-up"><strong>Dirección:</strong> Banamichi, Las Quintas, 83240 Hermosillo, Sonora</p>
+                <p class="animate-on-scroll fade-in-up">Contaremos con Wi-Fi y espacios colaborativos.</p>
+                <p class="animate-on-scroll fade-in-up"><strong>¿Qué traer?:</strong> Laptop/tablet, cargador ¡y tu mejor actitud! 💻🔋</p>
+                <div class="map-placeholder animate-on-scroll fade-in">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.425440449306!2d-110.96426562523906!3d29.077309282143827!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86ce815f8815542b%3A0x486fad3c91dd41c0!2sAviada!5e0!3m2!1ses-419!2smx!4v1709533348144!5m2!1ses-419!2smx" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </section>
@@ -244,9 +254,11 @@
             <div class="container">
                 <i class="section-icon fas fa-sitemap animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Organizan y Colaboran</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Presentado por: [*Nombre(s) de la(s) organización(es) principal(es)*]</p>
-                <div class="logos-container animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
-                    <p>[Espacio para Logos de Organizadores y Partners]</p>
+                <p class="animate-on-scroll fade-in-up">Presentado por: Laboratorio de Innovación Pública de Hermosillo y Observatorio Ciudadano</p>
+                <div class="logos-container animate-on-scroll fade-in-up">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Laboratorio+de+Innovación" alt="Logo de Laboratorio de Innovación Pública de Hermosillo" class="partner-logo" width="200" height="100" loading="lazy">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Observatorio+Ciudadano" alt="Logo de Observatorio Ciudadano" class="partner-logo" width="200" height="100" loading="lazy">
+                    <img src="https://via.placeholder.com/200x100/f8f9fa/4E8AB0/?text=Ayuntamiento+de+Hermosillo" alt="Logo de Ayuntamiento de Hermosillo" class="partner-logo" width="200" height="100" loading="lazy">
                 </div>
             </div>
         </section>
@@ -256,13 +268,13 @@
             <div class="container">
                 <i class="section-icon fas fa-rss animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Nuestro Blog</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Explora nuestros artículos sobre análisis de datos y políticas públicas</p>
+                <p class="animate-on-scroll fade-in-up">Explora nuestros artículos sobre análisis de datos y políticas públicas</p>
                 
                 <div class="blog-featured-grid">
                     <!-- Entrada de blog 1 -->
-                    <article class="blog-card animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
+                    <article class="blog-card animate-on-scroll fade-in-up">
                         <div class="blog-image">
-                            <img src="https://via.placeholder.com/800x450/4E8AB0/FFFFFF?text=An%C3%A1lisis+de+datos" alt="Análisis de datos en políticas públicas" loading="lazy">
+                            <img src="https://via.placeholder.com/800x450/4E8AB0/FFFFFF?text=An%C3%A1lisis+de+datos" alt="Gráficas y visualizaciones para análisis de datos en políticas públicas" loading="lazy" width="800" height="450">
                             <span class="blog-category">Metodología</span>
                         </div>
                         <div class="blog-content">
@@ -277,9 +289,9 @@
                     </article>
 
                     <!-- Entrada de blog 2 -->
-                    <article class="blog-card animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                    <article class="blog-card animate-on-scroll fade-in-up">
                         <div class="blog-image">
-                            <img src="https://via.placeholder.com/800x450/1E1E24/FFFFFF?text=Smart+Cities" alt="Ciudades inteligentes basadas en datos" loading="lazy">
+                            <img src="https://via.placeholder.com/800x450/1E1E24/FFFFFF?text=Smart+Cities" alt="Ciudades inteligentes basadas en datos" loading="lazy" width="800" height="450">
                             <span class="blog-category">Casos de éxito</span>
                         </div>
                         <div class="blog-content">
@@ -294,7 +306,7 @@
                     </article>
                 </div>
                 
-                <div class="blog-view-all animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                <div class="blog-view-all animate-on-scroll fade-in-up">
                     <a href="blogs.html" class="cta-button">Ver todos los artículos</a>
                 </div>
             </div>
@@ -305,8 +317,8 @@
             <div class="container">
                 <i class="section-icon fas fa-clipboard-check animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">¡Tu Lugar Te Espera!</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Los cupos son limitados. No te quedes fuera de esta jornada transformadora.</p>
-                <a href="https://forms.gle/example123456" target="_blank" class="cta-button large animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">¡Inscríbete Aquí!</a>
+                <p class="animate-on-scroll fade-in-up">Los cupos son limitados. No te quedes fuera de esta jornada transformadora.</p>
+                <a href="https://forms.gle/example123456" target="_blank" class="cta-button large animate-on-scroll fade-in-up">¡Inscríbete Aquí!</a>
             </div>
         </section>
 
@@ -315,9 +327,9 @@
             <div class="container">
                 <i class="section-icon far fa-envelope animate-on-scroll fade-in"></i>
                 <h2 class="animate-on-scroll fade-in-up">Contacto</h2>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Email: <a href="mailto:contacto@datadrivenday.mx">contacto@datadrivenday.mx</a></p>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">Teléfono: (662) 123-4567</p>
-                <div class="social-media animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                <p class="animate-on-scroll fade-in-up">Email: <a href="mailto:contacto@datadrivenday.mx">contacto@datadrivenday.mx</a></p>
+                <p class="animate-on-scroll fade-in-up">Teléfono: (662) 123-4567</p>
+                <div class="social-media animate-on-scroll fade-in-up">
                     <p>Síguenos:</p>
                     <a href="https://facebook.com/datadrivenday" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://twitter.com/datadrivenday" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
@@ -325,7 +337,7 @@
                     <a href="https://instagram.com/datadrivenday" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     <span>@DataDrivenDayMx</span>
                 </div>
-                <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">Sitio Web: <a href="http://www.datadrivenday.mx" target="_blank">www.datadrivenday.mx</a></p>
+                <p class="animate-on-scroll fade-in-up">Sitio Web: <a href="http://www.datadrivenday.mx" target="_blank">www.datadrivenday.mx</a></p>
             </div>
         </section>
 
@@ -336,7 +348,7 @@
                 <h2 class="animate-on-scroll fade-in-up">Preguntas Frecuentes</h2>
                 
                 <div class="faq-container">
-                    <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="faq-item animate-on-scroll fade-in-up">
                         <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">
                             ¿Necesito conocimientos previos para participar?
                             <span class="sr-only">Abrir respuesta</span>
@@ -346,7 +358,7 @@
                         </div>
                     </div>
                     
-                    <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.2s;">
+                    <div class="faq-item animate-on-scroll fade-in-up">
                         <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">
                             ¿El evento tiene algún costo?
                             <span class="sr-only">Abrir respuesta</span>
@@ -356,7 +368,7 @@
                         </div>
                     </div>
                     
-                    <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.3s;">
+                    <div class="faq-item animate-on-scroll fade-in-up">
                         <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-3">
                             ¿Recibiré alguna constancia por participar?
                             <span class="sr-only">Abrir respuesta</span>
@@ -366,7 +378,7 @@
                         </div>
                     </div>
                     
-                    <div class="faq-item animate-on-scroll fade-in-up" style="animation-delay: 0.4s;">
+                    <div class="faq-item animate-on-scroll fade-in-up">
                         <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-4">
                             ¿Puedo formar parte del equipo organizador?
                             <span class="sr-only">Abrir respuesta</span>
@@ -379,6 +391,115 @@
             </div>
         </section>
     </main>
+    
+    <!-- Modal de Presentación -->
+    <div id="presentationModal" class="modal">
+        <div class="preloader" id="presentationPreloader">
+            <div class="spinner"></div>
+            <div class="preloader-text">Cargando presentación...</div>
+        </div>
+        
+        <span class="close">&times;</span>
+        <div class="modal-content presentation-modal">
+            <div class="presentation">
+                <button class="nav-btn-fs prev" id="fsNavPrev" type="button">←</button>
+                <button class="nav-btn-fs next" id="fsNavNext" type="button">→</button>
+                
+                <!-- Slide 1: Welcome -->
+                <div class="slide active">
+                    <div class="slide-content">
+                        <h2 class="slide-title">¡Data Driven Day Está Aquí! 🚀</h2>
+                        <h3 class="slide-subtitle">Transformando Hermosillo con Datos</h3>
+                        
+                        <div class="badge-container">
+                            <span class="badge">17 Mayo</span>
+                            <span class="badge">9:00 AM - 3:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Data Power -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2 class="slide-title highlight-title">El Poder de los Datos en Gobierno 📊</h2>
+                        <p class="slide-text highlight-box">Los datos permiten transformar la gestión municipal, revelando patrones ocultos y optimizando recursos para mejorar la calidad de vida de los ciudadanos mediante políticas públicas basadas en evidencia.</p>
+                    </div>
+                </div>
+
+                <!-- Slide 3: What to expect -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2 class="slide-title">¿Qué Te Espera? 🎯</h2>
+                        
+                        <div class="icon-grid">
+                            <div class="icon-item">
+                                <div class="icon-circle">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <p>Talleres Flash</p>
+                            </div>
+                            
+                            <div class="icon-item">
+                                <div class="icon-circle">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <p>Bootcamp Innovador</p>
+                            </div>
+                            
+                            <div class="icon-item">
+                                <div class="icon-circle">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <p>Networking</p>
+                            </div>
+                            
+                            <div class="icon-item">
+                                <div class="icon-circle">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                                <p>Recursos Exclusivos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Impact Stats -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2 class="slide-title">Impacto en Políticas Públicas 📈</h2>
+                        
+                        <ul class="impact-list">
+                            <li><strong>Eficiencia:</strong> Mejora del 65% en operaciones</li>
+                            <li><strong>Participación:</strong> Incremento del 42% en involucramiento ciudadano</li>
+                            <li><strong>Transparencia:</strong> Aumento del 78% en percepción de transparencia</li>
+                            <li><strong>Servicios:</strong> Satisfacción ciudadana mejorada en un 58%</li>
+                            <li><strong>Sostenibilidad:</strong> Reducción del 35% en uso de recursos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Slide 5: Call to Action -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2 class="slide-title">¡El Futuro es Data-Driven! 🚀</h2>
+                        <p class="slide-text-large">¡Únete a nosotros y transforma Hermosillo! 🌆</p>
+                        
+                        <div class="cta-buttons">
+                            <a href="#registro" class="slide-btn primary">Registrarme</a>
+                            <a href="#que-es" class="slide-btn outline">Más información</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="presentation-controls">
+                <button type="button" class="nav-btn" id="prevSlide"><i class="fas fa-chevron-left"></i> Anterior</button>
+                <span class="slide-indicator" id="slideCounter">1 / 5</span>
+                <button type="button" class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                <button type="button" class="nav-btn" id="nextSlide">Siguiente <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
 
     <footer role="contentinfo">
         <div class="container footer-content">
@@ -418,6 +539,47 @@
         <span class="sr-only">Volver arriba</span>
     </a>
 
+    <!-- Datos estructurados para SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Data Driven Day: Transformando Datos en Políticas Públicas",
+      "description": "Jornada intensiva donde convertiremos datos en acciones concretas para el futuro de Hermosillo.",
+      "startDate": "2025-05-17T09:00",
+      "endDate": "2025-05-17T15:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "AVIADA",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Banamichi, Las Quintas",
+          "addressLocality": "Hermosillo",
+          "addressRegion": "Sonora",
+          "postalCode": "83240",
+          "addressCountry": "MX"
+        }
+      },
+      "image": ["https://www.datadrivenday.mx/og-image.jpg"],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "MXN",
+        "availability": "https://schema.org/LimitedAvailability",
+        "url": "https://www.datadrivenday.mx/#registro",
+        "validFrom": "2025-01-01"
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Laboratorio de Innovación Pública de Hermosillo",
+        "url": "https://www.datadrivenday.mx"
+      }
+    }
+    </script>
+
+    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>

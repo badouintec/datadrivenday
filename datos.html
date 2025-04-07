@@ -242,6 +242,14 @@
     <!-- Contenido principal -->
     <main id="main-content" class="blog-main">
         <div class="container">
+            <!-- Añadir barra de búsqueda -->
+            <div class="data-search-container">
+                <form class="search-form" role="search">
+                    <input type="search" placeholder="Buscar datos, tutoriales y proyectos..." aria-label="Buscar en datos">
+                    <button type="submit" aria-label="Enviar búsqueda"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
             <!-- Introducción -->
             <section class="content-section">
                 <div class="container">
@@ -529,7 +537,6 @@
                                     </div>
                                 </div>
                                 <p>Un sistema que combina datos del INEGI y sensores ciudadanos para monitorear y visualizar la calidad del aire en diferentes zonas de Hermosillo, con alertas y recomendaciones para habitantes y autoridades.</p>
-                                
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: var(--border-radius); margin: 15px 0;">
                                     <h4>Testimonios</h4>
                                     <p><em>"Este proyecto nos permitió identificar patrones de contaminación que no eran evidentes en los informes oficiales, y ahora estamos trabajando con autoridades municipales para implementar medidas correctivas." - María Fernández, Líder del Proyecto</em></p>
@@ -543,7 +550,6 @@
                             <div class="data-source-card">
                                 <h3 style="margin-top: 0;">¿Tienes un proyecto que utilice datos abiertos?</h3>
                                 <p>Si has desarrollado un proyecto utilizando datos abiertos que contribuya a mejorar las políticas públicas en Hermosillo o México, compártelo con nuestra comunidad.</p>
-                                
                                 <a href="#" class="data-source-link">
                                     <i class="fas fa-upload"></i> Enviar mi Proyecto
                                 </a>
@@ -559,11 +565,9 @@
                     <i class="section-icon fas fa-comments animate-on-scroll fade-in"></i>
                     <h2 class="animate-on-scroll fade-in-up">Foro de Discusión</h2>
                     <p class="animate-on-scroll fade-in-up" style="animation-delay: 0.1s;">Únete a la conversación para compartir dudas, ideas y soluciones sobre el análisis de datos abiertos.</p>
-                    
                     <div class="data-source-card" style="text-align: center;">
                         <h3 style="margin-top: 0;">¿Necesitas ayuda o quieres compartir conocimiento?</h3>
                         <p>Nuestro foro es un espacio para que la comunidad colabore y aprenda sobre datos abiertos, análisis y su aplicación en políticas públicas.</p>
-                        
                         <a href="#" class="cta-button large animate-on-scroll pulse" style="animation-delay: 0.3s;">
                             <i class="fas fa-sign-in-alt"></i> Acceder al Foro
                         </a>
@@ -572,7 +576,7 @@
             </section>
         </div>
     </main>
-
+    
     <!-- CTA para evento -->
     <section class="blog-cta">
         <div class="container">
@@ -581,7 +585,7 @@
             <a href="index.html#registro" class="cta-button large">¡Regístrate Ahora!</a>
         </div>
     </section>
-
+    
     <footer role="contentinfo">
         <div class="container footer-content">
             <div class="footer-logo">
@@ -621,151 +625,7 @@
         <span class="sr-only">Volver arriba</span>
     </a>
 
-    <!-- Script para gráficos de ejemplo -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configurar gráficos de ejemplo
-            setupCharts();
-            
-            // Configurar pestañas
-            setupTabs();
-        });
-        
-        function setupCharts() {
-            // Gráfico 1: Población de Hermosillo
-            const populationData = {
-                labels: ['2010', '2012', '2014', '2016', '2018', '2020', '2022', '2023'],
-                datasets: [{
-                    label: 'Población (miles de habitantes)',
-                    data: [715, 739, 768, 785, 812, 855, 873, 890],
-                    backgroundColor: 'rgba(78, 138, 176, 0.2)',
-                    borderColor: 'rgba(78, 138, 176, 1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
-                }]
-            };
-            
-            new Chart(document.getElementById('populationChart'), {
-                type: 'line',
-                data: populationData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: { display: false },
-                        tooltip: { mode: 'index', intersect: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            title: { display: true, text: 'Miles de habitantes' }
-                        }
-                    }
-                }
-            });
-            
-            // Gráfico 2: Comparativa económica
-            const economicData = {
-                labels: ['Hermosillo', 'Promedio Nacional'],
-                datasets: [
-                    {
-                        label: 'Ingreso per cápita (miles de pesos)',
-                        data: [187, 168],
-                        backgroundColor: 'rgba(78, 138, 176, 0.7)'
-                    },
-                    {
-                        label: 'Desempleo (%)',
-                        data: [3.4, 4.2],
-                        backgroundColor: 'rgba(168, 213, 239, 0.7)'
-                    },
-                    {
-                        label: 'Índice de Desarrollo Humano',
-                        data: [0.82, 0.75],
-                        backgroundColor: 'rgba(30, 30, 36, 0.7)'
-                    }
-                ]
-            };
-            
-            new Chart(document.getElementById('economicChart'), {
-                type: 'bar',
-                data: economicData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-            
-            // Gráfico 3: Presupuesto
-            const budgetData = {
-                labels: [
-                    'Educación',
-                    'Salud',
-                    'Seguridad',
-                    'Infraestructura',
-                    'Servicios Públicos',
-                    'Otros'
-                ],
-                datasets: [{
-                    label: 'Presupuesto 2023 (%)',
-                    data: [28, 22, 18, 15, 12, 5],
-                    backgroundColor: [
-                        'rgba(78, 138, 176, 0.8)',
-                        'rgba(168, 213, 239, 0.8)',
-                        'rgba(109, 116, 127, 0.8)',
-                        'rgba(30, 30, 36, 0.8)',
-                        'rgba(78, 138, 176, 0.5)',
-                        'rgba(168, 213, 239, 0.5)'
-                    ],
-                    hoverOffset: 4
-                }]
-            };
-            
-            new Chart(document.getElementById('budgetChart'), {
-                type: 'pie',
-                data: budgetData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right' }
-                    }
-                }
-            });
-        }
-        
-        function setupTabs() {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Desactivar todas las pestañas
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // Activar la pestaña seleccionada
-                    button.classList.add('active');
-                    const tabId = button.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    // Si la pestaña es visualizaciones, actualizar gráficos (por si hay problemas de renderizado)
-                    if(tabId === 'visualizaciones') {
-                        setTimeout(() => {
-                            setupCharts();
-                        }, 100);
-                    }
-                });
-            });
-        }
-    </script>
-
     <script src="script.js"></script>
+    <script src="busqueda.js"></script>
 </body>
 </html>
