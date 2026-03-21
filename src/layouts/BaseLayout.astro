@@ -1,0 +1,214 @@
+---
+import '../styles/global.css';
+import { navigation, site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = site.title,
+  description = site.description
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
+    <!-- Noise overlay -->
+    <svg class="noise-overlay" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+      <rect width="100%" height="100%" filter="url(#noise)"/>
+    </svg>
+
+    <!-- Scroll progress -->
+    <div class="scroll-progress-bar" id="scroll-progress" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="page-shell nav-shell">
+        <div class="site-nav">
+          <a class="brand-lockup" href="/">
+            <span class="brand-mark">DD</span>
+            <span class="brand-copy">
+              <strong>{site.name}</strong>
+              <small>Hermosillo 2026 &middot; datos, ciudad e inteligencia aplicada</small>
+            </span>
+          </a>
+
+          <nav class="nav-links" aria-label="Principal">
+            {navigation.map((item) => (
+              <a
+                href={item.href}
+                class={item.href === '/admin' ? 'nav-cta' : undefined}
+              >{item.label}</a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell footer-panel">
+        <div class="footer-brand">
+          <strong>{site.name}</strong>
+          <p class="footer-copy">Una conversacion abierta sobre soberania de datos, infraestructura critica y decisiones publicas asistidas por inteligencia aplicada.</p>
+          <p class="footer-copy" style="margin-top:0.5rem">Hermosillo, Sonora &mdash; 2026</p>
+        </div>
+        <div class="footer-meta">
+          <div>
+            <p class="footer-label">Temas 2026</p>
+            <div class="tag-row">
+              <span class="tag">Soberania de datos</span>
+              <span class="tag">Infraestructura critica</span>
+              <span class="tag">Salud de precision</span>
+              <span class="tag">Geointeligencia</span>
+              <span class="tag">Trazabilidad</span>
+              <span class="tag">IA aplicada</span>
+            </div>
+          </div>
+          <div>
+            <p class="footer-label">Dataller de IA</p>
+            <p class="footer-copy">28 de marzo de 2026 &mdash; Hermosillo, Sonora</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // ── SCROLL PROGRESS ──────────────────────────────────────
+      const progressBar = document.getElementById('scroll-progress');
+      if (progressBar) {
+        window.addEventListener('scroll', () => {
+          const total = document.documentElement.scrollHeight - window.innerHeight;
+          const pct   = total > 0 ? (window.scrollY / total) * 100 : 0;
+          progressBar.style.width = pct + '%';
+        }, { passive: true });
+      }
+
+      // ── NON-CRITICAL OBSERVERS (deferred via requestIdleCallback) ─
+      const initNonCritical = () => {
+
+      // ── SCROLL REVEAL ───────────────────────────────────────
+      const revealObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('[data-animate]').forEach(el => revealObs.observe(el));
+
+      // ── METRIC COUNTERS + BARS ────────────────────────────────
+      function animCounter(el: HTMLElement) {
+        const raw   = el.dataset.counterTarget ?? el.textContent ?? '';
+        const match = raw.match(/^([\d.]+)(.*)/);
+        if (!match) return;
+        const end    = parseFloat(match[1]);
+        const suffix = match[2];
+        const dur    = 1400;
+        const t0     = performance.now();
+        const tick   = (now: number) => {
+          const p = Math.min((now - t0) / dur, 1);
+          const e = 1 - Math.pow(1 - p, 3);
+          const v = Number.isInteger(end) ? Math.round(end * e) : Math.round(end * e * 10) / 10;
+          el.textContent = v + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+
+      const metricObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const card = entry.target as HTMLElement;
+          card.classList.add('is-visible');
+          const num = card.querySelector('[data-counter]') as HTMLElement | null;
+          if (num) animCounter(num);
+          const bar = card.querySelector('[data-bar-width]') as HTMLElement | null;
+          if (bar) {
+            const w = bar.dataset.barWidth ?? '0';
+            requestAnimationFrame(() => { bar.style.width = w + '%'; });
+          }
+          metricObs.unobserve(card);
+        });
+      }, { threshold: 0.3 });
+      document.querySelectorAll('.metric-card').forEach(el => metricObs.observe(el));
+
+      // ── TECH ROWS CASCADE + STRIKETHROUGH ────────────────────
+      const techObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const grid = entry.target;
+          const rows = grid.querySelectorAll('.tech-row');
+          rows.forEach((row, i) => {
+            setTimeout(() => {
+              row.classList.add('is-visible');
+              if (row.classList.contains('is-legacy')) {
+                row.classList.add('strike-visible');
+              }
+            }, i * 70);
+          });
+          techObs.unobserve(grid);
+        });
+      }, { threshold: 0.1 });
+      const tg = document.querySelector('.tech-grid');
+      if (tg) techObs.observe(tg);
+
+      }; // end initNonCritical
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initNonCritical);
+      } else {
+        setTimeout(initNonCritical, 100);
+      }
+
+      // ── RESOURCE FILTER ───────────────────────────────────────
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('is-active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          btn.classList.add('is-active');
+          btn.setAttribute('aria-pressed', 'true');
+          const filter = (btn as HTMLElement).dataset.filter ?? 'all';
+          document.querySelectorAll('.resource-card').forEach(card => {
+            const cat = (card as HTMLElement).dataset.category ?? '';
+            card.classList.toggle('is-filtered', filter !== 'all' && cat !== filter);
+          });
+        });
+      });
+
+    </script>
+  </body>
+</html>

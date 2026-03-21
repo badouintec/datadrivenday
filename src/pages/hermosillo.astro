@@ -1,0 +1,1078 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Hermosillo en datos · Data Driven Day 2026"
+  description="Dashboard de indicadores urbanos de Hermosillo: movilidad, agua, economía y oportunidades. Basado en el informe Growth Lab Harvard Kennedy School 2024."
+>
+  <Fragment slot="head">
+    <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </Fragment>
+
+  <!-- ══ PAGE HEADER ════════════════════════════════════════════ -->
+  <div class="hermo-header">
+    <div class="page-shell">
+      <span class="hermo-eyebrow">DATOS ABIERTOS · GROWTH LAB HARVARD · HERMOSILLO ¿CÓMO VAMOS? · 2025</span>
+      <h1 class="hermo-title">Hermosillo<br /><em>en datos</em></h1>
+      <p class="hermo-subtitle">
+        Dashboard de indicadores urbanos basado en el informe
+        <a href="https://growthlab.hks.harvard.edu/policy-research/economic-growth-strategies-hermosillo" target="_blank" rel="noopener">
+          Hermosillo con futuro
+        </a>
+        (Growth Lab · Harvard Kennedy School · 2024) y datos de Hermosillo ¿Cómo Vamos?
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ DATA STATUS BAR ════════════════════════════════════════ -->
+  <div id="data-status" class="hermo-status" hidden>
+    <div class="page-shell">
+      <span id="data-status-text" class="hermo-status-text">Cargando datos…</span>
+    </div>
+  </div>
+
+  <!-- ══ TAB NAV ════════════════════════════════════════════════ -->
+  <div class="hermo-nav-wrap">
+    <div class="page-shell">
+      <nav class="hermo-tabs" role="tablist">
+        <button class="htab htab--active" data-tab="movilidad" role="tab" aria-selected="true"  aria-controls="tab-movilidad">Movilidad</button>
+        <button class="htab"              data-tab="agua"       role="tab" aria-selected="false" aria-controls="tab-agua">Agua</button>
+        <button class="htab"              data-tab="economia"   role="tab" aria-selected="false" aria-controls="tab-economia">Economía</button>
+        <button class="htab"              data-tab="oportunidades" role="tab" aria-selected="false" aria-controls="tab-oportunidades">Oportunidades</button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ══ TAB CONTENT ═══════════════════════════════════════════ -->
+  <div class="page-shell hermo-content">
+
+    <!-- ── MOVILIDAD ─────────────────────────────────────────── -->
+    <section id="tab-movilidad" class="htab-section htab-section--active" role="tabpanel">
+      <div class="hermo-kpi-row">
+        <div class="hkpi hkpi--heat">
+          <span class="hkpi-value">23.8<small>%</small></span>
+          <span class="hkpi-label">Modal TP 2024</span>
+          <span class="hkpi-delta hkpi-delta--heat">↓ fue 35.4% en 2019</span>
+        </div>
+        <div class="hkpi hkpi--heat">
+          <span class="hkpi-value">$723<small>M</small></span>
+          <span class="hkpi-label">Subsidio 2024</span>
+          <span class="hkpi-delta hkpi-delta--heat">↑ +680% desde 2019</span>
+        </div>
+        <div class="hkpi hkpi--amber">
+          <span class="hkpi-value">3</span>
+          <span class="hkpi-label">Transbordos máx.</span>
+          <span class="hkpi-delta">Norte → Sur de la ciudad</span>
+        </div>
+        <div class="hkpi hkpi--data">
+          <span class="hkpi-value">24.3<small>M</small></span>
+          <span class="hkpi-label">Viajes 2024</span>
+          <span class="hkpi-delta">vs 32.2M en pico (2022)</span>
+        </div>
+      </div>
+
+      <div class="hchart-grid">
+        <div class="hchart-panel hchart-panel--wide">
+          <p class="hchart-title">Reparto modal 2019 – 2024</p>
+          <p class="hchart-sub">% población por modo · Transporte público vs vehículo privado</p>
+          <div class="hchart-wrap hchart-wrap--xl"><canvas id="chartModalTrend" data-animate></canvas></div>
+        </div>
+      </div>
+
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Distribución modal 2019</p>
+          <p class="hchart-sub">% por modo de transporte</p>
+          <div class="hchart-wrap"><canvas id="chartPie2019" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Distribución modal 2024</p>
+          <p class="hchart-sub">% por modo de transporte</p>
+          <div class="hchart-wrap"><canvas id="chartPie2024" data-animate></canvas></div>
+        </div>
+      </div>
+
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Uso TP por zona 2019 – 2024</p>
+          <p class="hchart-sub">% de residentes que usan transporte público</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartZonas" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Subsidio al fideicomiso UNE</p>
+          <p class="hchart-sub">Millones de pesos · 2019 – 2024</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartSubsidio" data-animate></canvas></div>
+        </div>
+      </div>
+
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Recaudo y viajes realizados</p>
+          <p class="hchart-sub">Ingresos por tarifa (mdp) y millones de viajes</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartRecaudo" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Dependencia del subsidio</p>
+          <p class="hchart-sub">Subsidio como % del gasto total del sistema</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartDepSubsidio" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-source">Fuente: Hermosillo ¿Cómo Vamos? · IMTES · Encuesta de Percepción Ciudadana 2024 · Fideicomiso de Recaudación F/1219</div>
+    </section>
+
+    <!-- ── AGUA ──────────────────────────────────────────────── -->
+    <section id="tab-agua" class="htab-section" role="tabpanel" hidden>
+      <div class="hermo-kpi-row">
+        <div class="hkpi hkpi--heat">
+          <span class="hkpi-value">35<small>%</small></span>
+          <span class="hkpi-label">Asequibilidad empresarial</span>
+          <span class="hkpi-delta hkpi-delta--heat">Hermosillo · vs 50% nacional</span>
+        </div>
+        <div class="hkpi hkpi--go">
+          <span class="hkpi-value">73<small>%</small></span>
+          <span class="hkpi-label">Satisfacción servicio</span>
+          <span class="hkpi-delta hkpi-delta--go">↑ fue 54% en 2016</span>
+        </div>
+        <div class="hkpi hkpi--heat">
+          <span class="hkpi-value">−15<small>pp</small></span>
+          <span class="hkpi-label">Brecha vs promedio MX</span>
+          <span class="hkpi-delta">Impuesto oculto a competitividad</span>
+        </div>
+        <div class="hkpi hkpi--amber">
+          <span class="hkpi-value">3</span>
+          <span class="hkpi-label">Acuíferos sobreexplotados</span>
+          <span class="hkpi-delta">Extracción > recarga natural</span>
+        </div>
+      </div>
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Asequibilidad del agua · empresas</p>
+          <p class="hchart-sub">% de empresas que consideran el agua asequible</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartAguaComp" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Satisfacción con el servicio de agua</p>
+          <p class="hchart-sub">% satisfacción empresarial · 2016 – 2020</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartAguaSatisf" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-grid">
+        <div class="hchart-panel hchart-panel--wide">
+          <p class="hchart-title">Indicadores hídricos · radar comparativo</p>
+          <p class="hchart-sub">Hermosillo vs promedios nacionales (escala 0–100)</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartAguaRadar" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-source">Fuente: Growth Lab, Harvard Kennedy School (2024) · Hermosillo ¿Cómo Vamos? · OOMAPAS · CONAGUA</div>
+    </section>
+
+    <!-- ── ECONOMÍA ──────────────────────────────────────────── -->
+    <section id="tab-economia" class="htab-section" role="tabpanel" hidden>
+      <div class="hermo-kpi-row">
+        <div class="hkpi hkpi--heat">
+          <span class="hkpi-value">8°<small>/8</small></span>
+          <span class="hkpi-label">Ranking diversificación</span>
+          <span class="hkpi-delta hkpi-delta--heat">Último entre ciudades comparables</span>
+        </div>
+        <div class="hkpi hkpi--go">
+          <span class="hkpi-value">1,423<small>MW</small></span>
+          <span class="hkpi-label">Capacidad solar Sonora</span>
+          <span class="hkpi-delta hkpi-delta--go">Mayor del país · base del powershoring</span>
+        </div>
+        <div class="hkpi hkpi--go">
+          <span class="hkpi-value">+15<small>%</small></span>
+          <span class="hkpi-label">Crecimiento digital anual</span>
+          <span class="hkpi-delta hkpi-delta--go">Servicios digitales EUA→MX</span>
+        </div>
+        <div class="hkpi hkpi--amber">
+          <span class="hkpi-value">2010<span class="hkpi-sep">→</span>2020</span>
+          <span class="hkpi-label">Periodo de análisis Harvard</span>
+          <span class="hkpi-delta">Evolución de complejidad económica</span>
+        </div>
+      </div>
+      <div class="hchart-grid">
+        <div class="hchart-panel hchart-panel--wide">
+          <p class="hchart-title">Diversificación industrial relativa · ciudades benchmark</p>
+          <p class="hchart-sub">Índice de nuevas industrias 2010–2020 (Harvard Growth Lab). Hermosillo = último lugar.</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartDiversificacion" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Capacidad solar · top 5 estados MX</p>
+          <p class="hchart-sub">Megawatts instalados · base del powershoring en Sonora</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartSolar" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Crecimiento exportaciones de servicios digitales</p>
+          <p class="hchart-sub">Índice acumulado (base 100 = 2020) · mercado EUA–México</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartDigital" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-source">Fuente: Growth Lab, Harvard Kennedy School (2024) · SENER · IRENA 2025 · U.S. BEA Trade in Services</div>
+    </section>
+
+    <!-- ── OPORTUNIDADES ─────────────────────────────────────── -->
+    <section id="tab-oportunidades" class="htab-section" role="tabpanel" hidden>
+      <div class="hermo-kpi-row">
+        <div class="hkpi hkpi--data">
+          <span class="hkpi-value">3</span>
+          <span class="hkpi-label">Olas de oportunidad</span>
+          <span class="hkpi-delta">Nearshoring · Powershoring · Digital</span>
+        </div>
+        <div class="hkpi hkpi--go">
+          <span class="hkpi-value">$9.2<small>B</small></span>
+          <span class="hkpi-label">Importaciones Arizona</span>
+          <span class="hkpi-delta hkpi-delta--go">Insumos que Hermosillo puede producir</span>
+        </div>
+        <div class="hkpi hkpi--go">
+          <span class="hkpi-value">1,423<small>MW</small></span>
+          <span class="hkpi-label">Solar Sonora</span>
+          <span class="hkpi-delta hkpi-delta--go">Ventaja competitiva powershoring</span>
+        </div>
+        <div class="hkpi hkpi--data">
+          <span class="hkpi-value">AZ<span class="hkpi-sep">→</span>HMO</span>
+          <span class="hkpi-label">Corredor Sonora-Arizona</span>
+          <span class="hkpi-delta">Integración de cadena de valor</span>
+        </div>
+      </div>
+      <div class="hchart-grid">
+        <div class="hchart-panel hchart-panel--wide">
+          <p class="hchart-title">Importaciones de Arizona · sectores clave</p>
+          <p class="hchart-sub">Miles de millones USD · oportunidad de sustitución desde Hermosillo (corredor Sonora-Arizona)</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartNearshoring" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-grid hchart-grid--2col">
+        <div class="hchart-panel">
+          <p class="hchart-title">Capacidades locales por ola de oportunidad</p>
+          <p class="hchart-sub">Evaluación relativa de ventajas de Hermosillo (0–10)</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartCapacidades" data-animate></canvas></div>
+        </div>
+        <div class="hchart-panel">
+          <p class="hchart-title">Mix energético · Sonora vs promedio nacional</p>
+          <p class="hchart-sub">% de generación eléctrica por fuente</p>
+          <div class="hchart-wrap hchart-wrap--tall"><canvas id="chartEnergia" data-animate></canvas></div>
+        </div>
+      </div>
+      <div class="hchart-source">Fuente: Growth Lab, Harvard Kennedy School (2024) · U.S. Census Bureau · SENER 2024 · Hermosillo ¿Cómo Vamos?</div>
+    </section>
+
+  </div><!-- /page-shell hermo-content -->
+
+  <!-- ══ PAGE FOOTER ════════════════════════════════════════════ -->
+  <div class="hermo-page-footer page-shell">
+    <p class="hermo-cita">
+      Hermosillo ¿Cómo Vamos? (2025). <em>Hermosillo con futuro: cómo podemos acelerar su crecimiento.</em>
+      Hermosillo, México: Observatorio para la Competitividad y el Desarrollo de Sonora A.C.
+      Licencia Creative Commons BY-NC-SA 4.0.
+    </p>
+    <p class="hermo-cita">
+      Basado en: Growth Lab, Harvard Kennedy School (2024). <em>Crecimiento a través de la Diversificación en Hermosillo.</em>
+      Ricardo Hausmann (dir.), Andrés Fortunato, Douglas Barrios et al.
+      <a href="https://growthlab.hks.harvard.edu/policy-research/economic-growth-strategies-hermosillo" target="_blank" rel="noopener">growthlab.hks.harvard.edu</a>
+    </p>
+  </div>
+
+</BaseLayout>
+
+<style>
+/* ── Tokens & reset ──────────────────────────────────────────── */
+:root {
+  --hf-base: 15px;
+  --hf-sm:   13px;
+  --hf-xs:   11.5px;
+  --hf-label: 12px;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.hermo-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 4rem 0 3.5rem;
+}
+.hermo-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+}
+.hermo-title {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 9vw, 7rem);
+  font-weight: 800;
+  line-height: 0.9;
+  color: var(--color-text-primary);
+  letter-spacing: -0.035em;
+  margin-bottom: 1.5rem;
+}
+.hermo-title em {
+  font-style: normal;
+  color: var(--color-accent-sky);
+}
+.hermo-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  max-width: 640px;
+}
+.hermo-subtitle a {
+  color: var(--color-accent-sky);
+  border-bottom: 1px solid rgba(96,165,250,0.35);
+  transition: border-color 0.15s;
+}
+.hermo-subtitle a:hover { border-color: var(--color-accent-sky); }
+
+/* ── Status bar ──────────────────────────────────────────────── */
+.hermo-status {
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.45rem 0;
+}
+.hermo-status-text {
+  font-family: var(--mono);
+  font-size: var(--hf-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+}
+.hermo-status-text.is-error { color: var(--color-accent-heat); }
+.hermo-status-text.is-ok    { color: var(--color-accent-go); }
+
+/* ── Tab nav ─────────────────────────────────────────────────── */
+.hermo-nav-wrap {
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 62px;
+  z-index: 50;
+}
+.hermo-tabs {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.hermo-tabs::-webkit-scrollbar { display: none; }
+.htab {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 1.1rem 1.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.htab:hover { color: var(--color-text-primary); }
+.htab--active {
+  color: var(--color-accent-sky);
+  border-bottom-color: var(--color-accent-blue);
+}
+
+/* ── Content ─────────────────────────────────────────────────── */
+.hermo-content {
+  padding-top: 2.5rem;
+  padding-bottom: 5rem;
+}
+.htab-section { display: none; }
+.htab-section--active { display: block; }
+
+/* ── KPI row ─────────────────────────────────────────────────── */
+.hermo-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1px;
+  background: var(--color-border);
+  margin-bottom: 2rem;
+}
+.hkpi {
+  background: var(--color-surface);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-top: 3px solid var(--kpi-accent);
+  transition: background-color 0.2s;
+}
+.hkpi:hover { background: var(--color-surface-2); }
+.hkpi--heat  { --kpi-accent: var(--color-accent-heat); }
+.hkpi--amber { --kpi-accent: var(--color-accent-warn); }
+.hkpi--go    { --kpi-accent: var(--color-accent-go); }
+.hkpi--data  { --kpi-accent: var(--color-accent-data); }
+.hkpi-value {
+  font-family: var(--mono);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kpi-accent);
+}
+.hkpi-value small {
+  font-size: 0.5em;
+  font-weight: 500;
+  font-family: var(--sans);
+  opacity: 0.85;
+}
+.hkpi-sep {
+  font-size: 0.5em;
+  color: var(--color-text-muted);
+  margin: 0 0.15em;
+  font-family: var(--sans);
+}
+.hkpi-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.hkpi-delta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+.hkpi-delta--heat { color: var(--color-accent-heat); }
+.hkpi-delta--go   { color: var(--color-accent-go); }
+
+/* ── Chart grid ─────────────────────────────────────────────── */
+.hchart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--color-border);
+  margin-bottom: 1px;
+}
+.hchart-grid--2col { grid-template-columns: 1fr 1fr; }
+.hchart-panel {
+  background: var(--color-surface);
+  padding: 1.75rem;
+  transition: background-color 0.2s;
+}
+.hchart-panel:hover { background: var(--color-surface-2); }
+.hchart-panel--wide { grid-column: 1 / -1; }
+.hchart-title {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+.hchart-sub {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.55;
+}
+.hchart-wrap {
+  position: relative;
+  height: 240px;
+}
+.hchart-wrap--tall { height: 300px; }
+.hchart-wrap--xl   { height: 360px; }
+.hchart-source {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--color-text-muted);
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: 1px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Loading skeleton ────────────────────────────────────────── */
+canvas[data-animate]::before {
+  content: '';
+}
+.canvas-loading {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-border) 50%, var(--color-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Page footer ─────────────────────────────────────────────── */
+.hermo-page-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 2.5rem 0 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.hermo-cita {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  max-width: 760px;
+}
+.hermo-cita a { color: var(--color-accent-sky); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hchart-grid--2col { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .hermo-kpi-row { grid-template-columns: 1fr 1fr; }
+  .hchart-wrap--xl { height: 280px; }
+  .hchart-wrap--tall { height: 260px; }
+  .htab { padding: 0.9rem 1.1rem; font-size: 0.7rem; }
+}
+@media (max-width: 400px) {
+  .hermo-kpi-row { grid-template-columns: 1fr; }
+}
+</style>
+
+<script is:inline>
+(function () {
+  // ── Design tokens ────────────────────────────────────────────
+  const C = {
+    blue:   '#3b82f6', sky:    '#60a5fa', data:   '#93c5fd',
+    green:  '#34d399', red:    '#f87171', amber:  '#fbbf24',
+    purple: '#a78bfa', teal:   '#2dd4bf', indigo: '#818cf8',
+    surf:   '#161b22', surf2:  '#1c2333', border: '#21262d',
+    text:   '#e6edf3', muted:  '#7d8590',
+  };
+
+  // ── Chart.js global defaults ─────────────────────────────────
+  Chart.defaults.color       = C.muted;
+  Chart.defaults.borderColor = C.border;
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.font.size   = 13;
+
+  const ANIM = { duration: 900, easing: 'easeInOutQuart' };
+
+  const gridCfg = (overrides = {}) => ({
+    grid:  { color: C.border },
+    ticks: { color: C.muted, font: { size: 13 }, padding: 6 },
+    ...overrides,
+  });
+
+  // ── Skeleton loading state ───────────────────────────────────
+  function setLoading(canvasEl) {
+    canvasEl.parentElement.classList.add('canvas-loading');
+  }
+  function clearLoading(canvasEl) {
+    canvasEl.parentElement.classList.remove('canvas-loading');
+  }
+
+  // Show status bar
+  const statusBar  = document.getElementById('data-status');
+  const statusText = document.getElementById('data-status-text');
+  function setStatus(msg, cls = '') {
+    if (!statusBar || !statusText) return;
+    statusBar.hidden = false;
+    statusText.textContent = msg;
+    statusText.className = 'hermo-status-text' + (cls ? ' ' + cls : '');
+  }
+
+  // Mark all canvases as loading
+  document.querySelectorAll('canvas[data-animate]').forEach(setLoading);
+  setStatus('Cargando datos del dashboard…');
+
+  // ── Fetch chart data from API ────────────────────────────────
+  const API = '/api/city-data/hermosillo';
+
+  async function loadData() {
+    const res  = await fetch(API);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    return json.data;
+  }
+
+  // ── IntersectionObserver for lazy reveal ─────────────────────
+  const revealed = new Set();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting && !revealed.has(e.target.id)) {
+        revealed.add(e.target.id);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  // ── Chart factory helpers ────────────────────────────────────
+  function makeChart(id, config) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    clearLoading(el);
+    io.observe(el);
+    return new Chart(el, config);
+  }
+
+  function lineData(label, data, color, fill = false, dash = []) {
+    return {
+      label,
+      data,
+      borderColor: color,
+      backgroundColor: fill ? color.replace(')', ', 0.08)').replace('rgb', 'rgba') : 'transparent',
+      fill,
+      tension: 0.42,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: color,
+      borderDash: dash,
+      animation: ANIM,
+    };
+  }
+
+  // ── Build all charts from data object ───────────────────────
+  function buildCharts(d) {
+    const mv = d.movilidad;
+    const aq = d.agua;
+    const ec = d.economia;
+    const op = d.oportunidades;
+
+    const YEARS = mv.years.map(String);
+
+    // ── MOVILIDAD ──────────────────────────────────────────────
+
+    // 1 Modal trend
+    makeChart('chartModalTrend', {
+      type: 'line',
+      data: {
+        labels: YEARS,
+        datasets: [
+          lineData('Transporte Público', mv.modal_share.tp,        C.blue,  true),
+          lineData('Vehículo privado',   mv.modal_share.auto,      C.red,   true),
+          lineData('Caminando',          mv.modal_share.caminando, C.green, false, [5,3]),
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 14, font: { size: 13 } } } },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, min: 0, max: 55 }),
+        },
+      },
+    });
+
+    // 2 Donut 2019
+    const pieCfg = (labels, values, colors) => ({
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{ data: values, backgroundColor: colors, borderColor: C.surf2, borderWidth: 3 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { ...ANIM, animateRotate: true, animateScale: true },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: C.muted, boxWidth: 12, padding: 10, font: { size: 13 } },
+          },
+        },
+        cutout: '62%',
+      },
+    });
+
+    const PIE_COLORS = [C.red, C.blue, C.green, C.amber, C.purple, C.data];
+    makeChart('chartPie2019', pieCfg(
+      mv.modal_2019.map(r => r.label),
+      mv.modal_2019.map(r => r.value),
+      PIE_COLORS
+    ));
+    makeChart('chartPie2024', pieCfg(
+      mv.modal_2024.map(r => r.label),
+      mv.modal_2024.map(r => r.value),
+      PIE_COLORS
+    ));
+
+    // 3 Zonas
+    makeChart('chartZonas', {
+      type: 'line',
+      data: {
+        labels: YEARS,
+        datasets: [
+          lineData('Zona Norte',  mv.zonas.norte,  C.sky),
+          lineData('Zona Centro', mv.zonas.centro, C.amber),
+          lineData('Zona Sur',    mv.zonas.sur,    C.green),
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, min: 0, max: 55 }),
+        },
+      },
+    });
+
+    // 4 Subsidio bar
+    makeChart('chartSubsidio', {
+      type: 'bar',
+      data: {
+        labels: YEARS,
+        datasets: [{
+          label: 'Subsidio (mdp)',
+          data:  mv.subsidio,
+          backgroundColor: mv.subsidio.map(v => v > 600 ? C.red : v > 400 ? C.amber : C.blue),
+          borderRadius: 4, borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' $' + ctx.raw + ' mdp' } },
+        },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { callback: v => '$' + v, font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // 5 Recaudo + viajes
+    makeChart('chartRecaudo', {
+      type: 'bar',
+      data: {
+        labels: YEARS,
+        datasets: [
+          {
+            type: 'bar', label: 'Recaudo (mdp)', data: mv.recaudo,
+            backgroundColor: C.blue, borderRadius: 4, yAxisID: 'y',
+            animation: ANIM,
+          },
+          {
+            type: 'line', label: 'Viajes (M)', data: mv.viajes,
+            borderColor: C.amber, tension: 0.42, pointRadius: 5, pointHoverRadius: 7,
+            pointBackgroundColor: C.amber, yAxisID: 'y2', backgroundColor: 'transparent',
+            animation: ANIM,
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          x:  gridCfg(),
+          y:  gridCfg({ position: 'left',  ticks: { callback: v => '$' + v, font: { size: 13 } } }),
+          y2: gridCfg({ position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + 'M', color: C.amber, font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // 6 Dependencia subsidio %
+    const depPct = mv.subsidio.map((s, i) => Math.round(s / (mv.recaudo[i] + s) * 100));
+    makeChart('chartDepSubsidio', {
+      type: 'bar',
+      data: {
+        labels: YEARS,
+        datasets: [{
+          label: '% subsidio / gasto total',
+          data:  depPct,
+          backgroundColor: depPct.map(v => v > 70 ? C.red : v > 55 ? C.amber : C.blue),
+          borderRadius: 4, borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, max: 100 }),
+        },
+      },
+    });
+
+    // ── AGUA ────────────────────────────────────────────────────
+
+    // 7 Asequibilidad (horizontal bar)
+    makeChart('chartAguaComp', {
+      type: 'bar',
+      data: {
+        labels: aq.asequibilidad.map(r => r.label),
+        datasets: [{
+          label: '% empresas · agua asequible',
+          data:  aq.asequibilidad.map(r => r.value),
+          backgroundColor: aq.asequibilidad.map(r => r.label === 'Hermosillo' ? C.red : r.label === 'Promedio MX' ? C.amber : C.blue),
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, min: 0, max: 70 }),
+          y: gridCfg({ grid: { display: false }, ticks: { font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // 8 Satisfacción agua (line)
+    makeChart('chartAguaSatisf', {
+      type: 'line',
+      data: {
+        labels: aq.satisf_years.map(String),
+        datasets: [{
+          ...lineData('% satisfacción empresarial', aq.satisfaccion, C.amber, true),
+          fill: true,
+          backgroundColor: 'rgba(251,191,36,0.08)',
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, min: 40, max: 85 }),
+        },
+      },
+    });
+
+    // 9 Radar agua — static data (not in DB yet, derived)
+    makeChart('chartAguaRadar', {
+      type: 'radar',
+      data: {
+        labels: ['Asequibilidad\nempresarial','Satisfacción\nservicio','Continuidad\nsuministro','Calidad\npercibida','Eficiencia\nred','Cobertura\nurbana'],
+        datasets: [
+          {
+            label: 'Hermosillo',
+            data: [35, 73, 55, 62, 40, 88],
+            borderColor: C.blue, backgroundColor: 'rgba(59,130,246,0.12)',
+            pointBackgroundColor: C.blue, pointRadius: 5,
+            animation: ANIM,
+          },
+          {
+            label: 'Promedio nacional',
+            data: [50, 68, 65, 70, 55, 92],
+            borderColor: C.green, backgroundColor: 'rgba(52,211,153,0.08)',
+            borderDash: [4,3], pointBackgroundColor: C.green, pointRadius: 5,
+            animation: ANIM,
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid: { color: C.border },
+            pointLabels: { color: C.muted, font: { size: 12 } },
+            ticks: { display: false, stepSize: 25 },
+            angleLines: { color: C.border },
+          },
+        },
+      },
+    });
+
+    // ── ECONOMÍA ─────────────────────────────────────────────────
+
+    // 10 Diversificación (horizontal bar)
+    makeChart('chartDiversificacion', {
+      type: 'bar',
+      data: {
+        labels: ec.diversificacion.map(r => r.label),
+        datasets: [{
+          label: 'Índice nuevas industrias 2010–2020',
+          data:  ec.diversificacion.map(r => r.value),
+          backgroundColor: ec.diversificacion.map(r =>
+            r.label === 'Hermosillo' ? C.red :
+            r.value > 6 ? C.green : r.value > 4 ? C.blue : C.amber
+          ),
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: gridCfg({ ticks: { font: { size: 13 } } }),
+          y: gridCfg({ grid: { display: false }, ticks: { font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // 11 Solar (bar)
+    makeChart('chartSolar', {
+      type: 'bar',
+      data: {
+        labels: ec.solar_mw.map(r => r.label),
+        datasets: [{
+          label: 'MW instalados',
+          data:  ec.solar_mw.map(r => r.value),
+          backgroundColor: ec.solar_mw.map((_, i) => [C.amber, C.data, C.sky, C.blue, C.muted][i]),
+          borderRadius: 5, borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' MW' } },
+        },
+        scales: {
+          x: gridCfg({ grid: { display: false }, ticks: { font: { size: 13 } } }),
+          y: gridCfg({ ticks: { callback: v => v + ' MW', font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // 12 Digital (line)
+    makeChart('chartDigital', {
+      type: 'line',
+      data: {
+        labels: ec.digital_years.map(String),
+        datasets: [{
+          ...lineData('Mercado global servicios digitales (índice)', ec.digital_idx, C.green, true),
+          fill: true,
+          backgroundColor: 'rgba(52,211,153,0.08)',
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          x: gridCfg(),
+          y: gridCfg({ ticks: { font: { size: 13 } } }),
+        },
+      },
+    });
+
+    // ── OPORTUNIDADES ────────────────────────────────────────────
+
+    // 13 Arizona imports (horizontal bar)
+    makeChart('chartNearshoring', {
+      type: 'bar',
+      data: {
+        labels: op.arizona_imports.map(r => r.label),
+        datasets: [{
+          label: 'Importaciones Arizona (miles de millones USD · 2023)',
+          data:  op.arizona_imports.map(r => r.value),
+          backgroundColor: [C.blue, C.sky, C.green, C.data, C.amber, C.purple, C.muted],
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: gridCfg({ ticks: { callback: v => '$' + v + 'B', font: { size: 13 } } }),
+          y: gridCfg({ grid: { display: false }, ticks: { font: { size: 12 } } }),
+        },
+      },
+    });
+
+    // 14 Capacidades — static radar (qualitative)
+    makeChart('chartCapacidades', {
+      type: 'radar',
+      data: {
+        labels: ['Ing. mecánica','Talento digital','Energía renovable','Logística frontera','Manufactura avanzada','Servicios profesionales'],
+        datasets: [
+          { label: 'Nearshoring',         data: [8,6,7,9,7,5], borderColor: C.blue,  backgroundColor: 'rgba(59,130,246,0.1)',  pointBackgroundColor: C.blue,  pointRadius: 4, animation: ANIM },
+          { label: 'Powershoring',         data: [6,4,10,7,8,4], borderColor: C.amber, backgroundColor: 'rgba(251,191,36,0.08)', pointBackgroundColor: C.amber, pointRadius: 4, animation: ANIM },
+          { label: 'Servicios digitales', data: [5,9,5,6,4,9],  borderColor: C.green, backgroundColor: 'rgba(52,211,153,0.08)', pointBackgroundColor: C.green, pointRadius: 4, animation: ANIM },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          r: {
+            min: 0, max: 10,
+            grid: { color: C.border },
+            pointLabels: { color: C.muted, font: { size: 12 } },
+            ticks: { display: false, stepSize: 2 },
+            angleLines: { color: C.border },
+          },
+        },
+      },
+    });
+
+    // 15 Energía (grouped bar)
+    const energyLabels = op.energia_sonora.map(r => r.label);
+    makeChart('chartEnergia', {
+      type: 'bar',
+      data: {
+        labels: energyLabels,
+        datasets: [
+          {
+            label: 'Sonora',
+            data:  op.energia_sonora.map(r => r.value),
+            backgroundColor: C.amber, borderRadius: 4,
+            animation: ANIM,
+          },
+          {
+            label: 'Promedio nacional',
+            data:  op.energia_nacional.map(r => r.value),
+            backgroundColor: C.muted, borderRadius: 4,
+            animation: ANIM,
+          },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: { legend: { labels: { color: C.muted, boxWidth: 12, font: { size: 13 } } } },
+        scales: {
+          x: gridCfg({ grid: { display: false }, ticks: { font: { size: 13 } } }),
+          y: gridCfg({ ticks: { callback: v => v + '%', font: { size: 13 } }, max: 60 }),
+        },
+      },
+    });
+  }
+
+  // ── Main: fetch → build ──────────────────────────────────────
+  loadData()
+    .then((data) => {
+      buildCharts(data);
+      setStatus('Datos cargados · fuente: base de datos', 'is-ok');
+      setTimeout(() => { if (statusBar) statusBar.hidden = true; }, 3000);
+    })
+    .catch((err) => {
+      console.error('[hermosillo] failed to load chart data:', err);
+      setStatus('Error al cargar datos del servidor', 'is-error');
+      document.querySelectorAll('canvas[data-animate]').forEach(clearLoading);
+    });
+
+  // ── Tab switching ────────────────────────────────────────────
+  document.querySelectorAll('.htab').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const id = this.dataset.tab;
+      document.querySelectorAll('.htab').forEach(b => {
+        b.classList.remove('htab--active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.htab-section').forEach(s => {
+        s.classList.remove('htab-section--active');
+        s.hidden = true;
+      });
+      this.classList.add('htab--active');
+      this.setAttribute('aria-selected', 'true');
+      const sec = document.getElementById('tab-' + id);
+      sec.classList.add('htab-section--active');
+      sec.hidden = false;
+    });
+  });
+
+})();
+</script>

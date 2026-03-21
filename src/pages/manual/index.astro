@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { manualModules } from '../../data/site';
+
+export const prerender = true;
+---
+
+<BaseLayout title="Manual | Data Driven Day" description="Manual de operacion del proyecto Data Driven Day 2026.">
+  <section class="hero">
+    <div class="page-shell">
+      <span class="eyebrow">Operacion del proyecto</span>
+      <h1 class="page-title">El manual documenta como se opera Data Driven Day y como se activa el Dataller.</h1>
+      <p class="lede">
+        Esta capa ya no existe para documentar paginas sueltas. Existe para explicar arquitectura, modelo editorial, operacion tecnica y la forma en que el proyecto se mantiene vivo entre ediciones y activaciones.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="page-shell">
+      <div class="grid-2">
+        <article class="content-card">
+          <h3>Modulos previstos</h3>
+          <ul class="list-clean">
+            {manualModules.map((module) => (
+              <li>{module}</li>
+            ))}
+          </ul>
+        </article>
+
+        <article class="code-card">
+          <h3>Ruta de operacion</h3>
+          <pre><code>legacy HTML -> contenido estructurado
+contenido estructurado -> Sanity schemas
+formularios -> Hono endpoints
+submissions -> D1
+assets -> R2
+deploy -> Cloudflare Workers SSR</code></pre>
+        </article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

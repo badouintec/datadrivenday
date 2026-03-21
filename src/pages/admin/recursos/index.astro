@@ -1,0 +1,240 @@
+---
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Recursos" seccion="recursos" usuario={usuario}>
+
+  <div class="topbar-acciones" slot="acciones">
+    <button class="admin-btn admin-btn--primary" id="btnNuevo" type="button">+ Agregar</button>
+  </div>
+
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab is-active" data-filter="">Todos</button>
+    <button class="filter-tab" data-filter="gobernanza">Gobernanza</button>
+    <button class="filter-tab" data-filter="tecnologia">Tecnologia</button>
+    <button class="filter-tab" data-filter="sonora">Sonora/Urbano</button>
+    <button class="filter-tab" data-filter="ciudad">Ciudad</button>
+  </div>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Titulo</th>
+          <th>Tipo</th>
+          <th>Categoria</th>
+          <th>Anio</th>
+          <th>Destacado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="recursosBody">
+        <tr><td colspan="6" class="stat-sub">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Drawer lateral para editar -->
+  <div class="drawer-overlay" id="drawerOverlay" style="display:none"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <span class="drawer-title" id="drawerTitle">Editar recurso</span>
+      <button class="drawer-close" id="drawerClose" type="button">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <input type="hidden" id="editId" />
+      <div class="prop-field">
+        <label class="prop-label" for="editTitulo">Titulo</label>
+        <input type="text" id="editTitulo" class="prop-input" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editFuente">Fuente / Autor</label>
+        <input type="text" id="editFuente" class="prop-input" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editAnio">Anio</label>
+        <input type="text" id="editAnio" class="prop-input prop-input--short" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editUrl">URL</label>
+        <input type="url" id="editUrl" class="prop-input" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editTipo">Tipo</label>
+        <select id="editTipo" class="prop-input">
+          <option value="paper">paper</option>
+          <option value="libro">libro</option>
+          <option value="herramienta">herramienta</option>
+          <option value="informe">informe</option>
+          <option value="repo">repo</option>
+        </select>
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editCategoria">Categoria</label>
+        <select id="editCategoria" class="prop-input">
+          <option value="gobernanza">gobernanza</option>
+          <option value="tecnologia">tecnologia</option>
+          <option value="sonora">sonora</option>
+          <option value="ciudad">ciudad</option>
+        </select>
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="editDescripcion">Descripcion</label>
+        <textarea id="editDescripcion" class="prop-textarea" rows="3"></textarea>
+      </div>
+      <div class="prop-field">
+        <label class="prop-toggle-label">
+          <input type="checkbox" id="editFeatured" class="prop-toggle-input" />
+          <span class="prop-toggle-track" aria-hidden="true"></span>
+          Destacado en el sitio
+        </label>
+      </div>
+      <div class="prop-field">
+        <label class="prop-toggle-label">
+          <input type="checkbox" id="editActive" class="prop-toggle-input" />
+          <span class="prop-toggle-track" aria-hidden="true"></span>
+          Activo (visible)
+        </label>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="admin-btn" id="drawerCancel" type="button">Cancelar</button>
+      <button class="admin-btn admin-btn--primary" id="drawerSave" type="button">Guardar</button>
+    </div>
+  </div>
+
+  <script>
+    let currentFilter = '';
+
+    async function loadRecursos() {
+      const url = currentFilter
+        ? `/api/admin/recursos?categoria=${currentFilter}`
+        : '/api/admin/recursos';
+      const res = await fetch(url);
+      if (!res.ok) { if (res.status === 401) window.location.href = '/admin/login'; return; }
+      const data = await res.json();
+      const tbody = document.getElementById('recursosBody');
+
+      if (!data.recursos?.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="stat-sub">No hay recursos.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.recursos.map(r => `
+        <tr>
+          <td>
+            <strong>${r.titulo}</strong>
+            <br><span class="stat-sub">${r.fuente}</span>
+          </td>
+          <td><span class="estado-badge">${r.tipo}</span></td>
+          <td class="stat-sub">${r.categoria}</td>
+          <td class="stat-sub">${r.anio}</td>
+          <td>${r.is_featured ? '\u2605' : ''}</td>
+          <td>
+            <button class="table-action-btn" data-edit='${JSON.stringify(r)}'>Editar</button>
+            <button class="table-action-btn table-action-btn--danger" data-delete="${r.id}">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Events
+    document.getElementById('filterTabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.filter-tab');
+      if (!tab) return;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      currentFilter = tab.dataset.filter;
+      loadRecursos();
+    });
+
+    document.getElementById('recursosBody').addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('[data-edit]');
+      if (editBtn) {
+        const r = JSON.parse(editBtn.dataset.edit);
+        openDrawer(r);
+        return;
+      }
+
+      const deleteBtn = e.target.closest('[data-delete]');
+      if (deleteBtn) {
+        if (!confirm('Eliminar este recurso?')) return;
+        await fetch(`/api/admin/recursos/${deleteBtn.dataset.delete}`, { method: 'DELETE' });
+        loadRecursos();
+      }
+    });
+
+    // Drawer
+    function openDrawer(r) {
+      document.getElementById('editId').value = r?.id ?? '';
+      document.getElementById('editTitulo').value = r?.titulo ?? '';
+      document.getElementById('editFuente').value = r?.fuente ?? '';
+      document.getElementById('editAnio').value = r?.anio ?? new Date().getFullYear();
+      document.getElementById('editUrl').value = r?.url ?? '';
+      document.getElementById('editTipo').value = r?.tipo ?? 'informe';
+      document.getElementById('editCategoria').value = r?.categoria ?? 'tecnologia';
+      document.getElementById('editDescripcion').value = r?.descripcion ?? '';
+      document.getElementById('editFeatured').checked = r?.is_featured === 1;
+      document.getElementById('editActive').checked = r?.is_active !== 0;
+      document.getElementById('drawerTitle').textContent = r?.id ? 'Editar recurso' : 'Nuevo recurso';
+
+      document.getElementById('drawer').classList.add('is-open');
+      document.getElementById('drawerOverlay').style.display = '';
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('is-open');
+      document.getElementById('drawerOverlay').style.display = 'none';
+    }
+
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    document.getElementById('drawerCancel').addEventListener('click', closeDrawer);
+    document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+
+    document.getElementById('drawerSave').addEventListener('click', async () => {
+      const id = document.getElementById('editId').value;
+      const body = {
+        titulo: document.getElementById('editTitulo').value,
+        fuente: document.getElementById('editFuente').value,
+        anio: document.getElementById('editAnio').value,
+        url: document.getElementById('editUrl').value,
+        tipo: document.getElementById('editTipo').value,
+        categoria: document.getElementById('editCategoria').value,
+        descripcion: document.getElementById('editDescripcion').value || null,
+        is_featured: document.getElementById('editFeatured').checked ? 1 : 0,
+        is_active: document.getElementById('editActive').checked ? 1 : 0,
+      };
+
+      if (id) {
+        await fetch(`/api/admin/recursos/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      } else {
+        await fetch('/api/admin/recursos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, orden: 0 }),
+        });
+      }
+
+      closeDrawer();
+      loadRecursos();
+    });
+
+    document.getElementById('btnNuevo').addEventListener('click', () => openDrawer(null));
+
+    loadRecursos();
+  </script>
+
+</AdminLayout>

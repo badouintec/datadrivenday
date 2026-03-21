@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBlogPosts } from '../../lib/sanity/content';
+
+export const prerender = true;
+
+const { posts, source } = await getBlogPosts();
+---
+
+<BaseLayout title="Blog | Data Driven Day" description="Capa editorial del nuevo proyecto.">
+  <section class="hero">
+    <div class="page-shell">
+      <span class="eyebrow">{source === 'sanity' ? 'Blog live desde Sanity' : 'Blog content-first'}</span>
+      <h1 class="page-title">La capa editorial ya no va a vivir en HTML estático.</h1>
+      <p class="lede">
+        Esta sección ya intenta leer artículos desde Sanity. Si el proyecto aún no está configurado, cae en contenido local para no romper build ni preview.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="page-shell grid-3">
+      {posts.map((post) => (
+        <article class="content-card">
+          <span class="eyebrow">{post.category}</span>
+          <h3>{post.title}</h3>
+          <p>{post.excerpt}</p>
+          <p class="small">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-MX') : `slug: ${post.slug}`}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

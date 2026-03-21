@@ -1,0 +1,190 @@
+---
+import '../../../styles/global.css';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const presId = Astro.params.id;
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor · DDD Admin</title>
+  <link rel="stylesheet" href="/styles/admin.css" />
+  <link rel="stylesheet" href="/styles/editor.css" />
+</head>
+<body class="editor-body" data-theme="dark" data-pres-id={presId}>
+
+  <!-- TOP BAR -->
+  <div class="editor-topbar">
+    <div class="topbar-left">
+      <a href="/admin/presentaciones" class="topbar-back">&larr;</a>
+      <span class="topbar-brand">DDD</span>
+      <span class="topbar-divider" aria-hidden="true">/</span>
+      <span class="topbar-pres-name" id="presName">Cargando...</span>
+      <span class="topbar-status" id="saveStatus" aria-live="polite">Guardado</span>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn topbar-btn--ghost" id="btnPreview" type="button">Previsualizar &rarr;</button>
+      <a href="/dataller/present" target="_blank" class="topbar-btn topbar-btn--primary">Abrir presenter &#8599;</a>
+      <a href="/admin/presentaciones" class="topbar-btn topbar-btn--danger">Volver</a>
+    </div>
+  </div>
+
+  <!-- LAYOUT PRINCIPAL -->
+  <div class="editor-layout">
+
+    <!-- SIDEBAR: Lista de slides -->
+    <aside class="editor-sidebar" aria-label="Slides de la presentacion">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Slides</span>
+        <button class="sidebar-add-btn" id="btnAddSlide" type="button" aria-label="Agregar slide">+</button>
+      </div>
+      <ul class="slides-list" id="slidesList" role="listbox" aria-label="Lista de slides"></ul>
+    </aside>
+
+    <!-- CANVAS PREVIEW -->
+    <main class="editor-canvas-area" aria-label="Vista previa del slide">
+      <div class="canvas-wrapper">
+        <canvas id="previewCanvas" aria-hidden="true"></canvas>
+        <div class="canvas-hud" aria-hidden="true">
+          <div class="preview-meta">
+            <span id="prevNumero">01</span>
+            <span class="preview-divider">&mdash;</span>
+            <span id="prevTag">CONTEXTO</span>
+          </div>
+          <h2 id="prevTitulo" class="preview-titulo">Titulo</h2>
+          <p id="prevSubtitulo" class="preview-subtitulo"></p>
+        </div>
+        <div class="canvas-concepts" id="prevConcepts" aria-hidden="true"></div>
+        <div class="canvas-cuerpo" aria-hidden="true">
+          <p id="prevCuerpo"></p>
+        </div>
+      </div>
+      <div class="canvas-toolbar" role="toolbar" aria-label="Herramientas del canvas">
+        <button class="canvas-tool" id="toolPlay" type="button" aria-label="Reproducir animacion" aria-pressed="true">&#9654;</button>
+        <button class="canvas-tool" id="toolMute" type="button" aria-label="Silenciar audio" aria-pressed="false">&#9835;</button>
+        <div class="canvas-tool-divider" aria-hidden="true"></div>
+        <button class="canvas-tool" id="btnPrevSlide" type="button" aria-label="Slide anterior">&larr;</button>
+        <button class="canvas-tool" id="btnNextSlide" type="button" aria-label="Slide siguiente">&rarr;</button>
+      </div>
+    </main>
+
+    <!-- PROPERTIES PANEL -->
+    <aside class="editor-props" aria-label="Propiedades del slide seleccionado">
+      <div class="props-scroll">
+
+        <section class="props-section">
+          <h3 class="props-section-title">IDENTIDAD</h3>
+          <div class="prop-field">
+            <label class="prop-label" for="propTag">Tag / hora</label>
+            <input type="text" id="propTag" class="prop-input" placeholder="9:00 AM - CONTEXTO" />
+          </div>
+          <div class="prop-field">
+            <label class="prop-label" for="propTitulo">Titulo</label>
+            <input type="text" id="propTitulo" class="prop-input prop-input--large" placeholder="Titulo del slide" />
+          </div>
+          <div class="prop-field">
+            <label class="prop-label" for="propSubtitulo">Subtitulo <span class="prop-optional">(opcional)</span></label>
+            <input type="text" id="propSubtitulo" class="prop-input" placeholder="Subtitulo opcional" />
+          </div>
+          <div class="prop-field">
+            <label class="prop-label" for="propDuracion">Duracion (min)</label>
+            <input type="number" id="propDuracion" class="prop-input prop-input--short" min="1" max="120" step="5" />
+          </div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">CONTENIDO</h3>
+          <div class="prop-field">
+            <label class="prop-label" for="propCuerpo">Cuerpo</label>
+            <textarea id="propCuerpo" class="prop-textarea" rows="3" placeholder="Texto de apoyo visual"></textarea>
+          </div>
+          <div class="prop-field">
+            <label class="prop-label" for="propNotas">Notas del presentador</label>
+            <textarea id="propNotas" class="prop-textarea prop-textarea--notes" rows="4" placeholder="Solo visibles al presionar N"></textarea>
+          </div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">CONCEPTOS CLAVE</h3>
+          <div class="tags-editor" id="conceptsEditor"></div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">VISUAL</h3>
+          <div class="prop-field">
+            <label class="prop-label">Estado de particulas</label>
+            <div class="particle-state-grid" id="particleStateGrid" role="radiogroup" aria-label="Estado visual de las particulas"></div>
+          </div>
+          <div class="prop-field">
+            <label class="prop-label">Color de acento</label>
+            <div class="accent-color-row" id="accentColorRow" role="radiogroup" aria-label="Color de acento"></div>
+          </div>
+          <div class="prop-field">
+            <label class="prop-label" for="propSpeed">
+              Velocidad de particulas
+              <span class="prop-value-display" id="speedDisplay">0.04</span>
+            </label>
+            <input type="range" id="propSpeed" min="0.01" max="0.12" step="0.005" class="prop-range" />
+          </div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">AUDIO</h3>
+          <p class="props-hint">Frecuencias del acorde ambiental (Hz)</p>
+          <div class="chord-editor" id="chordEditor"></div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">CODIGO DEMO <span class="prop-optional">(opcional)</span></h3>
+          <textarea id="propCodigo" class="prop-textarea prop-textarea--code" rows="8" placeholder="# Snippet de codigo" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">REFERENCIAS</h3>
+          <div id="refsEditor" class="refs-editor"></div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">PALABRAS CLAVE DE VOZ</h3>
+          <p class="props-hint">Palabras que el sistema detecta</p>
+          <div class="tags-editor" id="commandWordsEditor"></div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">VISIBILIDAD</h3>
+          <label class="prop-toggle-label">
+            <input type="checkbox" id="propIsActive" class="prop-toggle-input" />
+            <span class="prop-toggle-track" aria-hidden="true"></span>
+            Visible en la presentacion
+          </label>
+        </section>
+
+        <div class="props-actions">
+          <button class="props-action-btn props-action-btn--danger" id="btnDeleteSlide" type="button">Eliminar slide</button>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODAL CONFIRMAR ELIMINACION -->
+  <div class="modal-overlay" id="deleteModal" hidden role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-box">
+      <h2 id="deleteModalTitle">Eliminar este slide?</h2>
+      <p>Esta accion no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn--ghost" id="deleteCancel" type="button">Cancelar</button>
+        <button class="modal-btn modal-btn--danger" id="deleteConfirm" type="button">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/scripts/dataller-editor.js" type="module"></script>
+
+</body>
+</html>

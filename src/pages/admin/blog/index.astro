@@ -1,0 +1,122 @@
+---
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Blog" seccion="blog" usuario={usuario}>
+
+  <div class="topbar-acciones" slot="acciones">
+    <button class="admin-btn admin-btn--primary" id="btnNueva" type="button">+ Nueva entrada</button>
+  </div>
+
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab is-active" data-filter="">Todos</button>
+    <button class="filter-tab" data-filter="publicado">Publicados</button>
+    <button class="filter-tab" data-filter="borrador">Borradores</button>
+    <button class="filter-tab" data-filter="archivado">Archivados</button>
+  </div>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Titulo</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="blogTableBody">
+        <tr><td colspan="4" class="stat-sub">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    let currentFilter = '';
+
+    async function loadPosts() {
+      const url = currentFilter
+        ? `/api/admin/blog?estado=${currentFilter}`
+        : '/api/admin/blog';
+      const res = await fetch(url);
+      if (!res.ok) { if (res.status === 401) window.location.href = '/admin/login'; return; }
+      const data = await res.json();
+      const tbody = document.getElementById('blogTableBody');
+
+      if (!data.posts?.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="stat-sub">No hay entradas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.posts.map(p => `
+        <tr>
+          <td>
+            <strong>${p.titulo}</strong>
+            ${p.subtitulo ? `<br><span class="stat-sub">${p.subtitulo}</span>` : ''}
+          </td>
+          <td><span class="estado-badge estado-badge--${p.estado}">${p.estado}</span></td>
+          <td class="stat-sub">${p.publicado_en ? new Date(p.publicado_en).toLocaleDateString('es') : '--'}</td>
+          <td>
+            <a href="/admin/blog/${p.id}" class="table-action-btn">Editar</a>
+            ${p.estado === 'borrador' ? `<button class="table-action-btn" data-publish="${p.id}">Publicar</button>` : ''}
+            ${p.estado === 'publicado' ? `<button class="table-action-btn" data-archive="${p.id}">Archivar</button>` : ''}
+            ${p.estado === 'archivado' ? `<button class="table-action-btn" data-restore="${p.id}">Restaurar</button>` : ''}
+            <button class="table-action-btn table-action-btn--danger" data-delete="${p.id}">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-publish], button[data-archive], button[data-restore], button[data-delete]');
+        if (!btn) return;
+
+        if (btn.dataset.publish) {
+          await fetch(`/api/admin/blog/${btn.dataset.publish}/publicar`, { method: 'POST' });
+        } else if (btn.dataset.archive) {
+          await fetch(`/api/admin/blog/${btn.dataset.archive}/archivar`, { method: 'POST' });
+        } else if (btn.dataset.restore) {
+          await fetch(`/api/admin/blog/${btn.dataset.restore}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'borrador' }),
+          });
+        } else if (btn.dataset.delete) {
+          if (!confirm('Eliminar esta entrada?')) return;
+          await fetch(`/api/admin/blog/${btn.dataset.delete}`, { method: 'DELETE' });
+        }
+        loadPosts();
+      });
+    }
+
+    document.getElementById('filterTabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.filter-tab');
+      if (!tab) return;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      currentFilter = tab.dataset.filter;
+      loadPosts();
+    });
+
+    document.getElementById('btnNueva')?.addEventListener('click', async () => {
+      const titulo = prompt('Titulo de la entrada:');
+      if (!titulo) return;
+      const res = await fetch('/api/admin/blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = '/admin/blog/' + data.id;
+      }
+    });
+
+    loadPosts();
+  </script>
+
+</AdminLayout>

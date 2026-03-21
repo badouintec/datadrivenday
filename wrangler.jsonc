@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "datadrivenday",
+  "compatibility_date": "2026-03-17",
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    { "pattern": "www.datadriven.day", "custom_domain": true }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "APP_SESSION",
+      "id": "8124e14353094b10a65c37e7773609a0"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "datadrivenday",
+      "database_id": "fef0769c-1cb1-4837-b795-a2ce328df5a4",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "datadrivenday-assets"
+    }
+  ],
+  "vars": {
+    "PUBLIC_SITE_URL": "https://datadriven.day",
+    "PUBLIC_SANITY_PROJECT_ID": "replace-me",
+    "PUBLIC_SANITY_DATASET": "production",
+    "SANITY_API_VERSION": "2025-03-01",
+    "SITE_NAME": "Data Driven Day",
+    "SITE_TAGLINE": "Datos, politica publica y producto digital para Hermosillo",
+    "ADMIN_USER": "admin",
+    "ADMIN_PASS_HASH": "4eb1d27ff4a93d049ce93f06a5e793838385cce7fd59abd8fba4fbc16af651dc"
+  }
+}

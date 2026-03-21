@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { benchmarkProjects, datallerResources, researchResourceGroups } from '../../data/site';
+
+export const prerender = true;
+---
+
+<BaseLayout title="Datos | Data Driven Day" description="Recursos, referencias y capa de datos del proyecto Data Driven Day 2026.">
+  <section class="hero">
+    <div class="page-shell">
+      <span class="eyebrow">Base de conocimiento del proyecto</span>
+      <h1 class="page-title">La capa de datos sostiene al proyecto y alimenta al Dataller.</h1>
+      <p class="lede">
+        Esta pagina explica como Data Driven Day organiza su base operativa y su biblioteca de referencia para impulsar la agenda del informe 2026 y convertirla en trabajo aplicable durante el Dataller.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="page-shell grid-2">
+      <article class="content-card">
+        <h3>D1</h3>
+        <ul class="list-clean">
+          <li>Registros al evento.</li>
+          <li>Mensajes de contacto.</li>
+          <li>Submissions de comunidad o propuestas.</li>
+          <li>Estados básicos de operación y auditoría.</li>
+        </ul>
+      </article>
+
+      <article class="content-card">
+        <h3>R2</h3>
+        <ul class="list-clean">
+          <li>Imágenes de speakers y social cards.</li>
+          <li>PDFs, booklets y descargables.</li>
+          <li>Media de notas y recursos.</li>
+          <li>Backoffice de assets sin meterlos al repo.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="page-shell">
+      <div class="section-heading">
+        <h2>Biblioteca temática</h2>
+        <p>Accesos directos a las fuentes que alimentan la narrativa 2026 del proyecto.</p>
+      </div>
+
+      <div class="grid-3">
+        {researchResourceGroups.map((group) => (
+          <article class="content-card">
+            <h3>{group.title}</h3>
+            <ul class="list-clean resource-list">
+              {group.links.map((link) => (
+                <li>
+                  <a href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="page-shell grid-2">
+      <article class="content-card">
+        <h3>Casos de referencia</h3>
+        <ul class="list-clean">
+          {benchmarkProjects.map((project) => (
+            <li>
+              <strong>{project.title}.</strong> {project.summary}{' '}
+              <a href={project.href} target="_blank" rel="noreferrer">Abrir caso</a>
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      <article class="content-card">
+        <h3>Recursos del Dataller de IA</h3>
+        <ul class="list-clean resource-list">
+          {datallerResources.map((resource) => (
+            <li>
+              <a href={resource.href} target="_blank" rel="noreferrer">{resource.label}</a>
+            </li>
+          ))}
+        </ul>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

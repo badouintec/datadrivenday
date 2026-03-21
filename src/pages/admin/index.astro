@@ -1,0 +1,94 @@
+---
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+
+// Check session via cookie — if no cookie, redirect to login
+const cookie = Astro.request.headers.get('cookie') ?? '';
+const hasSession = /ddd_session=/.test(cookie);
+if (!hasSession) {
+  return Astro.redirect('/admin/login');
+}
+
+// We pass a placeholder user — the real data is fetched client-side via /api/admin/me
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Dashboard" seccion="dashboard" usuario={usuario}>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <span class="stat-label">REGISTROS</span>
+      <span class="stat-value" id="statRegistros">--</span>
+      <span class="stat-sub">total</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">BLOG</span>
+      <span class="stat-value" id="statBlog">--</span>
+      <span class="stat-sub">entradas</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">RECURSOS</span>
+      <span class="stat-value" id="statRecursos">--</span>
+      <span class="stat-sub">activos</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">SLIDES</span>
+      <span class="stat-value" id="statSlides">--</span>
+      <span class="stat-sub">activos</span>
+    </div>
+  </div>
+
+  <section class="dashboard-section">
+    <h2 class="dashboard-section-title">Accesos rapidos</h2>
+    <div class="dashboard-quick-links">
+      <a href="/admin/presentaciones" class="admin-btn admin-btn--primary">Presentaciones</a>
+      <a href="/admin/blog" class="admin-btn">Nueva entrada de blog</a>
+      <a href="/admin/registros" class="admin-btn">Ver registros</a>
+      <a href="/admin/recursos" class="admin-btn">Agregar recurso</a>
+    </div>
+  </section>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/admin/dashboard');
+        if (!res.ok) {
+          if (res.status === 401) window.location.href = '/admin/login';
+          return;
+        }
+        const data = await res.json();
+
+        document.getElementById('statRegistros').textContent =
+          data.registros?.total ?? 0;
+
+        const blogTotal = Array.isArray(data.blog)
+          ? data.blog.reduce((sum, r) => sum + (r.n ?? 0), 0)
+          : 0;
+        document.getElementById('statBlog').textContent = blogTotal;
+
+        document.getElementById('statRecursos').textContent =
+          data.recursos?.total ?? 0;
+
+        document.getElementById('statSlides').textContent =
+          data.slides?.total ?? 0;
+      } catch { /* silently fail */ }
+
+      // Load user info
+      try {
+        const meRes = await fetch('/api/admin/me');
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          const nameEl = document.querySelector('.topbar-user-name');
+          const rolEl = document.querySelector('.topbar-user-rol');
+          if (nameEl) nameEl.textContent = meData.user.nombre ?? meData.user.username;
+          if (rolEl) {
+            rolEl.textContent = meData.user.rol;
+            rolEl.className = `topbar-user-rol topbar-user-rol--${meData.user.rol}`;
+          }
+        }
+      } catch { /* silently fail */ }
+    }
+
+    loadDashboard();
+  </script>
+
+</AdminLayout>

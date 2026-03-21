@@ -1,0 +1,232 @@
+---
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const postId = Astro.params.id;
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Editor de entrada" seccion="blog" usuario={usuario}>
+
+  <div class="topbar-acciones" slot="acciones">
+    <a href="/admin/blog" class="admin-btn">&larr; Blog</a>
+    <span class="publish-bar-status" id="saveStatus">Cargando...</span>
+    <button class="admin-btn" id="btnGuardar" type="button">Guardar</button>
+    <button class="admin-btn admin-btn--success" id="btnPublicar" type="button">Publicar</button>
+  </div>
+
+  <div class="blog-editor-layout">
+
+    <div class="blog-props-panel">
+      <div class="prop-field">
+        <label class="prop-label" for="blogTitulo">Titulo</label>
+        <input type="text" id="blogTitulo" class="prop-input prop-input--large" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="blogSubtitulo">Subtitulo</label>
+        <input type="text" id="blogSubtitulo" class="prop-input" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="blogExtracto">Extracto</label>
+        <textarea id="blogExtracto" class="prop-textarea" rows="3"></textarea>
+      </div>
+      <div class="prop-field">
+        <label class="prop-label" for="blogAutor">Autor</label>
+        <input type="text" id="blogAutor" class="prop-input" value="Data Driven Day" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label">Tags</label>
+        <div class="tags-editor" id="blogTagsEditor"></div>
+      </div>
+      <div class="prop-field">
+        <label class="prop-label">Imagen destacada</label>
+        <div class="upload-zone" id="uploadZone">
+          Arrastra una imagen o haz clic
+          <input type="file" id="uploadInput" accept="image/*" style="display:none" />
+        </div>
+        <img id="imagenPreview" style="max-width:100%;margin-top:8px;display:none;border-radius:2px;" />
+      </div>
+      <div class="prop-field">
+        <label class="prop-label">Slug</label>
+        <span class="stat-sub" id="blogSlug">--</span>
+      </div>
+      <div class="prop-field">
+        <label class="prop-label">Estado</label>
+        <span class="estado-badge" id="blogEstado">--</span>
+      </div>
+    </div>
+
+    <div class="blog-editor-area">
+      <div class="editor-tabs">
+        <button class="editor-tab is-active" id="tabMarkdown" type="button">Markdown</button>
+        <button class="editor-tab" id="tabPreview" type="button">Preview</button>
+      </div>
+      <textarea id="blogCuerpo" class="editor-textarea" placeholder="Escribe en Markdown..."></textarea>
+      <div id="blogPreview" class="editor-preview" style="display:none;"></div>
+    </div>
+
+  </div>
+
+  <script define:vars={{ postId }}>
+    let post = null;
+    let saveTimer = null;
+    let blogTags = [];
+
+    async function loadPost() {
+      const res = await fetch(`/api/admin/blog/${postId}`);
+      if (!res.ok) { window.location.href = '/admin/blog'; return; }
+      const data = await res.json();
+      post = data.post;
+
+      document.getElementById('blogTitulo').value = post.titulo ?? '';
+      document.getElementById('blogSubtitulo').value = post.subtitulo ?? '';
+      document.getElementById('blogExtracto').value = post.extracto ?? '';
+      document.getElementById('blogAutor').value = post.autor ?? 'Data Driven Day';
+      document.getElementById('blogCuerpo').value = post.cuerpo_md ?? '';
+      document.getElementById('blogSlug').textContent = '/blog/' + post.slug;
+      document.getElementById('blogEstado').textContent = post.estado;
+      document.getElementById('blogEstado').className = `estado-badge estado-badge--${post.estado}`;
+      blogTags = post.tags ?? [];
+      renderTags();
+
+      if (post.imagen_url) {
+        const img = document.getElementById('imagenPreview');
+        img.src = post.imagen_url;
+        img.style.display = 'block';
+      }
+
+      document.getElementById('saveStatus').textContent = 'Listo';
+    }
+
+    function renderTags() {
+      const container = document.getElementById('blogTagsEditor');
+      container.innerHTML = '';
+      blogTags.forEach((tag, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `<span class="tag-pill-text">${tag}</span>`;
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'tag-pill-remove';
+        rm.textContent = '\u00D7';
+        rm.addEventListener('click', () => { blogTags.splice(i, 1); renderTags(); scheduleSave(); });
+        pill.appendChild(rm);
+        container.appendChild(pill);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'tag-add-btn';
+      addBtn.textContent = '+ agregar';
+      addBtn.addEventListener('click', () => {
+        const t = prompt('Nuevo tag:');
+        if (t?.trim()) { blogTags.push(t.trim()); renderTags(); scheduleSave(); }
+      });
+      container.appendChild(addBtn);
+    }
+
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      document.getElementById('saveStatus').textContent = 'Guardando...';
+      saveTimer = setTimeout(savePost, 1000);
+    }
+
+    async function savePost() {
+      const patch = {
+        titulo: document.getElementById('blogTitulo').value,
+        subtitulo: document.getElementById('blogSubtitulo').value || null,
+        extracto: document.getElementById('blogExtracto').value || null,
+        autor: document.getElementById('blogAutor').value,
+        cuerpo_md: document.getElementById('blogCuerpo').value,
+        tags: blogTags,
+      };
+      const res = await fetch(`/api/admin/blog/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      document.getElementById('saveStatus').textContent = res.ok ? 'Guardado' : 'Error';
+    }
+
+    // Bind autosave
+    ['blogTitulo', 'blogSubtitulo', 'blogExtracto', 'blogAutor', 'blogCuerpo'].forEach(id => {
+      document.getElementById(id).addEventListener('input', scheduleSave);
+    });
+
+    // Tabs
+    document.getElementById('tabMarkdown').addEventListener('click', () => {
+      document.getElementById('blogCuerpo').style.display = '';
+      document.getElementById('blogPreview').style.display = 'none';
+      document.getElementById('tabMarkdown').classList.add('is-active');
+      document.getElementById('tabPreview').classList.remove('is-active');
+    });
+
+    document.getElementById('tabPreview').addEventListener('click', () => {
+      document.getElementById('blogCuerpo').style.display = 'none';
+      const preview = document.getElementById('blogPreview');
+      preview.style.display = '';
+      preview.innerHTML = renderMd(document.getElementById('blogCuerpo').value);
+      document.getElementById('tabPreview').classList.add('is-active');
+      document.getElementById('tabMarkdown').classList.remove('is-active');
+    });
+
+    // Minimal markdown preview
+    function renderMd(md) {
+      return md
+        .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code>${code.replace(/</g, '&lt;')}</code></pre>`)
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^/, '<p>')
+        .replace(/$/, '</p>');
+    }
+
+    // Publish
+    document.getElementById('btnPublicar').addEventListener('click', async () => {
+      await savePost();
+      await fetch(`/api/admin/blog/${postId}/publicar`, { method: 'POST' });
+      document.getElementById('blogEstado').textContent = 'publicado';
+      document.getElementById('blogEstado').className = 'estado-badge estado-badge--publicado';
+    });
+
+    document.getElementById('btnGuardar').addEventListener('click', savePost);
+
+    // Upload
+    const uploadZone = document.getElementById('uploadZone');
+    const uploadInput = document.getElementById('uploadInput');
+
+    uploadZone.addEventListener('click', () => uploadInput.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]);
+    });
+    uploadInput.addEventListener('change', () => {
+      if (uploadInput.files[0]) uploadFile(uploadInput.files[0]);
+    });
+
+    async function uploadFile(file) {
+      const fd = new FormData();
+      fd.append('imagen', file);
+      const res = await fetch(`/api/admin/blog/${postId}/imagen`, { method: 'POST', body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        const img = document.getElementById('imagenPreview');
+        img.src = data.url;
+        img.style.display = 'block';
+      }
+    }
+
+    loadPost();
+  </script>
+
+</AdminLayout>

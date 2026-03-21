@@ -1,0 +1,123 @@
+---
+interface Props {
+  heading?: string;
+  description?: string;
+  type?: 'registration' | 'contact' | 'proposal';
+  submitLabel?: string;
+}
+
+const {
+  heading = 'Registro inicial',
+  type = 'registration',
+  submitLabel = 'enviar registro'
+} = Astro.props;
+---
+
+<div class="terminal-form-wrap">
+  <div class="terminal-header">
+    <div class="terminal-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="terminal-title">{heading}</span>
+  </div>
+
+  <form class="terminal-body" data-submission-form>
+    <input type="hidden" name="type" value={type} />
+
+    <div class="term-line">
+      <span class="term-prompt">&gt;</span>
+      <span class="term-label">nombre</span>
+      <input class="term-input" type="text" name="name" autocomplete="name" required placeholder="tu nombre completo" />
+    </div>
+
+    <div class="term-line">
+      <span class="term-prompt">&gt;</span>
+      <span class="term-label">email</span>
+      <input class="term-input" type="email" name="email" autocomplete="email" required placeholder="correo@organizacion.com" />
+    </div>
+
+    <div class="term-line">
+      <span class="term-prompt">&gt;</span>
+      <span class="term-label">org</span>
+      <input class="term-input" type="text" name="organization" autocomplete="organization" placeholder="organizacion (opcional)" />
+    </div>
+
+    <div class="term-line" style="flex-direction:column;gap:0.3rem">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <span class="term-prompt">&gt;</span>
+        <span class="term-label">mensaje</span>
+      </div>
+      <textarea class="term-textarea" name="message" placeholder="Registro al Dataller, propuesta de charla, alianza o patrocinio..."></textarea>
+    </div>
+
+    <button class="term-submit" type="submit">{submitLabel} &crarr;</button>
+    <p class="term-status" data-form-status aria-live="polite"></p>
+  </form>
+</div>
+
+<script>
+  const forms = document.querySelectorAll('[data-submission-form]');
+
+  for (const form of forms) {
+    const status = form.querySelector('[data-form-status]');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!(form instanceof HTMLFormElement) || !(status instanceof HTMLElement)) {
+        return;
+      }
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      const formData = new FormData(form);
+      const payload = {
+        type: String(formData.get('type') ?? 'registration'),
+        name: String(formData.get('name') ?? '').trim(),
+        email: String(formData.get('email') ?? '').trim(),
+        organization: String(formData.get('organization') ?? '').trim(),
+        message: String(formData.get('message') ?? '').trim()
+      };
+
+      status.textContent = '// procesando...';
+      status.className = 'term-status';
+
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const response = await fetch('/api/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => null);
+        const resultObject = result && typeof result === 'object' ? result : null;
+        const isOk = Boolean(resultObject && 'ok' in resultObject && resultObject.ok);
+        const errorMessage =
+          resultObject && 'error' in resultObject && typeof resultObject.error === 'string'
+            ? resultObject.error
+            : 'No fue posible guardar la submission.';
+        const persisted = Boolean(resultObject && 'persisted' in resultObject && resultObject.persisted);
+
+        if (!response.ok || !isOk) {
+          throw new Error(errorMessage);
+        }
+
+        status.textContent = persisted
+          ? 'Listo. Te vemos el 28 de marzo a las 8:30 AM en el Design Thinking Lab.'
+          : 'Recibido. Te confirmamos tu lugar por correo.';
+        status.className = 'term-status ok';
+        form.reset();
+      } catch (error) {
+        status.textContent = '// ERROR: ' + (error instanceof Error ? error.message : 'error inesperado');
+        status.className = 'term-status err';
+      } finally {
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+</script>

@@ -1,0 +1,146 @@
+---
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Registros" seccion="registros" usuario={usuario}>
+
+  <div class="topbar-acciones" slot="acciones">
+    <a href="/api/admin/registros/export" class="admin-btn admin-btn--primary" target="_blank">Exportar CSV</a>
+  </div>
+
+  <div style="display:flex;gap:var(--space-md);align-items:center;margin-bottom:var(--space-md);">
+    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre o email..." />
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab is-active" data-filter="">Todos</button>
+      <button class="filter-tab" data-filter="registration">Registro</button>
+      <button class="filter-tab" data-filter="contact">Contacto</button>
+      <button class="filter-tab" data-filter="proposal">Propuesta</button>
+    </div>
+  </div>
+
+  <div id="statsLine" class="stat-sub" style="margin-bottom:var(--space-sm);"></div>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Organizacion</th>
+          <th>Tipo</th>
+          <th>Fecha</th>
+          <th>Asistio</th>
+        </tr>
+      </thead>
+      <tbody id="registrosBody">
+        <tr><td colspan="6" class="stat-sub">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" id="pagination"></div>
+
+  <script>
+    let allRows = [];
+    let currentPage = 1;
+    let currentType = '';
+    let searchTerm = '';
+
+    async function loadRegistros() {
+      const params = new URLSearchParams();
+      params.set('page', currentPage);
+      params.set('limit', '50');
+      if (currentType) params.set('type', currentType);
+
+      const res = await fetch('/api/admin/registros?' + params);
+      if (!res.ok) { if (res.status === 401) window.location.href = '/admin/login'; return; }
+      const data = await res.json();
+      allRows = data.registros ?? [];
+      renderTable();
+
+      document.getElementById('statsLine').textContent =
+        `Total: ${data.total} registros · Pagina ${data.page} de ${data.pages}`;
+
+      // Pagination
+      const pagEl = document.getElementById('pagination');
+      pagEl.innerHTML = `
+        <div class="pagination-btns">
+          <button class="pagination-btn" ${data.page <= 1 ? 'disabled' : ''} data-page="${data.page - 1}">&larr; Ant</button>
+          <button class="pagination-btn" ${data.page >= data.pages ? 'disabled' : ''} data-page="${data.page + 1}">Sig &rarr;</button>
+        </div>
+        <span>Pagina ${data.page} de ${data.pages}</span>
+      `;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('registrosBody');
+      let rows = allRows;
+
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        rows = rows.filter(r =>
+          (r.name ?? '').toLowerCase().includes(term) ||
+          (r.email ?? '').toLowerCase().includes(term)
+        );
+      }
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="stat-sub">Sin resultados.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.name ?? '--'}</td>
+          <td>${r.email ?? '--'}</td>
+          <td class="stat-sub">${r.organization ?? '--'}</td>
+          <td><span class="estado-badge estado-badge--${r.type === 'registration' ? 'publicado' : 'borrador'}">${r.type}</span></td>
+          <td class="stat-sub">${r.created_at ? new Date(r.created_at).toLocaleDateString('es') : '--'}</td>
+          <td>
+            <input type="checkbox" ${r.asistio ? 'checked' : ''} data-asistio="${r.id}" />
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Events
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchTerm = e.target.value;
+      renderTable();
+    });
+
+    document.getElementById('filterTabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.filter-tab');
+      if (!tab) return;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      currentType = tab.dataset.filter;
+      currentPage = 1;
+      loadRegistros();
+    });
+
+    document.getElementById('pagination').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-page]');
+      if (!btn || btn.disabled) return;
+      currentPage = parseInt(btn.dataset.page);
+      loadRegistros();
+    });
+
+    document.getElementById('registrosBody').addEventListener('change', async (e) => {
+      if (!e.target.dataset.asistio) return;
+      await fetch(`/api/admin/registros/${e.target.dataset.asistio}/asistio`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asistio: e.target.checked }),
+      });
+    });
+
+    loadRegistros();
+  </script>
+
+</AdminLayout>

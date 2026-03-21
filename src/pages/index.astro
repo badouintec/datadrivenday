@@ -1,0 +1,294 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SubmissionForm from '../components/SubmissionForm.astro';
+import { getEventSettings } from '../lib/sanity/content';
+import { filteredResources, harvardMetricas } from '../data/site';
+
+export const prerender = true;
+
+const { settings: eventSettings } = await getEventSettings();
+---
+
+<BaseLayout
+  title="Data Driven Day 2026"
+  description="Proyecto Data Driven Day — soberania de datos, infraestructura critica e IA aplicada desde Hermosillo, Sonora."
+>
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <svg class="hero-grid-bg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.055)" stroke-width="0.5"/>
+        </pattern>
+        <radialGradient id="hfade" cx="50%" cy="50%" r="70%">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="hmask"><rect width="100%" height="100%" fill="url(#hfade)"/></mask>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hgrid)" mask="url(#hmask)"/>
+      <line x1="0" y1="30%" x2="100%" y2="30%" stroke="rgba(59,130,246,0.08)" stroke-width="1">
+        <animate attributeName="opacity" values="0.3;1;0.3" dur="4s" repeatCount="indefinite"/>
+      </line>
+      <line x1="0" y1="65%" x2="100%" y2="65%" stroke="rgba(96,165,250,0.05)" stroke-width="1">
+        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" repeatCount="indefinite"/>
+      </line>
+    </svg>
+
+    <div class="page-shell hero-content">
+      <div class="hero-main">
+        <div class="hero-typewriter">
+          <span id="typewriter-text"></span>
+          <span class="typewriter-cursor" aria-hidden="true"></span>
+        </div>
+
+        <h1>Data Driven<br/><em>Day 2026</em></h1>
+
+        <p class="hero-sub">
+          Una plataforma que convierte datos urbanos en decisiones.
+          Hermosillo es la primera ciudad piloto.
+          El Dataller de IA es el primer evento.
+        </p>
+
+        <div class="countdown-block">
+          <p class="countdown-label">Cuenta regresiva al Dataller de IA &mdash; 28 mar 2026</p>
+          <div class="countdown" id="countdown" aria-hidden="true">
+            <span id="cd-days">--</span><span class="countdown-sep">d</span>
+            <span id="cd-hours">--</span><span class="countdown-sep">h</span>
+            <span id="cd-mins">--</span><span class="countdown-sep">m</span>
+            <span id="cd-secs">--</span><span class="countdown-sep">s</span>
+          </div>
+          <span class="sr-only">El Dataller de IA es el 28 de marzo de 2026 a las 8:30 AM</span>
+        </div>
+
+        <div class="hero-actions">
+          <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">Reservar mi lugar</a>
+          <a class="button-secondary" href="/hermosillo">Ver datos de Hermosillo &rarr;</a>
+        </div>
+      </div>
+
+      <aside class="hero-side">
+        <div class="hero-panel-block">
+          <p class="panel-label">Temperatura actual &mdash; Hermosillo</p>
+          <div class="temp-widget">
+            <span class="temp-value" id="temp-value">--</span>
+            <span class="temp-unit">&deg;C</span>
+          </div>
+        </div>
+        <div class="hero-panel-block">
+          <p class="panel-label">Ciudad</p>
+          <p class="panel-value">{eventSettings.city}</p>
+        </div>
+        <div class="hero-panel-block">
+          <p class="panel-label">Primer evento</p>
+          <p class="panel-value">El Dataller de IA</p>
+        </div>
+        <div class="hero-panel-block">
+          <p class="panel-label">Fecha</p>
+          <p class="panel-value">{eventSettings.eventDate}</p>
+        </div>
+        <div class="hero-panel-block">
+          <p class="panel-label">Sectores convocados</p>
+          <p class="panel-value">Gobierno &middot; Industria &middot; Academia &middot; Salud</p>
+        </div>
+        <div class="hero-panel-block">
+          <p class="panel-label">Mision</p>
+          <p class="panel-value">Datos, ciudad e inteligencia aplicada en decisiones reales.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ── HERMOSILLO TEASER ─────────────────────────────────── -->
+  <section class="section section-hmo-preview" id="hermosillo-preview">
+    <div class="page-shell">
+      <p class="section-label">Primera ciudad piloto</p>
+      <h2>Hermosillo en datos</h2>
+      <p class="section-intro">
+        Analizamos la ciudad con metodologia del Growth Lab de Harvard para identificar
+        frenos estructurales y oportunidades reales de crecimiento.
+      </p>
+      <div class="metrics-grid" style="margin-top:2rem">
+        {harvardMetricas.slice(0, 3).map((m) => {
+          const cls = m.color === 'heat' ? 'urgent' : m.color === 'go' ? 'data' : 'warning';
+          return (
+            <div class="metric-card">
+              <span class={`metric-number ${cls}`}>{m.valor}</span>
+              <p class="metric-label">{m.descripcion}</p>
+            </div>
+          );
+        })}
+      </div>
+      <a class="button-secondary" href="/hermosillo" style="margin-top:2rem;display:inline-block">Ver analisis completo &rarr;</a>
+    </div>
+  </section>
+
+  <!-- ── DATALLER TEASER ──────────────────────────────────────── -->
+  <section class="section section-dataller" id="dataller-ia">
+    <div class="page-shell">
+      <p class="section-label">Primer evento · 28 de marzo de 2026</p>
+      <h2>El Dataller de IA</h2>
+
+      <div class="dataller-teaser" data-animate>
+        <div class="dataller-teaser-main">
+          <p class="dataller-teaser-copy">
+            Un taller intensivo de medio dia para construir productos reales con inteligencia
+            artificial, con bases solidas y enfoque practico. No es una conferencia, no es un demo:
+            se aprende haciendo.
+          </p>
+          <div class="dataller-teaser-meta">
+            <div class="dt-pill-meta">
+              <span class="dt-pm-label">Fecha</span>
+              <span class="dt-pm-value">Sabado 28 de marzo · 8:30 AM – 3:30 PM</span>
+            </div>
+            <div class="dt-pill-meta">
+              <span class="dt-pm-label">Lugar</span>
+              <span class="dt-pm-value">Design Thinking Lab · TEC de Monterrey, Hermosillo</span>
+            </div>
+            <div class="dt-pill-meta">
+              <span class="dt-pm-label">Costo</span>
+              <span class="dt-pm-value dt-pm-go">Gratuito</span>
+            </div>
+            <div class="dt-pill-meta">
+              <span class="dt-pm-label">Requisito</span>
+              <span class="dt-pm-value">Traer laptop personal</span>
+            </div>
+          </div>
+          <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer" style="margin-top:2rem">Ver programa completo &rarr;</a>
+        </div>
+        <div class="dataller-teaser-modules">
+          <p class="dt-modules-label">6 bloques tematicos</p>
+          {[
+            'Fundamentos para construir con IA',
+            'Modelos y datos',
+            'Sistemas que buscan y razonan',
+            'Desarrollo con agentes y asistentes',
+            'Integracion y despliegue',
+            'Datos, ciudad y gobernanza',
+          ].map((m, i) => (
+            <div class="dt-module-row">
+              <span class="dt-module-num">0{i + 1}</span>
+              <span class="dt-module-name">{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RECURSOS TEASER ─────────────────────────────────── -->
+  <section class="section section-recursos-preview" id="recursos">
+    <div class="page-shell">
+      <p class="section-label">Biblioteca de referencia</p>
+      <h2>Recursos para la agenda 2026</h2>
+      <p class="section-intro">
+        Fuentes primarias que fundamentan los seis ejes tematicos de la plataforma.
+      </p>
+      <div class="resources-grid" style="margin-top:2rem">
+        {filteredResources.slice(0, 3).map((res) => (
+          <div class="resource-card" data-category={res.category}>
+            <div class="resource-source-row">
+              <span class="resource-source">{res.source}</span>
+              <span class="resource-year">{res.year}</span>
+            </div>
+            <p class="resource-title">{res.title}</p>
+            <a class="resource-link" href={res.href} target="_blank" rel="noreferrer noopener">{res.href}</a>
+          </div>
+        ))}
+      </div>
+      <a class="button-secondary" href="/datos" style="margin-top:2rem;display:inline-block">Ver biblioteca completa &rarr;</a>
+    </div>
+  </section>
+
+  <!-- ── REGISTRATION FORM ──────────────────────────────────────── -->
+  <section class="section section-form" id="participa">
+    <div class="page-shell" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      <div style="padding-right:3rem;border-right:1px solid var(--color-border)">
+        <p class="section-label">Participacion</p>
+        <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Unete al proyecto</h2>
+        <ul style="list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1px;background:var(--color-border)">
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Registro para el Dataller de IA</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Postulacion como speaker o colaborador</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Interes institucional para activaciones futuras</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Alianza o patrocinio con Data Driven Day</li>
+        </ul>
+      </div>
+      <div style="padding-left:3rem">
+        <SubmissionForm
+          heading="Registro al Dataller"
+          description="Comparte tu interes, registrate o deja tus datos para participar."
+          submitLabel="ejecutar registro"
+        />
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<script>
+  // ── TYPEWRITER ─────────────────────────────────────────
+  const phrases = ['Soberania de datos', 'Infraestructura critica', 'Resiliencia sistemica'];
+  const tw = document.getElementById('typewriter-text');
+  if (tw) {
+    let pi = 0, ci = 0, del = false;
+    const spd = { type: 68, del: 38, pause: 1800 };
+    const loop = () => {
+      const phrase = phrases[pi] ?? '';
+      if (!del) {
+        tw.textContent = phrase.slice(0, ++ci);
+        if (ci === phrase.length) { del = true; setTimeout(loop, spd.pause); return; }
+      } else {
+        tw.textContent = phrase.slice(0, --ci);
+        if (ci === 0) { del = false; pi = (pi + 1) % phrases.length; }
+      }
+      setTimeout(loop, del ? spd.del : spd.type);
+    };
+    loop();
+  }
+
+  // ── COUNTDOWN ──────────────────────────────────────────
+  const TARGET = new Date('2026-03-28T08:30:00-07:00').getTime();
+  const els = {
+    d: document.getElementById('cd-days'),
+    h: document.getElementById('cd-hours'),
+    m: document.getElementById('cd-mins'),
+    s: document.getElementById('cd-secs')
+  };
+  const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
+  const tick = () => {
+    const diff = TARGET - Date.now();
+    if (diff <= 0) { Object.values(els).forEach(e => { if (e) e.textContent = '00'; }); return; }
+    if (els.d) els.d.textContent = String(Math.floor(diff / 86400000));
+    if (els.h) els.h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
+    if (els.m) els.m.textContent = pad(Math.floor((diff % 3600000) / 60000));
+    if (els.s) els.s.textContent = pad(Math.floor((diff % 60000) / 1000));
+  };
+  tick();
+  setInterval(tick, 1000);
+
+  // ── TEMPERATURE FETCH ───────────────────────────────────
+  const tempEl = document.getElementById('temp-value');
+  if (tempEl) {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 3000);
+    fetch(
+      'https://api.open-meteo.com/v1/forecast?latitude=29.07&longitude=-110.97&current=temperature_2m',
+      { signal: ctrl.signal }
+    )
+      .then(r => r.json())
+      .then((data: unknown) => {
+        clearTimeout(tid);
+        const d = data as Record<string, unknown>;
+        const cur = d.current as Record<string, unknown> | undefined;
+        const t = cur?.temperature_2m as number | undefined;
+        if (typeof t === 'number') {
+          tempEl.textContent = t.toFixed(1);
+          if (t >= 40) tempEl.style.color = 'var(--color-accent-heat)';
+          else if (t >= 30) tempEl.style.color = 'var(--color-accent-amber)';
+          else tempEl.style.color = 'var(--color-accent-data)';
+        }
+      })
+      .catch(() => { clearTimeout(tid); });
+  }
+</script>

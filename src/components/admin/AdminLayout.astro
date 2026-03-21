@@ -1,0 +1,145 @@
+---
+import '../../styles/global.css';
+
+interface Props {
+  titulo: string;
+  seccion: 'dashboard' | 'presentaciones' | 'blog' | 'registros' | 'recursos' | 'usuarios';
+  usuario: { username: string; rol: string; nombre: string | null };
+}
+const { titulo, seccion, usuario } = Astro.props;
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{titulo} · DDD Admin</title>
+  <link rel="stylesheet" href="/styles/admin.css" />
+</head>
+<body data-theme="dark">
+
+<div class="admin-shell">
+
+  <nav class="admin-sidebar" aria-label="Navegacion del panel de administracion">
+
+    <div class="sidebar-brand">
+      <a href="/admin" class="sidebar-logo-link">
+        <span class="sidebar-logo-icon" aria-hidden="true">&#9672;</span>
+        <span class="sidebar-logo-text">DDD Admin</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Contenido</span>
+      <ul class="sidebar-nav" role="list">
+        <li>
+          <a
+            href="/admin"
+            class={`sidebar-link ${seccion === 'dashboard' ? 'is-active' : ''}`}
+            aria-current={seccion === 'dashboard' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9707;</span>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a
+            href="/admin/presentaciones"
+            class={`sidebar-link ${seccion === 'presentaciones' ? 'is-active' : ''}`}
+            aria-current={seccion === 'presentaciones' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9673;</span>
+            Presentaciones
+          </a>
+        </li>
+        <li>
+          <a
+            href="/admin/blog"
+            class={`sidebar-link ${seccion === 'blog' ? 'is-active' : ''}`}
+            aria-current={seccion === 'blog' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9703;</span>
+            Blog
+          </a>
+        </li>
+        <li>
+          <a
+            href="/admin/recursos"
+            class={`sidebar-link ${seccion === 'recursos' ? 'is-active' : ''}`}
+            aria-current={seccion === 'recursos' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9704;</span>
+            Recursos
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-label">Eventos</span>
+      <ul class="sidebar-nav" role="list">
+        <li>
+          <a
+            href="/admin/registros"
+            class={`sidebar-link ${seccion === 'registros' ? 'is-active' : ''}`}
+            aria-current={seccion === 'registros' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9706;</span>
+            Registros
+            <span class="sidebar-badge" id="registrosBadge" aria-label="registros pendientes"></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    {usuario.rol === 'superadmin' && (
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">Sistema</span>
+        <ul class="sidebar-nav" role="list">
+          <li>
+            <a href="/admin/usuarios" class={`sidebar-link ${seccion === 'usuarios' ? 'is-active' : ''}`}>
+              <span class="sidebar-link-icon" aria-hidden="true">&#9708;</span>
+              Usuarios
+            </a>
+          </li>
+        </ul>
+      </div>
+    )}
+
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" class="sidebar-external-link">Ver sitio &#8599;</a>
+      <a href="/dataller/present" target="_blank" class="sidebar-external-link">Presenter &#8599;</a>
+    </div>
+
+  </nav>
+
+  <div class="admin-main">
+
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-titulo">{titulo}</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-acciones">
+          <slot name="acciones" />
+        </div>
+        <div class="topbar-user">
+          <span class="topbar-user-name">{usuario.nombre ?? usuario.username}</span>
+          <span class={`topbar-user-rol topbar-user-rol--${usuario.rol}`}>{usuario.rol}</span>
+          <form action="/api/admin/logout" method="post" style="display:inline">
+            <button type="submit" class="topbar-logout-btn">Salir</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-content" id="main-content" tabindex="-1">
+      <slot />
+    </main>
+
+  </div>
+
+</div>
+
+</body>
+</html>

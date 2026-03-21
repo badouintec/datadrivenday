@@ -1,0 +1,106 @@
+---
+import '../../styles/global.css';
+
+const expired = Astro.url.searchParams.get('expired') === '1';
+const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso · Data Driven Day</title>
+  <link rel="stylesheet" href="/styles/admin.css" />
+</head>
+<body class="login-body" data-theme="dark">
+
+  <div class="login-container">
+    <header class="login-header">
+      <span class="login-brand">DATA DRIVEN DAY</span>
+      <h1 class="login-title">Acceso al panel</h1>
+      <p class="login-sub">Sistema de administracion</p>
+    </header>
+
+    {expired && (
+      <div class="login-alert" role="alert">
+        Sesion expirada. Inicia sesion de nuevo.
+      </div>
+    )}
+
+    <form id="loginForm" class="login-form" novalidate>
+      <div class="field-group">
+        <label for="user" class="field-label">Usuario</label>
+        <input
+          type="text"
+          id="user"
+          name="user"
+          class="field-input"
+          required
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="field-group">
+        <label for="password" class="field-label">Contrasena</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="field-input"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <div id="loginError" class="login-error" hidden role="alert">
+        Credenciales incorrectas
+      </div>
+
+      <button type="submit" id="loginBtn" class="login-btn">
+        <span id="loginBtnText">ENTRAR</span>
+      </button>
+    </form>
+  </div>
+
+  <script define:vars={{ redirect }}>
+    const form = document.getElementById('loginForm');
+    const errorEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('loginBtnText');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.hidden = true;
+      btn.disabled = true;
+      btnText.textContent = 'VERIFICANDO...';
+
+      const user = form.user.value.trim();
+      const password = form.password.value;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user, password }),
+        });
+
+        if (res.ok) {
+          window.location.href = redirect;
+        } else {
+          errorEl.hidden = false;
+          form.password.value = '';
+          form.password.focus();
+        }
+      } catch {
+        errorEl.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'ENTRAR';
+      }
+    });
+  </script>
+
+</body>
+</html>

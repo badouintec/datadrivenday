@@ -1,0 +1,634 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SubmissionForm from '../components/SubmissionForm.astro';
+
+export const prerender = true;
+
+const modulos = [
+  {
+    num: '01',
+    hora: '9:00 – 10:00',
+    titulo: 'Fundamentos para construir con IA',
+    detalle:
+      'Cómo funciona realmente la inteligencia artificial por dentro. Lógica de modelos, estructuras de datos y por qué las decisiones de diseño importan más que la herramienta de moda. Se trabaja con Python y también con plataformas accesibles según el perfil de cada participante.',
+    stack: ['Python', 'GitHub Copilot', 'Gemini'],
+    color: 'blue',
+  },
+  {
+    num: '02',
+    hora: '10:00 – 11:00',
+    titulo: 'Modelos y datos',
+    detalle:
+      'Cómo los modelos aprenden de tablas, textos, imágenes y documentos. Cuándo usar un modelo grande y cuándo uno pequeño. Cómo evaluar si realmente funciona o solo parece que funciona.',
+    stack: ['Neon', 'pgvector', 'Postgres'],
+    color: 'sky',
+  },
+  {
+    num: '03',
+    hora: '11:00 – 12:00',
+    titulo: 'Sistemas que buscan y razonan',
+    detalle:
+      'Cómo construir aplicaciones que consultan bases de conocimiento propias: desde un catálogo de productos hasta documentos de gobierno o expedientes de salud. RAG y búsqueda semántica con casos reales.',
+    stack: ['RAG', 'Búsqueda semántica', 'Gemini'],
+    color: 'data',
+  },
+  {
+    num: '04',
+    hora: '12:00 – 13:00',
+    titulo: 'Desarrollo con agentes y asistentes',
+    detalle:
+      'Cómo trabajar con herramientas como GitHub Copilot, Cursor o Claude para construir más rápido sin perder el control. El desarrollador como guía de arquitectura cuando la IA escribe código.',
+    stack: ['Copilot', 'Cursor', 'Claude'],
+    color: 'go',
+  },
+  {
+    num: '05',
+    hora: '13:00 – 14:00',
+    titulo: 'Integración y despliegue',
+    detalle:
+      'Cómo conectar un modelo con una API, una base de datos o una interfaz real. De la notebook al producto que usa gente real.',
+    stack: ['Vercel AI SDK', 'Next.js', 'APIs'],
+    color: 'purple',
+  },
+  {
+    num: '06',
+    hora: '14:00 – 15:00',
+    titulo: 'Datos, ciudad, gobernanza',
+    detalle:
+      'Cómo todo esto aplica a los problemas de Hermosillo y Sonora: agua, salud, calor, industria. Por qué saber qué hay detrás de una decisión de IA importa. Qué significa soberanía de datos en la práctica cotidiana.',
+    stack: ['Hermosillo', 'Datos abiertos', 'Gobernanza'],
+    color: 'amber',
+  },
+];
+
+const colorMap: Record<string, string> = {
+  blue: 'var(--color-accent-blue)',
+  sky: 'var(--color-accent-sky)',
+  data: 'var(--color-accent-data)',
+  go: 'var(--color-accent-go)',
+  purple: '#a78bfa',
+  amber: 'var(--color-accent-warn)',
+};
+---
+
+<BaseLayout
+  title="Dataller de IA 2026 — Data Driven Day"
+  description="Un taller intensivo de medio día para construir productos reales con inteligencia artificial. 28 de marzo, Tecnológico de Monterrey, Hermosillo."
+>
+
+  <!-- HERO -->
+  <section class="dt-hero">
+    <div class="page-shell">
+      <div class="dt-hero-inner">
+        <div class="dt-hero-main">
+          <p class="section-label">Primer evento · Data Driven Day 2026</p>
+          <h1 class="dt-h1">Dataller<br/><em>de IA</em></h1>
+          <p class="dt-hero-sub">
+            Un taller intensivo de medio día para construir productos reales con inteligencia
+            artificial. No es una conferencia, no es un demo: se aprende haciendo.
+          </p>
+          <div class="dt-hero-actions">
+            <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">Reservar mi lugar</a>
+            <a class="button-secondary" href="#programa">Ver programa</a>
+          </div>
+        </div>
+
+        <aside class="dt-meta-panel">
+          <div class="dt-meta-row">
+            <span class="dt-meta-label">Fecha</span>
+            <span class="dt-meta-value">Sábado 28 de marzo de 2026</span>
+          </div>
+          <div class="dt-meta-row">
+            <span class="dt-meta-label">Horario</span>
+            <span class="dt-meta-value">8:30 AM – 3:30 PM</span>
+          </div>
+          <div class="dt-meta-row">
+            <span class="dt-meta-label">Lugar</span>
+            <span class="dt-meta-value">Design Thinking Lab · 3er piso del PEI<br/>Tecnológico de Monterrey, Campus Sonora Norte</span>
+          </div>
+          <div class="dt-meta-row">
+            <span class="dt-meta-label">Costo</span>
+            <span class="dt-meta-value dt-meta-go">Gratuito</span>
+          </div>
+          <div class="dt-meta-row">
+            <span class="dt-meta-label">Incluye</span>
+            <span class="dt-meta-value">Reconocimiento impreso · Comida durante el taller</span>
+          </div>
+          <div class="dt-meta-row dt-meta-req">
+            <span class="dt-meta-label">Requisito</span>
+            <span class="dt-meta-value">Traer laptop personal</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARA QUIÉN -->
+  <section class="section section-para-quien">
+    <div class="page-shell">
+      <p class="section-label">Para quién es</p>
+      <h2>No se requiere ser experto en programación</h2>
+      <p class="section-intro">
+        Estudiantes, desarrolladores, diseñadores, emprendedores y profesionistas de salud,
+        gobierno o industria que quieren dar el siguiente paso con IA. Sí se requieren ganas
+        de trabajar, aprender y traer la laptop lista para usarse.
+      </p>
+      <div class="dt-perfiles-grid">
+        {['Estudiantes', 'Desarrolladores', 'Diseñadores', 'Emprendedores', 'Profesionistas de salud', 'Gobierno e industria'].map(p => (
+          <div class="dt-perfil">
+            <span class="dt-perfil-dot" aria-hidden="true"></span>
+            {p}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRAMA -->
+  <section class="section section-programa" id="programa">
+    <div class="page-shell">
+      <p class="section-label">Programa del día</p>
+      <h2>Seis bloques · 8:30 AM a 3:30 PM</h2>
+      <p class="section-intro">
+        Cada bloque combina teoría fundamental, demostración en vivo y trabajo práctico.
+        Hay espacio para avanzar a tu ritmo según tu perfil técnico.
+      </p>
+
+      <div class="dt-registro-previo" aria-label="Registro previo">
+        <span class="dt-registro-hora">8:30</span>
+        <span class="dt-registro-text">Registro y bienvenida</span>
+      </div>
+
+      <div class="dt-modulos">
+        {modulos.map((mod) => (
+          <details class="dt-modulo" open={mod.num === '01'}>
+            <summary class="dt-modulo-summary" style={`--mod-color: ${colorMap[mod.color]}`}>
+              <span class="dt-mod-num" aria-hidden="true">{mod.num}</span>
+              <span class="dt-mod-hora">{mod.hora}</span>
+              <span class="dt-mod-titulo">{mod.titulo}</span>
+              <span class="dt-mod-chevron" aria-hidden="true">›</span>
+            </summary>
+            <div class="dt-modulo-body-wrap">
+              <div class="dt-modulo-body">
+                <p class="dt-mod-detalle">{mod.detalle}</p>
+                <div class="dt-mod-stack">
+                  {mod.stack.map(s => (
+                    <span class="dt-mod-pill">{s}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
+
+      <div class="dt-registro-previo dt-proyectos-bloque" aria-label="Presentación de proyectos">
+        <span class="dt-registro-hora">15:00 – 15:30</span>
+        <span class="dt-registro-text">Presentación de proyectos — espacio abierto para mostrar lo que estás construyendo, sin importar si está incompleto. Revisión entre pares.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- EL MARCO -->
+  <section class="section section-marco">
+    <div class="page-shell dt-marco-inner">
+      <div class="dt-marco-txt">
+        <p class="section-label">El marco</p>
+        <h2 style="font-size:clamp(1.8rem,3.2vw,2.6rem)">Soberanía de Datos: Infraestructura para la Resiliencia Sistémica</h2>
+        <p class="section-intro" style="margin-bottom:0">
+          El Dataller ocurre dentro del Data Driven Day 2026. En un momento donde Hermosillo
+          enfrenta récords históricos de calor y solo el 18% de las metas de desarrollo sostenible
+          van en camino de cumplirse, los datos y la inteligencia aplicada son infraestructura
+          de ciudad. El Dataller es donde esa conversación se convierte en práctica.
+        </p>
+      </div>
+      <div class="dt-marco-stats">
+        <div class="dt-stat">
+          <span class="dt-stat-num" style="color:var(--color-accent-heat)">50.5°C</span>
+          <span class="dt-stat-label">temperatura récord histórico en Hermosillo (julio 2021)</span>
+        </div>
+        <div class="dt-stat">
+          <span class="dt-stat-num" style="color:var(--color-accent-warn)">18%</span>
+          <span class="dt-stat-label">de metas ODS va en camino de cumplirse</span>
+        </div>
+        <div class="dt-stat">
+          <span class="dt-stat-num" style="color:var(--color-accent-data)">Último</span>
+          <span class="dt-stat-label">lugar en crecimiento de empleo vs ciudades comparativas (Growth Lab Harvard)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UBICACIÓN -->
+  <section class="section section-ubicacion">
+    <div class="page-shell">
+      <p class="section-label">Ubicación</p>
+      <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Tecnológico de Monterrey · Campus Sonora Norte</h2>
+      <div class="dt-ubicacion-grid">
+        <div class="dt-ubicacion-info">
+          <div class="dt-ubi-block">
+            <p class="dt-ubi-label">Sala</p>
+            <p class="dt-ubi-value">Design Thinking Lab · 3er piso del PEI</p>
+          </div>
+          <div class="dt-ubi-block">
+            <p class="dt-ubi-label">Dirección</p>
+            <p class="dt-ubi-value">Blvd. Enrique Mazón López 965<br/>83000 Hermosillo, Sonora</p>
+          </div>
+          <div class="dt-ubi-block">
+            <p class="dt-ubi-label">Acceso</p>
+            <p class="dt-ubi-value">Entrada principal del campus. Presentar identificación en recepción.</p>
+          </div>
+          <a
+            class="button-secondary"
+            href="https://maps.google.com/?q=Tecnologico+de+Monterrey+Campus+Sonora+Norte+Hermosillo"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="margin-top:1rem;display:inline-flex"
+          >Ver en Google Maps →</a>
+        </div>
+        <div class="dt-ubicacion-mapa-placeholder" aria-hidden="true">
+          <span class="dt-mapa-label">Tecnológico de Monterrey<br/>Campus Sonora Norte</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGISTRO -->
+  <section class="section section-form" id="registro">
+    <div class="page-shell dt-registro-grid">
+      <div class="dt-registro-info">
+        <p class="section-label">Participación</p>
+        <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Reserva tu lugar</h2>
+        <p style="font-size:1rem;color:var(--color-text-muted);line-height:1.75;margin-top:1rem">
+          El evento es gratuito pero los lugares son limitados a la capacidad del Design
+          Thinking Lab. Regístrate para asegurar tu lugar y recibir confirmación con detalles
+          de acceso.
+        </p>
+        <ul class="dt-beneficios">
+          <li>Lugar confirmado en el taller</li>
+          <li>Reconocimiento impreso de participación</li>
+          <li>Comida durante el evento</li>
+          <li>Acceso a materiales y recursos del día</li>
+        </ul>
+      </div>
+      <div>
+        <SubmissionForm
+          heading="Registro al Dataller de IA"
+          description="28 de marzo · Tecnológico de Monterrey · Hermosillo"
+          submitLabel="Reservar mi lugar"
+        />
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+/* HERO */
+.dt-hero {
+  border-bottom: 1px solid var(--color-border);
+  padding: 5rem 0 4rem;
+}
+.dt-hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+  align-items: start;
+}
+.dt-hero-main {
+  padding-right: 3rem;
+  border-right: 1px solid var(--color-border);
+}
+.dt-h1 {
+  font-family: var(--display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  color: var(--color-text-primary);
+  letter-spacing: -0.035em;
+  margin: 0.75rem 0 1.5rem;
+}
+.dt-h1 em { font-style: normal; color: var(--color-accent-sky); }
+.dt-hero-sub {
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+  max-width: 520px;
+  margin-bottom: 2.5rem;
+}
+.dt-hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+/* META PANEL */
+.dt-meta-panel {
+  padding-left: 2.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.dt-meta-row {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.dt-meta-row:first-child { padding-top: 0; }
+.dt-meta-row:last-child { border-bottom: none; }
+.dt-meta-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+.dt-meta-value {
+  font-size: 0.88rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+}
+.dt-meta-go { color: var(--color-accent-go) !important; font-weight: 700; }
+.dt-meta-req { background: rgba(59,130,246,0.04); padding: 0.9rem 0.75rem; margin: 0 -0.75rem; border-left: 3px solid var(--color-accent-blue); }
+
+/* PERFILES */
+.dt-perfiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-border);
+  margin-top: 2rem;
+}
+.dt-perfil {
+  background: var(--color-surface);
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.dt-perfil-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-accent-sky); flex-shrink: 0;
+}
+
+/* REGISTRO PREVIO / BLOQUES DE AGENDA */
+.dt-registro-previo {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 0.9rem 1rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  font-size: 0.85rem;
+}
+.dt-registro-hora {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  min-width: 5rem;
+}
+.dt-registro-text { color: var(--color-text-secondary); line-height: 1.6; }
+.dt-proyectos-bloque {
+  border-top: none;
+  border-bottom: 1px solid var(--color-border);
+  margin-top: 0;
+}
+
+/* MÓDULOS */
+.dt-modulos {
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.dt-modulo {
+  border-bottom: 1px solid var(--color-border);
+}
+.dt-modulo:last-child { border-bottom: none; }
+
+.dt-modulo-summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 2.5rem 6rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--mod-color, var(--color-accent-blue));
+  transition: background 0.15s;
+}
+.dt-modulo-summary::-webkit-details-marker { display: none; }
+.dt-modulo-summary:hover { background: var(--color-surface); }
+
+.dt-mod-num {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--mod-color, var(--color-accent-blue));
+  letter-spacing: 0.08em;
+}
+.dt-mod-hora {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.dt-mod-titulo {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.dt-mod-chevron {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  transition: transform 250ms ease;
+}
+.dt-modulo[open] .dt-mod-chevron { transform: rotate(90deg); }
+
+/* Accordion body with grid animation */
+.dt-modulo-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.dt-modulo[open] .dt-modulo-body-wrap {
+  grid-template-rows: 1fr;
+}
+.dt-modulo-body {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1.25rem;
+}
+.dt-modulo[open] .dt-modulo-body {
+  padding: 1rem 1.25rem 1.25rem 4.75rem;
+}
+.dt-mod-detalle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  margin-bottom: 0.75rem;
+}
+.dt-mod-stack { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.dt-mod-pill {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--color-accent-sky);
+  border: 1px solid rgba(96,165,250,0.25);
+  background: rgba(59,130,246,0.06);
+  padding: 0.15em 0.5em;
+  border-radius: 2px;
+}
+
+/* MARCO */
+.dt-marco-inner {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  align-items: start;
+}
+.dt-marco-txt {
+  padding-right: 3rem;
+  border-right: 1px solid var(--color-border);
+}
+.dt-marco-stats {
+  padding-left: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dt-stat {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.dt-stat:last-child { border-bottom: none; }
+.dt-stat-num {
+  display: block;
+  font-family: var(--mono);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.dt-stat-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* UBICACIÓN */
+.dt-ubicacion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 2rem;
+  border: 1px solid var(--color-border);
+}
+.dt-ubicacion-info {
+  padding: 2rem;
+  border-right: 1px solid var(--color-border);
+}
+.dt-ubi-block { margin-bottom: 1.5rem; }
+.dt-ubi-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+.dt-ubi-value {
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+.dt-ubicacion-mapa-placeholder {
+  background: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 2rem;
+}
+.dt-mapa-label {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+}
+
+/* REGISTRO */
+.dt-registro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.dt-registro-info {
+  padding-right: 3rem;
+  border-right: 1px solid var(--color-border);
+}
+.dt-registro-grid > div:last-child {
+  padding-left: 3rem;
+}
+.dt-beneficios {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--color-border);
+}
+.dt-beneficios li {
+  background: var(--color-bg);
+  padding: 0.9rem 1.1rem;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.dt-beneficios li::before {
+  content: '✓';
+  color: var(--color-accent-go);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .dt-hero-inner { grid-template-columns: 1fr; }
+  .dt-hero-main { border-right: none; padding-right: 0; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem; }
+  .dt-meta-panel { padding-left: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .dt-marco-inner { grid-template-columns: 1fr; }
+  .dt-marco-txt { border-right: none; padding-right: 0; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem; }
+  .dt-marco-stats { padding-left: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .dt-registro-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .dt-registro-info { padding-right: 0; border-right: none; border-bottom: 1px solid var(--color-border); padding-bottom: 3rem; }
+  .dt-registro-grid > div:last-child { padding-left: 0; }
+  .dt-ubicacion-grid { grid-template-columns: 1fr; }
+  .dt-ubicacion-info { border-right: none; }
+}
+@media (max-width: 768px) {
+  .dt-hero { padding: 3rem 0 2.5rem; }
+  .dt-perfiles-grid { grid-template-columns: repeat(2, 1fr); }
+  .dt-modulo-summary { grid-template-columns: 1fr auto; gap: 0.5rem; }
+  .dt-mod-num, .dt-mod-hora { display: none; }
+  .dt-meta-panel { grid-template-columns: repeat(2, 1fr); }
+  .dt-marco-stats { grid-template-columns: 1fr; }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .dt-modulo-body-wrap { transition: none; }
+  .dt-mod-chevron { transition: none; }
+}
+</style>

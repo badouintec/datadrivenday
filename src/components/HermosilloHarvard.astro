@@ -1,0 +1,723 @@
+---
+import type {
+  MetricaHarvard,
+  CuelloDeBottella,
+  OportunidadHarvard,
+} from "../data/site.ts";
+
+interface Props {
+  metricas: MetricaHarvard[];
+  cuellos: CuelloDeBottella[];
+  oportunidades: OportunidadHarvard[];
+  fuente: {
+    titulo: string;
+    autores: string;
+    anio: string;
+    linkEstudio: string;
+    linkOrg: string;
+  };
+}
+
+const empleoCiudades = [
+  { nombre: "Tijuana",         valor: 2.3,  color: "go"   },
+  { nombre: "Reynosa",         valor: 2.1,  color: "go"   },
+  { nombre: "Juárez",          valor: 1.9,  color: "go"   },
+  { nombre: "Mexicali",        valor: 1.7,  color: "go"   },
+  { nombre: "Monterrey",       valor: 1.5,  color: "go"   },
+  { nombre: "Saltillo",        valor: 1.4,  color: "go"   },
+  { nombre: "Querétaro",       valor: 1.2,  color: "go"   },
+  { nombre: "Hermosillo",      valor: 0.3,  color: "heat" },
+  { nombre: "Guadalajara",     valor: 0.2,  color: "data" },
+  { nombre: "San Luis Potosí", valor: -0.1, color: "amber"},
+];
+const empleoMax = 2.3;
+
+const { metricas, cuellos, oportunidades, fuente } = Astro.props;
+---
+
+<section id="hermosillo-harvard" class="harvard-section page-shell">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="harvard-header">
+    <span class="section-eyebrow">
+      FUENTE EXTERNA · GROWTH LAB · HARVARD KENNEDY SCHOOL · 2025
+    </span>
+    <h2 class="harvard-title">Hermosillo en datos</h2>
+    <p class="harvard-subtitle">Lo que dice la ciencia sobre nuestra ciudad</p>
+    <p class="harvard-desc">
+      El Growth Lab de la Universidad de Harvard analizó la economía de
+      Hermosillo. Estos son los hallazgos que definen la agenda del Data
+      Driven Day 2026.
+    </p>
+  </div>
+
+  <!-- ── Métricas (primeras 4) ────────────────────────────────── -->
+  <div class="harvard-metrics">
+    {metricas.slice(0, 4).map((m) => (
+      <div class={`harvard-metric harvard-metric--${m.color}`}>
+        <span
+          class="metric-value"
+          data-counter={m.animable ? "true" : undefined}
+          data-target={m.animable ? m.valor : undefined}
+        >
+          {m.valor}{m.animable && m.tipo === "oportunidad" ? "%" : ""}{m.animable && m.tipo === "rezago" && m.valor !== "3" ? "%" : ""}
+        </span>
+        <p class="metric-desc">{m.descripcion}</p>
+        <span class="metric-source">Growth Lab Harvard · 2024</span>
+      </div>
+    ))}
+  </div>
+
+  <!-- ── Gráfica de empleo ───────────────────────────────────── -->
+  <div
+    class="empleo-chart"
+    role="img"
+    aria-label="Crecimiento del empleo en Hermosillo vs ciudades comparativas 2018-2023. Hermosillo ocupa el penúltimo lugar con 0.3% anual."
+  >
+    <div class="empleo-chart-header">
+      <div>
+        <p class="empleo-chart-titulo">Crecimiento del empleo 2018–2023</p>
+        <p class="empleo-chart-subtitulo">Tasa de crecimiento promedio anual · Growth Lab Harvard 2024</p>
+      </div>
+      <a href="/hermosillo" class="btn btn--ghost empleo-chart-link">Dashboard completo →</a>
+    </div>
+    <div class="empleo-barras" aria-hidden="true">
+      {empleoCiudades.map((ciudad, idx) => {
+        const pct = Math.max(0, (ciudad.valor / empleoMax) * 100);
+        const isHmo = ciudad.nombre === "Hermosillo";
+        return (
+          <div class={`empleo-barra-row${isHmo ? " is-hmo" : ""}`}>
+            <span class="empleo-barra-label">{ciudad.nombre}</span>
+            <div class="empleo-barra-track">
+              <div
+                class={`empleo-barra-fill empleo-barra-fill--${ciudad.color}`}
+                style={`--bar-pct: ${pct}%; --bar-delay: ${idx * 55}ms`}
+              ></div>
+            </div>
+            <span class="empleo-barra-valor">{ciudad.valor > 0 ? "+" : ""}{ciudad.valor}%</span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- ── Cuellos de botella ───────────────────────────────────── -->
+  <div class="harvard-bottlenecks-header">
+    <h3>Los tres frenos que Harvard identificó en Hermosillo</h3>
+    <p>Agua, vivienda y transporte funcionan como un impuesto oculto sobre la competitividad de la ciudad.</p>
+  </div>
+
+  <div class="harvard-bottlenecks">
+    {cuellos.map((c) => (
+      <div class={`bottleneck-card bottleneck-card--${c.badgeColor}`}>
+        <div class="bottleneck-header">
+          <span class={`bottleneck-badge bottleneck-badge--${c.badgeColor}`}>
+            {c.badge}
+          </span>
+          <h4 class="bottleneck-title">{c.titulo}</h4>
+        </div>
+        <p class="bottleneck-diagnostico">{c.diagnostico}</p>
+        <code class="bottleneck-dato">{c.datoDestacado}</code>
+        <!-- details/summary nativo — sin JS, animación con CSS grid -->
+        <details class="bottleneck-details">
+          <summary class="bottleneck-summary">Ver soluciones propuestas</summary>
+          <div class="bottleneck-solutions-wrapper">
+            <ul class="bottleneck-solutions">
+              {c.soluciones.map((s) => (
+                <li>{s}</li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      </div>
+    ))}
+  </div>
+
+  <!-- ── Oportunidades ────────────────────────────────────────── -->
+  <div class="harvard-opps-header">
+    <h3>Las tres olas que Hermosillo puede aprovechar</h3>
+  </div>
+
+  <div class="harvard-opps">
+    {oportunidades.map((o) => (
+      <div class={`opp-card opp-card--${o.colorBorde}`}>
+        <h4 class="opp-title">{o.titulo}</h4>
+        <p class="opp-desc">{o.descripcion}</p>
+        <div class="opp-sectores">
+          {o.sectores.map((s) => (
+            <span class="opp-sector-pill">{s}</span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- ── CTA reporte ──────────────────────────────────────────── -->
+  <div class="harvard-cta">
+    <div class="harvard-cta-text">
+      <span class="section-eyebrow">DOCUMENTO BASE · {fuente.anio}</span>
+      <h4 class="harvard-cta-title">{fuente.titulo}</h4>
+      <p class="harvard-cta-authors">{fuente.autores}</p>
+    </div>
+    <div class="harvard-cta-actions">
+      <a
+        href="/hermosillo"
+        class="btn btn--primary"
+      >
+        Ver dashboard completo →
+      </a>
+      <a
+        href={fuente.linkEstudio}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn--ghost"
+      >
+        Leer informe →
+      </a>
+      <a
+        href={fuente.linkOrg}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn--ghost"
+      >
+        Hermosillo ¿Cómo Vamos?
+      </a>
+    </div>
+  </div>
+
+</section>
+
+<style>
+/* ── Layout general ─────────────────────────────────────────── */
+.harvard-section {
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.section-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.harvard-header {
+  max-width: 640px;
+  margin-bottom: var(--space-lg);
+}
+
+.harvard-title {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1;
+  color: var(--color-text-primary);
+  margin: var(--space-xs) 0;
+  letter-spacing: -0.02em;
+}
+
+.harvard-subtitle {
+  font-size: 1rem;
+  color: var(--color-accent-sky);
+  margin-bottom: var(--space-xs);
+}
+
+.harvard-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+/* ── Métricas ───────────────────────────────────────────────── */
+.harvard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background-color: var(--color-border);
+  margin-bottom: var(--space-xl);
+}
+
+.harvard-metric {
+  background-color: var(--color-surface);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.metric-value {
+  font-family: var(--mono);
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--metric-accent);
+}
+
+.harvard-metric--heat { --metric-accent: var(--color-accent-heat); }
+.harvard-metric--amber { --metric-accent: var(--color-accent-warn); }
+.harvard-metric--go   { --metric-accent: var(--color-accent-go); }
+.harvard-metric--data { --metric-accent: var(--color-accent-data); }
+
+.metric-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  flex: 1;
+}
+
+.metric-source {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--color-border-soft);
+  letter-spacing: 0.08em;
+}
+
+/* ── Cuellos de botella ─────────────────────────────────────── */
+.harvard-bottlenecks-header {
+  margin-bottom: var(--space-md);
+}
+
+.harvard-bottlenecks-header h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+  letter-spacing: -0.01em;
+}
+
+.harvard-bottlenecks-header p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.harvard-bottlenecks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px;
+  background-color: var(--color-border);
+  margin-bottom: var(--space-xl);
+}
+
+.bottleneck-card {
+  background-color: var(--color-surface);
+  padding: var(--space-md);
+  border-top: 2px solid var(--card-accent);
+}
+
+.bottleneck-card--heat  { --card-accent: var(--color-accent-heat); }
+.bottleneck-card--amber { --card-accent: var(--color-accent-warn); }
+.bottleneck-card--go    { --card-accent: var(--color-accent-go); }
+
+.bottleneck-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.bottleneck-badge {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid var(--badge-color);
+  color: var(--badge-color);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.bottleneck-badge--heat  { --badge-color: var(--color-accent-heat); }
+.bottleneck-badge--amber { --badge-color: var(--color-accent-warn); }
+.bottleneck-badge--go    { --badge-color: var(--color-accent-go); }
+
+.bottleneck-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+.bottleneck-diagnostico {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin-bottom: var(--space-sm);
+}
+
+.bottleneck-dato {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--card-accent);
+  background-color: var(--color-bg);
+  padding: var(--space-xs) var(--space-sm);
+  border-left: 2px solid var(--card-accent);
+  margin-bottom: var(--space-sm);
+  line-height: 1.4;
+}
+
+/* details / summary — pure CSS accordion, no JS */
+.bottleneck-details {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xs);
+}
+
+.bottleneck-summary {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  list-style: none;
+  padding: var(--space-xs) 0;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.bottleneck-summary::-webkit-details-marker { display: none; }
+.bottleneck-summary::before { content: "+ "; }
+details[open] .bottleneck-summary::before { content: "− "; }
+.bottleneck-summary:hover { color: var(--color-text-primary); }
+
+/* Grid animation: 0fr → 1fr on open */
+.bottleneck-solutions-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms ease;
+  overflow: hidden;
+}
+
+details[open] .bottleneck-solutions-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.bottleneck-solutions {
+  min-height: 0;
+  list-style: none;
+  padding: var(--space-xs) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bottleneck-solutions li {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  padding-left: var(--space-sm);
+  border-left: 1px solid var(--color-border-soft);
+  line-height: 1.5;
+}
+
+.bottleneck-solutions li::before {
+  content: "→ ";
+  color: var(--card-accent);
+  font-family: var(--mono);
+}
+
+/* ── Oportunidades ──────────────────────────────────────────── */
+.harvard-opps-header {
+  margin-bottom: var(--space-md);
+}
+
+.harvard-opps-header h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.harvard-opps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background-color: var(--color-border);
+  margin-bottom: var(--space-xl);
+}
+
+.opp-card {
+  background-color: var(--color-surface);
+  padding: var(--space-md);
+  border-left: 2px solid var(--opp-accent);
+  transition: background-color 200ms ease;
+}
+
+.opp-card:hover {
+  background-color: var(--color-surface-2);
+}
+
+.opp-card--data  { --opp-accent: var(--color-accent-data); }
+.opp-card--go    { --opp-accent: var(--color-accent-go); }
+.opp-card--amber { --opp-accent: var(--color-accent-warn); }
+
+.opp-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--opp-accent);
+  margin-bottom: var(--space-xs);
+}
+
+.opp-desc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin-bottom: var(--space-sm);
+}
+
+.opp-sectores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.opp-sector-pill {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+  border-radius: 2px;
+}
+
+/* ── CTA ────────────────────────────────────────────────────── */
+.harvard-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.harvard-cta-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  margin: var(--space-xs) 0;
+}
+
+.harvard-cta-authors {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.harvard-cta-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.btn {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid currentColor;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+
+.btn--primary {
+  background-color: var(--color-accent-blue);
+  color: #fff;
+  border-color: var(--color-accent-blue);
+}
+
+.btn--primary:hover {
+  background-color: #2563eb;
+}
+
+.btn--ghost {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border-soft);
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+/* ── Gráfica de empleo (reemplaza Chart.js canvases) ───────── */
+.empleo-chart {
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  margin-bottom: var(--space-xl);
+  background: var(--color-surface);
+}
+.empleo-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: var(--space-md);
+}
+.empleo-chart-titulo {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+.empleo-chart-subtitulo {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+}
+.empleo-chart-link {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  white-space: nowrap;
+}
+.empleo-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.empleo-barra-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 52px;
+  align-items: center;
+  gap: 8px;
+}
+.empleo-barra-row.is-hmo .empleo-barra-label { color: var(--color-accent-heat); font-weight: 700; }
+.empleo-barra-row.is-hmo .empleo-barra-valor  { color: var(--color-accent-heat); font-weight: 700; }
+.empleo-barra-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.empleo-barra-track {
+  background: var(--color-border);
+  height: 7px;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.empleo-barra-fill {
+  height: 100%;
+  border-radius: 1px;
+  width: 0;
+  animation: barra-reveal 500ms ease-out var(--bar-delay, 0ms) forwards;
+  animation-play-state: paused;
+}
+.empleo-chart.is-visible .empleo-barra-fill {
+  animation-play-state: running;
+}
+@keyframes barra-reveal {
+  to { width: var(--bar-pct, 0%); }
+}
+.empleo-barra-fill--go    { background: var(--color-accent-go); }
+.empleo-barra-fill--heat  { background: var(--color-accent-heat); }
+.empleo-barra-fill--data  { background: var(--color-accent-data); }
+.empleo-barra-fill--amber { background: var(--color-accent-warn); }
+.empleo-barra-valor {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+@media (max-width: 580px) {
+  .empleo-barra-row { grid-template-columns: 100px 1fr 44px; }
+  .empleo-chart-header { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .empleo-barra-fill { animation: none; width: var(--bar-pct, 0%); }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .bottleneck-solutions-wrapper {
+    transition: none;
+  }
+  .opp-card {
+    transition: none;
+  }
+}
+</style>
+
+<script>
+// ── Contador animado con Intersection Observer ────────────────
+// Scope limitado a #hermosillo-harvard. Sin dependencias externas.
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function animateCounter(el: HTMLElement): void {
+  const raw = el.dataset.target ?? el.textContent ?? "0";
+  const target = parseFloat(raw.replace(/[^0-9.]/g, ""));
+  if (isNaN(target)) return;
+
+  const suffix = raw.replace(/[0-9.,]/g, "").trim();
+  const duration = 1400;
+  const startTime = performance.now();
+
+  function step(now: number): void {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(progress);
+    const current = Math.round(target * eased);
+    el.textContent = current.toLocaleString("es-MX") + (suffix ? suffix : "");
+    if (progress < 1) requestAnimationFrame(step);
+  }
+
+  requestAnimationFrame(step);
+}
+
+const metricObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const el = entry.target as HTMLElement;
+        if (!el.dataset.animated) {
+          el.dataset.animated = "true";
+          animateCounter(el);
+          metricObserver.unobserve(el);
+        }
+      }
+    });
+  },
+  { threshold: 0.4 }
+);
+
+document
+  .querySelectorAll<HTMLElement>("#hermosillo-harvard [data-counter]")
+  .forEach((el) => {
+    el.dataset.target = el.textContent?.trim() ?? "0";
+    metricObserver.observe(el);
+  });
+
+// ── Activar animación de barras al entrar al viewport ────────
+const chartEl = document.querySelector<HTMLElement>(".empleo-chart");
+if (chartEl) {
+  const chartObs = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        chartEl.classList.add("is-visible");
+        chartObs.disconnect();
+      }
+    },
+    { threshold: 0.2 }
+  );
+  chartObs.observe(chartEl);
+}
+</script>
