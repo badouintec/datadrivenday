@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SubmissionForm from '../components/SubmissionForm.astro';
 import { getEventSettings } from '../lib/sanity/content';
 import { filteredResources, harvardMetricas } from '../data/site';
 
@@ -48,7 +47,7 @@ const { settings: eventSettings } = await getEventSettings();
         <p class="hero-sub">
           Una plataforma que convierte datos urbanos en decisiones.
           Hermosillo es la primera ciudad piloto.
-          El Dataller de IA es el primer evento.
+          El Dataller de IA es el proximo evento.
         </p>
 
         <div class="countdown-block">
@@ -81,7 +80,7 @@ const { settings: eventSettings } = await getEventSettings();
           <p class="panel-value">{eventSettings.city}</p>
         </div>
         <div class="hero-panel-block">
-          <p class="panel-label">Primer evento</p>
+          <p class="panel-label">Proximo evento</p>
           <p class="panel-value">El Dataller de IA</p>
         </div>
         <div class="hero-panel-block">
@@ -175,7 +174,7 @@ const { settings: eventSettings } = await getEventSettings();
   <!-- ── DATALLER TEASER ──────────────────────────────────────── -->
   <section class="section section-dataller" id="dataller-ia">
     <div class="page-shell">
-      <p class="section-label">Primer evento · 28 de marzo de 2026</p>
+      <p class="section-label">Proximo evento · 28 de marzo de 2026</p>
       <h2>El Dataller de IA</h2>
 
       <div class="dataller-teaser" data-animate>
@@ -203,7 +202,7 @@ const { settings: eventSettings } = await getEventSettings();
               <span class="dt-pm-value">Traer laptop personal</span>
             </div>
           </div>
-          <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer" style="margin-top:2rem">Ver programa completo &rarr;</a>
+          <a class="button" href="https://datadriven.day/dataller/" target="_blank" rel="noopener noreferrer" style="margin-top:2rem">Ver programa completo &rarr;</a>
         </div>
         <div class="dataller-teaser-modules">
           <p class="dt-modules-label">6 bloques tematicos</p>
@@ -249,25 +248,37 @@ const { settings: eventSettings } = await getEventSettings();
     </div>
   </section>
 
-  <!-- ── REGISTRATION FORM ──────────────────────────────────────── -->
+  <!-- ── REGISTRO / PARTICIPANTES ───────────────────────────────── -->
   <section class="section section-form" id="participa">
     <div class="page-shell" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
       <div style="padding-right:3rem;border-right:1px solid var(--color-border)">
-        <p class="section-label">Participacion</p>
-        <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Unete al proyecto</h2>
+        <p class="section-label">Registro</p>
+        <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Sistema de participantes</h2>
+        <p style="font-size:1rem;color:var(--color-text-muted);line-height:1.75;margin-top:1rem">
+          El Dataller usa Luma como registro oficial de entrada. En paralelo, Data Driven Day tendrá
+          su propia ruta de registro para participantes con cuenta, perfil, equipos y descarga de
+          reconocimiento.
+        </p>
         <ul style="list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1px;background:var(--color-border)">
-          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Registro para el Dataller de IA</li>
-          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Postulacion como speaker o colaborador</li>
-          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Interes institucional para activaciones futuras</li>
-          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Alianza o patrocinio con Data Driven Day</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Login y sign up para participantes</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Perfil con foto, estudios, trabajo y enlace a proyecto</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Equipos entre participantes del taller</li>
+          <li style="background:var(--color-bg);padding:0.9rem 1.1rem;font-family:var(--mono);font-size:0.75rem;color:var(--color-text-muted)">&#9654; Descarga posterior del reconocimiento</li>
         </ul>
       </div>
-      <div style="padding-left:3rem">
-        <SubmissionForm
-          heading="Registro al Dataller"
-          description="Comparte tu interes, registrate o deja tus datos para participar."
-          submitLabel="ejecutar registro"
-        />
+      <div style="padding-left:3rem;display:flex;align-items:stretch">
+        <div style="width:100%;background:linear-gradient(180deg,rgba(37,99,235,0.12),rgba(17,24,39,0.94));border:1px solid rgba(59,130,246,0.2);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;justify-content:center">
+          <p style="margin:0;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-sky)">Ruta dedicada</p>
+          <h3 style="margin:0;font-size:clamp(1.6rem,3vw,2.3rem);line-height:1">datadriven.day/registro</h3>
+          <p style="margin:0;color:var(--color-text-muted);line-height:1.7">
+            Esta ruta concentrará el acceso de participantes: registro, login, perfil, equipos y
+            reconocimiento. El alta al Dataller sigue centralizada en Luma.
+          </p>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.5rem">
+            <a class="button-secondary" href="/registro">Abrir registro &rarr;</a>
+            <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">Luma del Dataller ↗</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>

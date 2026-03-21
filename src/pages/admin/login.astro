@@ -1,5 +1,6 @@
 ---
 import '../../styles/global.css';
+import SiteLogo from '../../components/SiteLogo.astro';
 
 const expired = Astro.url.searchParams.get('expired') === '1';
 const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
@@ -16,7 +17,8 @@ const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
 
   <div class="login-container">
     <header class="login-header">
-      <span class="login-brand">DATA DRIVEN DAY</span>
+      <SiteLogo class="login-logo" title="Data Driven Day Admin" />
+      <span class="login-brand">ADMIN</span>
       <h1 class="login-title">Acceso al panel</h1>
       <p class="login-sub">Sistema de administracion</p>
     </header>

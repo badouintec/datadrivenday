@@ -2,7 +2,7 @@
 
 **Hermosillo, Sonora · 28 de marzo de 2026**
 
-Plataforma web completa para el **Dataller de IA 2026**: sitio público, sistema de registros, CMS de blog y recursos, editor visual de presentaciones con canvas animado y modo presenter, todo corriendo en Cloudflare Workers + D1 + KV.
+Plataforma web completa para el **Dataller de IA 2026**: sitio público, sistema de participantes con login, equipos y reconocimiento PDF, CMS de blog y recursos, editor visual de presentaciones con canvas animado y modo presenter, todo corriendo en Cloudflare Workers + D1 + KV.
 
 ---
 
@@ -33,7 +33,7 @@ graph TD
     subgraph Edge["☁ Cloudflare Edge"]
         W["Workers SSR\n@astrojs/cloudflare"]
         KV["KV — APP_SESSION\nSesiones admin 8h TTL"]
-        D1["D1 — datadrivenday\nsubmissions · slides · blog\nrecursos · admin_users"]
+        D1["D1 — datadrivenday\nsubmissions · slides · blog · recursos\nadmin_users · participants · teams"]
         R2["R2 — datadrivenday-assets\nImágenes · PDFs · media"]
     end
 
@@ -80,7 +80,7 @@ graph TD
 | Framework | [Astro](https://astro.build) | 6 | Páginas SSR + prerender, componentes |
 | Runtime | [Cloudflare Workers](https://workers.cloudflare.com) | — | Edge compute, SSR, API |
 | API | [Hono](https://hono.dev) | — | Rutas `/api/*` montadas sobre Workers |
-| Base de datos | [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite | 7 tablas: submissions, slides, blog, recursos, admin |
+| Base de datos | [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite | submissions, slides, blog, recursos, admin, participants y teams |
 | Sesiones | [Cloudflare KV](https://developers.cloudflare.com/kv/) | — | Sesiones admin con TTL 8h |
 | Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) | — | Imágenes blog, PDFs, media |
 | CMS editorial | [Sanity](https://sanity.io) | — | Blog público (opcional, fallback si no configurado) |
@@ -95,7 +95,8 @@ graph TD
 datadrivenday/
 ├── src/
 │   ├── components/
-│   │   ├── SubmissionForm.astro      # Formulario de registro → POST /api/submissions
+│   │   ├── SubmissionForm.astro      # Formulario público de contacto/interés
+│   │   ├── SiteLogo.astro            # Logo reutilizable del sitio
 │   │   ├── HermosilloHarvard.astro   # Componente datos ciudad
 │   │   └── admin/
 │   │       └── AdminLayout.astro     # Shell del panel admin (sidebar + topbar)
@@ -106,25 +107,32 @@ datadrivenday/
 │   ├── lib/
 │   │   ├── api/
 │   │   │   ├── app.ts                # App Hono: registra todas las rutas
-│   │   │   ├── auth.ts               # Auth: SHA-256, KV sessions, RBAC
+│   │   │   ├── auth.ts               # Auth admin: SHA-256, KV sessions, RBAC
+│   │   │   ├── participant-auth.ts   # Auth de participantes + sesión KV
 │   │   │   ├── types.ts              # AppBindings, AppVariables, SubmissionPayload
 │   │   │   └── routes/
 │   │   │       ├── admin-presentations.ts  # CRUD presentaciones + slides
 │   │   │       ├── admin-blog.ts           # CRUD artículos blog
 │   │   │       ├── admin-registros.ts      # Ver/exportar registros
-│   │   │       └── admin-recursos.ts       # CRUD biblioteca de recursos
+│   │   │       ├── admin-recursos.ts       # CRUD biblioteca de recursos
+│   │   │       └── participant.ts          # Signup/login/dashboard/teams/reconocimiento
 │   │   ├── sanity/
 │   │   │   └── content.ts            # getEventSettings(): fetch GROQ
 │   │   └── server/
 │   │       ├── assets.ts             # Helpers R2
+│   │       ├── documents/
+│   │       │   └── participant-recognition.ts  # Genera PDF del reconocimiento
 │   │       └── db/
 │   │           ├── submissions.ts    # insertSubmission()
-│   │           └── slides.ts         # CRUD presentations + presentation_slides
+│   │           ├── slides.ts         # CRUD presentations + presentation_slides
+│   │           ├── participants.ts   # Perfiles, flags admin y teams
+│   │           └── recursos.ts       # Recursos públicos/administrables
 │   ├── pages/
 │   │   ├── index.astro               # Home (prerender)
 │   │   ├── dataller.astro            # Documento dataller público (prerender)
 │   │   ├── dataller/
 │   │   │   └── present.astro         # Modo presenter full-screen (SSR)
+│   │   ├── registro.astro            # Login/signup/panel de participante
 │   │   ├── hermosillo.astro          # Datos ciudad (prerender)
 │   │   ├── blog/index.astro          # Blog (prerender)
 │   │   ├── datos/index.astro         # Biblioteca datos (prerender)
@@ -139,6 +147,7 @@ datadrivenday/
 │   │   │   │   ├── index.astro       # Lista artículos
 │   │   │   │   └── [id].astro        # Editor artículo
 │   │   │   ├── registros/index.astro # Tabla de participantes registrados
+│   │   │   ├── participantes/index.astro # Validación de participantes y reconocimiento
 │   │   │   └── recursos/index.astro  # Biblioteca de recursos
 │   │   └── api/
 │   │       └── [...route].ts         # Handler catch-all → Hono app
@@ -153,7 +162,8 @@ datadrivenday/
 │   │   ├── 0003_slides.sql           # presentations, presentation_slides, admin_users
 │   │   ├── 0004_blog.sql             # blog_posts
 │   │   ├── 0005_recursos.sql         # recursos
-│   │   └── 0006_submissions_asistencia.sql  # ALTER submissions (asistio)
+│   │   ├── 0006_submissions_asistencia.sql  # ALTER submissions (asistio)
+│   │   └── 0007_participants.sql     # participants, teams y team_members
 │   └── seed-dataller.sql             # Presentación + 9 slides del Dataller 2026
 ├── public/
 │   ├── scripts/
@@ -210,13 +220,23 @@ graph LR
 | Método | Path | Descripción |
 |--------|------|-------------|
 | `GET` | `/api/health` | Health check |
-| `POST` | `/api/submissions` | Registro de participante |
+| `POST` | `/api/submissions` | Contacto / propuesta / interés general |
 | `GET` | `/api/city-data/:city` | Datos de ciudad (charts) |
 | `GET` | `/api/slides?presentacion=` | Slides activos de una presentación |
 | `GET` | `/api/blog` | Artículos públicos publicados |
 | `GET` | `/api/blog/:slug` | Artículo por slug |
 | `GET` | `/api/recursos` | Recursos activos |
 | `GET` | `/api/media/*` | Proxy R2 |
+| `POST` | `/api/participant/signup` | Crear cuenta de participante |
+| `POST` | `/api/participant/login` | Abrir sesión participante |
+| `POST` | `/api/participant/logout` | Cerrar sesión participante |
+| `GET` | `/api/participant/me` | Estado de sesión participante |
+| `GET` | `/api/participant/dashboard` | Participante + recursos + equipos |
+| `PATCH` | `/api/participant/profile` | Actualizar perfil habilitado |
+| `GET` | `/api/participant/teams` | Equipos propios y abiertos |
+| `POST` | `/api/participant/teams` | Crear equipo |
+| `POST` | `/api/participant/teams/:id/join` | Unirse a equipo abierto |
+| `GET` | `/api/participant/recognition` | Descargar reconocimiento PDF |
 
 ### Admin — autenticación
 
@@ -242,7 +262,7 @@ graph LR
 | `POST` | `/api/admin/slides/reorder` | `presentations:write` |
 | `POST` | `/api/admin/slides/:id/duplicate` | `presentations:write` |
 
-### Admin — blog, registros, recursos
+### Admin — blog, registros, participantes y recursos
 
 | Método | Path | Permiso |
 |--------|------|---------|
@@ -252,6 +272,8 @@ graph LR
 | `GET` | `/api/admin/registros` | `registros:read` |
 | `GET` | `/api/admin/registros/export` | `registros:export` |
 | `PATCH` | `/api/admin/registros/:id/asistio` | `registros:read` |
+| `GET` | `/api/admin/participants` | `participants:read` |
+| `PATCH` | `/api/admin/participants/:id` | `participants:write` |
 | `GET/POST` | `/api/admin/recursos` | `recursos:read/write` |
 | `PATCH/DELETE` | `/api/admin/recursos/:id` | `recursos:write/delete` |
 | `POST` | `/api/admin/recursos/reorder` | `recursos:write` |
@@ -537,7 +559,7 @@ npm run build
 ### 4. Aplicar migraciones al D1 local
 
 ```bash
-# Aplica las 6 migraciones
+# Aplica todas las migraciones disponibles
 for f in db/migrations/000*.sql; do
   npx wrangler d1 execute datadrivenday --local \
     --config dist/server/wrangler.json --file="$f"
@@ -565,6 +587,13 @@ npx wrangler dev --config dist/server/wrangler.json --local --port 4322
 
 > Si solo necesitas iterar sobre UI sin el admin, puedes usar `npm run dev` (puerto 4321) — más rápido, sin migraciones.
 
+### 6. Credenciales admin
+
+El acceso admin ya no depende de variables en `wrangler.jsonc`. Las credenciales viven en la tabla `admin_users` de D1.
+
+- Local: usa el `INSERT OR REPLACE` anterior para sembrar el usuario inicial.
+- Producción: crea o rota usuarios admin directamente en D1, no en variables versionadas.
+
 ---
 
 ## Variables de entorno
@@ -584,7 +613,7 @@ npx wrangler dev --config dist/server/wrangler.json --local --port 4322
 
 ## Bindings Cloudflare
 
-Configura `wrangler.jsonc` con los IDs reales antes del primer deploy:
+Configura `wrangler.jsonc` con los IDs reales antes del primer deploy. Evita guardar secretos o hashes de acceso en este archivo; queda versionado.
 
 ```jsonc
 {

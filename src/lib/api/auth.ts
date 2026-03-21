@@ -10,6 +10,7 @@ const PERMISSIONS: Record<AdminRol, string[]> = {
     'presentations:read', 'presentations:write', 'presentations:delete',
     'blog:read', 'blog:write', 'blog:delete', 'blog:publish',
     'registros:read', 'registros:export',
+    'participants:read', 'participants:write',
     'recursos:read', 'recursos:write', 'recursos:delete',
     'users:read', 'users:write',
   ],
@@ -17,12 +18,14 @@ const PERMISSIONS: Record<AdminRol, string[]> = {
     'presentations:read', 'presentations:write',
     'blog:read', 'blog:write', 'blog:publish',
     'registros:read',
+    'participants:read', 'participants:write',
     'recursos:read', 'recursos:write',
   ],
   viewer: [
     'presentations:read',
     'blog:read',
     'registros:read',
+    'participants:read',
     'recursos:read',
   ],
 };

@@ -7,6 +7,25 @@ export interface AdminUser {
   nombre: string | null;
 }
 
+export interface ParticipantUser {
+  id: string;
+  email: string;
+  fullName: string;
+  occupation: string | null;
+  organization: string | null;
+  projectUrl: string | null;
+  educationLevel: string | null;
+  age: number | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  workshopCompleted: boolean;
+  profileEnabled: boolean;
+  recognitionEnabled: boolean;
+  recognitionFolio: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
 export interface AppBindings {
   DB: D1Database;
   MEDIA: R2Bucket;
@@ -17,13 +36,12 @@ export interface AppBindings {
   SANITY_API_VERSION?: string;
   SITE_NAME?: string;
   SITE_TAGLINE?: string;
-  ADMIN_USER?: string;
-  ADMIN_PASS_HASH?: string;
 }
 
 export interface AppVariables {
   requestId: string;
   user?: AdminUser;
+  participant?: ParticipantUser;
 }
 
 export interface SubmissionPayload {
@@ -33,4 +51,15 @@ export interface SubmissionPayload {
   organization?: string;
   message?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface ParticipantSignupPayload {
+  fullName: string;
+  email: string;
+  password: string;
+  occupation?: string;
+  organization?: string;
+  projectUrl?: string;
+  educationLevel?: string;
+  age?: number | null;
 }

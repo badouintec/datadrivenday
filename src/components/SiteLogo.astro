@@ -1,0 +1,18 @@
+---
+interface Props {
+  class?: string;
+  title?: string;
+}
+
+const { class: className = '', title = 'datadriven.day' } = Astro.props;
+---
+
+<img
+  src="/logo-datadriven-day.png"
+  alt={title}
+  width="900"
+  height="320"
+  class={className}
+  decoding="async"
+  loading="eager"
+/>

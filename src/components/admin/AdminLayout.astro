@@ -1,9 +1,10 @@
 ---
 import '../../styles/global.css';
+import SiteLogo from '../SiteLogo.astro';
 
 interface Props {
   titulo: string;
-  seccion: 'dashboard' | 'presentaciones' | 'blog' | 'registros' | 'recursos' | 'usuarios';
+  seccion: 'dashboard' | 'presentaciones' | 'blog' | 'registros' | 'participantes' | 'recursos' | 'usuarios';
   usuario: { username: string; rol: string; nombre: string | null };
 }
 const { titulo, seccion, usuario } = Astro.props;
@@ -24,8 +25,8 @@ const { titulo, seccion, usuario } = Astro.props;
 
     <div class="sidebar-brand">
       <a href="/admin" class="sidebar-logo-link">
-        <span class="sidebar-logo-icon" aria-hidden="true">&#9672;</span>
-        <span class="sidebar-logo-text">DDD Admin</span>
+        <SiteLogo class="sidebar-logo-svg" title="DDD Admin" />
+        <span class="sidebar-logo-text">Admin</span>
       </a>
     </div>
 
@@ -87,6 +88,16 @@ const { titulo, seccion, usuario } = Astro.props;
             <span class="sidebar-link-icon" aria-hidden="true">&#9706;</span>
             Registros
             <span class="sidebar-badge" id="registrosBadge" aria-label="registros pendientes"></span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="/admin/participantes"
+            class={`sidebar-link ${seccion === 'participantes' ? 'is-active' : ''}`}
+            aria-current={seccion === 'participantes' ? 'page' : undefined}
+          >
+            <span class="sidebar-link-icon" aria-hidden="true">&#9711;</span>
+            Participantes
           </a>
         </li>
       </ul>

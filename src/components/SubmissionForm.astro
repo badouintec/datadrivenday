@@ -47,7 +47,7 @@ const {
         <span class="term-prompt">&gt;</span>
         <span class="term-label">mensaje</span>
       </div>
-      <textarea class="term-textarea" name="message" placeholder="Registro al Dataller, propuesta de charla, alianza o patrocinio..."></textarea>
+      <textarea class="term-textarea" name="message" placeholder="Propuesta de charla, colaboración institucional, alianza o patrocinio..."></textarea>
     </div>
 
     <button class="term-submit" type="submit">{submitLabel} &crarr;</button>
@@ -106,8 +106,8 @@ const {
         }
 
         status.textContent = persisted
-          ? 'Listo. Te vemos el 28 de marzo a las 8:30 AM en el Design Thinking Lab.'
-          : 'Recibido. Te confirmamos tu lugar por correo.';
+          ? 'Listo. Recibimos tu mensaje y te contactamos pronto.'
+          : 'Recibido. Te escribimos por correo en cuanto lo revisemos.';
         status.className = 'term-status ok';
         form.reset();
       } catch (error) {

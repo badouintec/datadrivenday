@@ -1,0 +1,1023 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteLogo from '../components/SiteLogo.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Registro | Data Driven Day 2026"
+  description="Registrate a la comunidad y plataforma de aprendizaje de Data Driven Day."
+>
+  <section class="section registro-shell">
+    <div class="page-shell registro-grid">
+      <div class="registro-auth-column">
+        <div class="registro-brand-lockup">
+          <SiteLogo class="registro-logo" title="datadriven.day registro" />
+          <span class="registro-brand-kicker">Comunidad y aprendizaje</span>
+        </div>
+        <p class="section-label">Registro</p>
+        <h1 class="registro-h1">Registrate a la comunidad y plataforma de aprendizaje</h1>
+        <p class="registro-intro">
+          Registrate a la comunidad y plataforma de aprendizaje.
+        </p>
+
+        <div id="authShell" class="registro-auth-card">
+          <div class="registro-auth-tabs">
+            <button class="registro-tab is-active" type="button" data-auth-tab="signup">Sign up</button>
+            <button class="registro-tab" type="button" data-auth-tab="login">Login</button>
+          </div>
+
+          <form id="signupForm" class="registro-auth-pane is-active" data-auth-pane="signup">
+            <div class="registro-form-grid">
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Nombre completo</span>
+                <input class="registro-input" type="text" name="fullName" placeholder="como aparecerá en tu reconocimiento" required />
+              </label>
+              <label class="registro-field">
+                <span class="registro-field-label">Qué estudias / a qué te dedicas</span>
+                <input class="registro-input" type="text" name="occupation" placeholder="estudiante, dev, diseño, salud..." />
+              </label>
+              <label class="registro-field">
+                <span class="registro-field-label">Escuela / trabajo</span>
+                <input class="registro-input" type="text" name="organization" placeholder="universidad, empresa, colectivo" />
+              </label>
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Enlace a tu proyecto</span>
+                <input class="registro-input" type="url" name="projectUrl" placeholder="web, instagram, github, portfolio" />
+              </label>
+              <label class="registro-field">
+                <span class="registro-field-label">Nivel de estudios actual</span>
+                <select class="registro-input registro-select" name="educationLevel">
+                  <option>Secundaria</option>
+                  <option>Preparatoria</option>
+                  <option selected>Licenciatura</option>
+                  <option>Maestría</option>
+                  <option>Doctorado</option>
+                  <option>Otro</option>
+                </select>
+              </label>
+              <label class="registro-field">
+                <span class="registro-field-label">Edad</span>
+                <input class="registro-input" type="number" name="age" placeholder="22" min="10" max="99" />
+              </label>
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Correo y contraseña</span>
+                <div class="registro-inline-fields">
+                  <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required />
+                  <input class="registro-input" type="password" name="password" placeholder="mínimo 8 caracteres" minlength="8" required />
+                </div>
+              </label>
+            </div>
+
+            <div id="signupStatus" class="registro-status" hidden></div>
+
+            <div class="registro-auth-actions">
+              <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">Reservar lugar en Luma ↗</a>
+              <button class="button-secondary" type="submit">Crear cuenta participante</button>
+            </div>
+          </form>
+
+          <form id="loginForm" class="registro-auth-pane" data-auth-pane="login">
+            <div class="registro-form-grid registro-form-grid--login">
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Correo</span>
+                <input class="registro-input" type="email" name="email" placeholder="tu correo registrado" required />
+              </label>
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Contraseña</span>
+                <input class="registro-input" type="password" name="password" placeholder="tu contraseña" required />
+              </label>
+            </div>
+
+            <div id="loginStatus" class="registro-status" hidden></div>
+
+            <div class="registro-auth-actions">
+              <button class="button" type="submit">Entrar al panel</button>
+              <a class="button-secondary" href="/dataller">Volver al Dataller &rarr;</a>
+            </div>
+          </form>
+        </div>
+
+        <div id="accountShell" class="registro-account-card" hidden>
+          <p class="registro-flow-label">Sesión activa</p>
+          <h2 id="accountName" class="registro-account-title">Participante</h2>
+          <p id="accountEmail" class="registro-account-copy"></p>
+          <div id="accountFlags" class="registro-account-flags"></div>
+          <div class="registro-auth-actions" style="margin-top:1rem">
+            <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">Evento oficial en Luma ↗</a>
+            <button id="logoutBtn" class="button-secondary" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="registro-dashboard-column">
+        <div class="participant-shell">
+          <aside class="participant-sidebar">
+            <div class="participant-brand">
+              <SiteLogo class="participant-brand-logo" title="Panel Participante" />
+              <div>
+                <strong>Panel Participante</strong>
+                <small>Dataller de IA 2026</small>
+              </div>
+            </div>
+
+            <div class="participant-sidebar-section">
+              <span class="participant-sidebar-label">Navegación</span>
+              <a class="participant-sidebar-link is-active" href="#">Materiales</a>
+              <a class="participant-sidebar-link" href="#">Equipos</a>
+              <a class="participant-sidebar-link" href="#">Reconocimiento</a>
+              <a class="participant-sidebar-link" href="#">Perfil</a>
+            </div>
+
+            <div class="participant-sidebar-section">
+              <span class="participant-sidebar-label">Estado</span>
+              <div class="participant-status-chip">Inscrito</div>
+              <div class="participant-status-chip participant-status-chip--muted">Validación admin pendiente</div>
+            </div>
+          </aside>
+
+          <div class="participant-main">
+            <header class="participant-topbar">
+              <div>
+                <p class="participant-topbar-label">Vista de cuenta</p>
+                <h2 id="dashboardTitle" class="participant-topbar-title">Preview del panel</h2>
+              </div>
+              <div id="dashboardBadge" class="participant-topbar-badge">Sin sesión</div>
+            </header>
+
+            <div class="participant-content-grid">
+              <section class="participant-panel participant-panel--materials">
+                <p class="participant-panel-label">Materiales del Dataller</p>
+                <h3 class="participant-panel-title">Documento tipo manual / libro online</h3>
+                <p id="resourceSummary" class="participant-panel-copy">
+                  Cuando entras a tu cuenta, esta sección se llena con recursos activos desde el backend.
+                </p>
+                <div id="resourceList" class="participant-doc-list">
+                  <div class="participant-doc-item">
+                    <span class="participant-doc-tag">Preview</span>
+                    <strong>Inicia sesión para ver materiales activos</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section class="participant-panel">
+                <p class="participant-panel-label">Equipos</p>
+                <h3 class="participant-panel-title">Haz equipo con otras personas inscritas</h3>
+                <p class="participant-panel-copy">
+                  Puedes crear un equipo o unirte a uno abierto. Esta base ya queda conectada a D1.
+                </p>
+                <form id="teamForm" class="participant-form-grid">
+                  <input class="registro-input" type="text" name="name" placeholder="Nombre del equipo" />
+                  <input class="registro-input" type="text" name="focusArea" placeholder="Tema o interés" />
+                  <textarea class="registro-input participant-textarea" name="description" placeholder="Qué quieren construir"></textarea>
+                  <button class="button-secondary" type="submit">Crear equipo</button>
+                </form>
+                <div id="teamStatus" class="registro-status" hidden></div>
+                <div class="participant-team-block">
+                  <span class="participant-doc-tag">Mis equipos</span>
+                  <div id="myTeamList" class="participant-mini-list">
+                    <div class="participant-mini-row"><span>Inicia sesión para ver tus equipos</span><span>--</span></div>
+                  </div>
+                </div>
+                <div class="participant-team-block">
+                  <span class="participant-doc-tag">Equipos abiertos</span>
+                  <div id="openTeamList" class="participant-mini-list">
+                    <div class="participant-mini-row"><span>Disponible al iniciar sesión</span><span>--</span></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="participant-panel">
+                <p class="participant-panel-label">Reconocimiento</p>
+                <h3 class="participant-panel-title">Estado condicionado por validación</h3>
+                <p class="participant-panel-copy">
+                  El backend ya guarda si tu taller fue validado y si el reconocimiento fue habilitado.
+                </p>
+                <div id="recognitionBox" class="participant-lockbox">
+                  <span id="recognitionState" class="participant-lock-state">Bloqueado por ahora</span>
+                  <p id="recognitionCopy">Esperando validación final del taller por parte del admin.</p>
+                  <div id="recognitionActions" class="participant-inline-actions participant-recognition-actions" hidden>
+                    <a id="recognitionDownload" class="button-secondary" href="/api/participant/recognition" target="_blank" rel="noreferrer">Descargar PDF</a>
+                    <span id="recognitionMeta" class="participant-doc-tag"></span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="participant-panel">
+                <p class="participant-panel-label">Perfil</p>
+                <h3 class="participant-panel-title">Foto, bio y enlace a proyecto</h3>
+                <p class="participant-panel-copy">
+                  Esta edición queda bloqueada hasta que el admin habilite tu perfil después de validar el taller.
+                </p>
+                <form id="profileForm" class="participant-form-grid">
+                  <input class="registro-input" type="text" name="occupation" placeholder="Qué estudias o a qué te dedicas" />
+                  <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
+                  <input class="registro-input" type="url" name="projectUrl" placeholder="Enlace a tu proyecto" />
+                  <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto o avatar" />
+                  <textarea class="registro-input participant-textarea" name="bio" placeholder="Descripción corta"></textarea>
+                  <button class="button-secondary" type="submit">Guardar perfil</button>
+                </form>
+                <div id="profileStatus" class="registro-status" hidden></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+// @ts-nocheck
+    const guestResources = [
+      { categoria: 'Preview', titulo: 'Inicia sesión para cargar recursos reales' },
+      { categoria: 'Panel', titulo: 'Los materiales activos salen de /api/participant/dashboard' },
+      { categoria: 'Dataller', titulo: 'El lugar oficial se sigue reservando en Luma' },
+    ];
+
+    const tabs = document.querySelectorAll('[data-auth-tab]');
+    const panes = document.querySelectorAll('[data-auth-pane]');
+    const authShell = document.getElementById('authShell');
+    const accountShell = document.getElementById('accountShell');
+    const signupForm = document.getElementById('signupForm');
+    const loginForm = document.getElementById('loginForm');
+    const signupStatus = document.getElementById('signupStatus');
+    const loginStatus = document.getElementById('loginStatus');
+    const teamStatus = document.getElementById('teamStatus');
+    const profileStatus = document.getElementById('profileStatus');
+    const accountName = document.getElementById('accountName');
+    const accountEmail = document.getElementById('accountEmail');
+    const accountFlags = document.getElementById('accountFlags');
+    const dashboardTitle = document.getElementById('dashboardTitle');
+    const dashboardBadge = document.getElementById('dashboardBadge');
+    const resourceSummary = document.getElementById('resourceSummary');
+    const resourceList = document.getElementById('resourceList');
+    const myTeamList = document.getElementById('myTeamList');
+    const openTeamList = document.getElementById('openTeamList');
+    const recognitionState = document.getElementById('recognitionState');
+    const recognitionCopy = document.getElementById('recognitionCopy');
+    const recognitionActions = document.getElementById('recognitionActions');
+    const recognitionDownload = document.getElementById('recognitionDownload');
+    const recognitionMeta = document.getElementById('recognitionMeta');
+    const profileForm = document.getElementById('profileForm');
+    const teamForm = document.getElementById('teamForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const state = {
+      participant: null,
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function setStatus(element, message, kind = 'info') {
+      if (!element) return;
+      if (!message) {
+        element.hidden = true;
+        element.textContent = '';
+        element.className = 'registro-status';
+        return;
+      }
+      element.hidden = false;
+      element.textContent = message;
+      element.className = `registro-status registro-status--${kind}`;
+    }
+
+    function renderResources(resources = []) {
+      const items = resources.length ? resources : guestResources;
+      resourceList.innerHTML = items.map((item) => `
+        <div class="participant-doc-item">
+          <span class="participant-doc-tag">${escapeHtml(item.categoria || item.tipo || 'Recurso')}</span>
+          <strong>${escapeHtml(item.titulo)}</strong>
+        </div>
+      `).join('');
+    }
+
+    function renderTeams(myTeams = [], openTeams = [], loggedIn = false) {
+      if (!loggedIn) {
+        myTeamList.innerHTML = '<div class="participant-mini-row"><span>Inicia sesión para ver tus equipos</span><span>--</span></div>';
+        openTeamList.innerHTML = '<div class="participant-mini-row"><span>Disponible al iniciar sesión</span><span>--</span></div>';
+        return;
+      }
+
+      myTeamList.innerHTML = myTeams.length
+        ? myTeams.map((team) => `
+            <div class="participant-mini-row participant-mini-row--stacked">
+              <div>
+                <strong>${escapeHtml(team.name)}</strong>
+                <p>${escapeHtml(team.focus_area || team.description || 'Equipo sin descripción')}</p>
+              </div>
+              <span>${team.member_count} personas</span>
+            </div>
+          `).join('')
+        : '<div class="participant-mini-row"><span>No tienes equipos todavía</span><span>0</span></div>';
+
+      openTeamList.innerHTML = openTeams.length
+        ? openTeams.map((team) => `
+            <div class="participant-mini-row participant-mini-row--stacked participant-mini-row--action">
+              <div>
+                <strong>${escapeHtml(team.name)}</strong>
+                <p>${escapeHtml(team.focus_area || team.description || 'Equipo abierto')}</p>
+              </div>
+              <div class="participant-inline-actions">
+                <span>${team.member_count} personas</span>
+                <button class="button-secondary participant-join-btn" type="button" data-team-join="${escapeHtml(team.id)}">Unirme</button>
+              </div>
+            </div>
+          `).join('')
+        : '<div class="participant-mini-row"><span>No hay equipos abiertos por ahora</span><span>--</span></div>';
+    }
+
+    function renderRecognition(participant) {
+      recognitionActions.hidden = true;
+      recognitionMeta.textContent = '';
+
+      if (!participant) {
+        recognitionState.textContent = 'Sin sesión';
+        recognitionCopy.textContent = 'Crea tu cuenta y espera validación del admin para habilitar este estado.';
+        return;
+      }
+
+      if (!participant.workshopCompleted) {
+        recognitionState.textContent = 'Taller pendiente de validación';
+        recognitionCopy.textContent = 'Tu asistencia todavía no ha sido validada desde admin.';
+        return;
+      }
+
+      if (!participant.recognitionEnabled) {
+        recognitionState.textContent = 'Validado, reconocimiento pendiente';
+        recognitionCopy.textContent = 'Tu taller ya quedó validado, falta habilitar el reconocimiento.';
+        return;
+      }
+
+      recognitionState.textContent = 'Reconocimiento habilitado';
+      recognitionCopy.textContent = 'Tu reconocimiento ya quedó liberado. Descárgalo en PDF y conserva el folio para referencia administrativa.';
+      recognitionActions.hidden = false;
+      recognitionDownload.href = '/api/participant/recognition';
+      recognitionMeta.textContent = `Folio: ${participant.recognitionFolio || 'pendiente'} · Formato PDF`; 
+    }
+
+    function applyProfileState(participant) {
+      const enabled = Boolean(participant && (participant.profileEnabled || participant.workshopCompleted));
+      const fields = profileForm.querySelectorAll('input, textarea, button');
+      fields.forEach((field) => {
+        field.disabled = !enabled;
+      });
+
+      profileForm.occupation.value = participant?.occupation || '';
+      profileForm.organization.value = participant?.organization || '';
+      profileForm.projectUrl.value = participant?.projectUrl || '';
+      profileForm.avatarUrl.value = participant?.avatarUrl || '';
+      profileForm.bio.value = participant?.bio || '';
+
+      if (!participant) {
+        setStatus(profileStatus, 'Inicia sesión para ver el estado de tu perfil.', 'info');
+      } else if (!enabled) {
+        setStatus(profileStatus, 'Perfil bloqueado hasta validación del taller por admin.', 'warn');
+      } else {
+        setStatus(profileStatus, 'Perfil habilitado para edición.', 'success');
+      }
+    }
+
+    function renderAccount(participant) {
+      accountName.textContent = participant.fullName;
+      accountEmail.textContent = participant.email;
+      accountFlags.innerHTML = [
+        participant.workshopCompleted ? 'Taller validado' : 'Validación pendiente',
+        participant.profileEnabled ? 'Perfil habilitado' : 'Perfil bloqueado',
+        participant.recognitionEnabled ? `Folio ${escapeHtml(participant.recognitionFolio || 'pendiente')}` : 'Reconocimiento no habilitado',
+      ].map((label) => `<span class="participant-status-chip participant-status-chip--muted">${label}</span>`).join('');
+    }
+
+    function renderLoggedOut() {
+      state.participant = null;
+      authShell.hidden = false;
+      accountShell.hidden = true;
+      dashboardTitle.textContent = 'Preview del panel';
+      dashboardBadge.textContent = 'Sin sesión';
+      resourceSummary.textContent = 'Cuando entras a tu cuenta, esta sección se llena con recursos activos desde el backend.';
+      renderResources();
+      renderTeams([], [], false);
+      renderRecognition(null);
+      applyProfileState(null);
+      setStatus(teamStatus, 'Crea sesión para formar equipo o unirte a uno abierto.', 'info');
+    }
+
+    async function loadDashboard() {
+      const response = await fetch('/api/participant/dashboard');
+      if (!response.ok) {
+        throw new Error('dashboard_failed');
+      }
+
+      const data = await response.json();
+      state.participant = data.participant;
+      authShell.hidden = true;
+      accountShell.hidden = false;
+      renderAccount(data.participant);
+      dashboardTitle.textContent = `Hola, ${data.participant.fullName.split(' ')[0]}`;
+      dashboardBadge.textContent = data.participant.workshopCompleted ? 'Validado' : 'Participante activo';
+      resourceSummary.textContent = data.recursos?.length
+        ? `${data.recursos.length} recursos activos cargados desde el backend.`
+        : 'No hay recursos activos todavía.';
+      renderResources(data.recursos || []);
+      renderTeams(data.myTeams || [], data.openTeams || [], true);
+      renderRecognition(data.participant);
+      applyProfileState(data.participant);
+      setStatus(teamStatus, '', 'info');
+    }
+
+    async function restoreSession() {
+      try {
+        const response = await fetch('/api/participant/me');
+        if (!response.ok) {
+          renderLoggedOut();
+          return;
+        }
+        await loadDashboard();
+      } catch {
+        renderLoggedOut();
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const view = tab.getAttribute('data-auth-tab');
+        tabs.forEach((item) => item.classList.toggle('is-active', item === tab));
+        panes.forEach((pane) => pane.classList.toggle('is-active', pane.getAttribute('data-auth-pane') === view));
+      });
+    });
+
+    signupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus(signupStatus, 'Creando cuenta...', 'info');
+
+      const payload = {
+        fullName: signupForm.fullName.value.trim(),
+        occupation: signupForm.occupation.value.trim(),
+        organization: signupForm.organization.value.trim(),
+        projectUrl: signupForm.projectUrl.value.trim(),
+        educationLevel: signupForm.educationLevel.value,
+        age: signupForm.age.value ? Number(signupForm.age.value) : null,
+        email: signupForm.email.value.trim(),
+        password: signupForm.password.value,
+      };
+
+      try {
+        const response = await fetch('/api/participant/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          const messages = {
+            missing_fields: 'Faltan campos obligatorios.',
+            weak_password: 'La contraseña debe tener al menos 8 caracteres.',
+            email_taken: 'Ese correo ya tiene cuenta participante.',
+            invalid_email: 'Escribe un correo valido.',
+            invalid_project_url: 'El enlace de tu proyecto debe iniciar con http:// o https://.',
+            invalid_age: 'La edad debe estar entre 10 y 99 anos.',
+          };
+          setStatus(signupStatus, messages[data.error] || 'No pude crear la cuenta.', 'error');
+          return;
+        }
+
+        signupForm.reset();
+        setStatus(signupStatus, 'Cuenta creada. Cargando tu panel...', 'success');
+        await loadDashboard();
+      } catch {
+        setStatus(signupStatus, 'Error de red al crear la cuenta.', 'error');
+      }
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus(loginStatus, 'Entrando...', 'info');
+
+      try {
+        const response = await fetch('/api/participant/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: loginForm.email.value.trim(),
+            password: loginForm.password.value,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          const message = data.error === 'invalid_credentials'
+            ? 'Correo o contraseña incorrectos.'
+            : data.error === 'invalid_email'
+              ? 'Escribe un correo valido.'
+              : 'No pude abrir la sesión.';
+          setStatus(loginStatus, message, 'error');
+          return;
+        }
+
+        loginForm.reset();
+        setStatus(loginStatus, 'Sesión abierta. Cargando tu panel...', 'success');
+        await loadDashboard();
+      } catch {
+        setStatus(loginStatus, 'Error de red al iniciar sesión.', 'error');
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/participant/logout', { method: 'POST' }).catch(() => null);
+      setStatus(signupStatus, '', 'info');
+      setStatus(loginStatus, '', 'info');
+      renderLoggedOut();
+    });
+
+    teamForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!state.participant) {
+        setStatus(teamStatus, 'Necesitas iniciar sesión para crear equipo.', 'warn');
+        return;
+      }
+
+      setStatus(teamStatus, 'Creando equipo...', 'info');
+      try {
+        const response = await fetch('/api/participant/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: teamForm.name.value.trim(),
+            focusArea: teamForm.focusArea.value.trim(),
+            description: teamForm.description.value.trim(),
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          setStatus(teamStatus, data.error === 'missing_name' ? 'Ponle nombre al equipo.' : 'No pude crear el equipo.', 'error');
+          return;
+        }
+
+        teamForm.reset();
+        setStatus(teamStatus, 'Equipo creado. Actualizando panel...', 'success');
+        await loadDashboard();
+      } catch {
+        setStatus(teamStatus, 'Error de red al crear el equipo.', 'error');
+      }
+    });
+
+    openTeamList.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-team-join]');
+      if (!button || !state.participant) return;
+
+      setStatus(teamStatus, 'Uniéndote al equipo...', 'info');
+      try {
+        const response = await fetch(`/api/participant/teams/${button.dataset.teamJoin}/join`, {
+          method: 'POST',
+        });
+        if (!response.ok) {
+          setStatus(teamStatus, 'No pude unirte a ese equipo.', 'error');
+          return;
+        }
+        setStatus(teamStatus, 'Te uniste al equipo. Actualizando panel...', 'success');
+        await loadDashboard();
+      } catch {
+        setStatus(teamStatus, 'Error de red al unirte al equipo.', 'error');
+      }
+    });
+
+    profileForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!state.participant) {
+        setStatus(profileStatus, 'Necesitas iniciar sesión primero.', 'warn');
+        return;
+      }
+
+      setStatus(profileStatus, 'Guardando perfil...', 'info');
+      try {
+        const response = await fetch('/api/participant/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            occupation: profileForm.occupation.value.trim(),
+            organization: profileForm.organization.value.trim(),
+            projectUrl: profileForm.projectUrl.value.trim(),
+            avatarUrl: profileForm.avatarUrl.value.trim(),
+            bio: profileForm.bio.value.trim(),
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          const message = data.error === 'profile_locked'
+            ? 'Perfil bloqueado hasta validación del admin.'
+            : data.error === 'invalid_project_url'
+              ? 'El enlace del proyecto debe iniciar con http:// o https://.'
+              : data.error === 'invalid_avatar_url'
+                ? 'La URL de foto o avatar debe iniciar con http:// o https://.'
+                : 'No pude guardar el perfil.';
+          setStatus(profileStatus, message, 'error');
+          return;
+        }
+
+        state.participant = data.participant;
+        renderAccount(data.participant);
+        renderRecognition(data.participant);
+        applyProfileState(data.participant);
+        setStatus(profileStatus, 'Perfil guardado.', 'success');
+      } catch {
+        setStatus(profileStatus, 'Error de red al guardar el perfil.', 'error');
+      }
+    });
+
+    renderLoggedOut();
+    restoreSession();
+  </script>
+
+  <style>
+    .registro-shell { padding-top: 4.5rem; }
+    .registro-brand-lockup {
+      display: grid;
+      gap: 0.45rem;
+      margin-bottom: 1.25rem;
+    }
+    .registro-logo {
+      width: min(100%, 320px);
+      height: auto;
+      display: block;
+      color: var(--color-text-primary);
+    }
+    .registro-brand-kicker {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    .registro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(420px, 0.95fr);
+      gap: 2rem;
+      align-items: start;
+    }
+    .registro-h1 {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 5vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin: 0.8rem 0 1.25rem;
+    }
+    .registro-intro {
+      font-size: 1.05rem;
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+      max-width: 62ch;
+    }
+    .registro-flow-grid {
+      display: grid;
+      gap: 1px;
+      background: var(--color-border);
+      border: 1px solid var(--color-border);
+      margin-top: 2rem;
+    }
+    .registro-flow-item { background: var(--color-bg); padding: 1rem 1.1rem; }
+    .registro-flow-label {
+      margin: 0 0 0.35rem;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .registro-flow-copy { margin: 0; color: var(--color-text-muted); line-height: 1.7; }
+    .registro-auth-card {
+      margin-top: 2rem;
+      background: linear-gradient(180deg, rgba(14,165,233,0.12), rgba(17,24,39,0.95));
+      border: 1px solid rgba(14,165,233,0.2);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+    .registro-account-card {
+      margin-top: 2rem;
+      border: 1px solid var(--color-border);
+      border-radius: 1rem;
+      padding: 1.35rem;
+      background: rgba(255,255,255,0.03);
+    }
+    .registro-account-title { margin: 0.4rem 0 0.2rem; font-size: 1.6rem; }
+    .registro-account-copy { margin: 0; color: var(--color-text-muted); }
+    .registro-account-flags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .registro-auth-tabs {
+      display: inline-grid;
+      grid-auto-flow: column;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--color-border-soft);
+      border-radius: 999px;
+      padding: 0.25rem;
+      gap: 0.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .registro-tab {
+      border: 0;
+      background: transparent;
+      color: var(--color-text-muted);
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    .registro-tab.is-active {
+      background: var(--color-accent-blue);
+      color: white;
+    }
+    .registro-auth-pane { display: none; }
+    .registro-auth-pane.is-active { display: block; }
+    .registro-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+    .registro-form-grid--login { grid-template-columns: 1fr; max-width: 32rem; }
+    .registro-field { display: grid; gap: 0.4rem; }
+    .registro-field--full { grid-column: 1 / -1; }
+    .registro-field-label {
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    .registro-input {
+      width: 100%;
+      background: rgba(12, 18, 30, 0.75);
+      border: 1px solid var(--color-border-soft);
+      border-radius: 0.7rem;
+      color: var(--color-text-primary);
+      padding: 0.85rem 0.95rem;
+      font: inherit;
+    }
+    .registro-select { appearance: none; }
+    .registro-inline-fields {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 0.75rem;
+    }
+    .registro-auth-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+    .registro-status {
+      margin-top: 1rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: 0.7rem;
+      border: 1px solid var(--color-border-soft);
+      color: var(--color-text-secondary);
+      background: rgba(255,255,255,0.03);
+      line-height: 1.5;
+    }
+    .registro-status--success {
+      border-color: rgba(52,211,153,0.4);
+      color: rgb(167,243,208);
+    }
+    .registro-status--warn {
+      border-color: rgba(251,191,36,0.35);
+      color: rgb(253,230,138);
+    }
+    .registro-status--error {
+      border-color: rgba(248,113,113,0.4);
+      color: rgb(254,202,202);
+    }
+    .participant-shell {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      min-height: 780px;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+    }
+    .participant-sidebar {
+      border-right: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-surface) 80%, black);
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .participant-brand {
+      display: grid;
+      gap: 0.55rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .participant-brand-logo {
+      width: min(100%, 170px);
+      height: auto;
+      display: block;
+      color: var(--color-text-primary);
+    }
+    .participant-brand strong { display: block; font-size: 0.92rem; }
+    .participant-brand small { color: var(--color-text-muted); font-size: 0.72rem; }
+    .participant-sidebar-section { display: grid; gap: 0.45rem; }
+    .participant-sidebar-label {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    .participant-sidebar-link {
+      display: block;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.55rem;
+      color: var(--color-text-muted);
+      text-decoration: none;
+      background: transparent;
+      border-left: 2px solid transparent;
+    }
+    .participant-sidebar-link.is-active {
+      color: var(--color-accent-sky);
+      background: color-mix(in srgb, var(--color-accent-blue) 8%, transparent);
+      border-left-color: var(--color-accent-blue);
+    }
+    .participant-status-chip {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 0.3rem 0.6rem;
+      border: 1px solid var(--color-accent-go);
+      color: var(--color-accent-go);
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+    }
+    .participant-status-chip--muted {
+      border-color: var(--color-border-soft);
+      color: var(--color-text-muted);
+    }
+    .participant-main { display: flex; flex-direction: column; min-width: 0; }
+    .participant-topbar {
+      height: 72px;
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.02);
+    }
+    .participant-topbar-label {
+      margin: 0 0 0.15rem;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    .participant-topbar-title { margin: 0; font-size: 1.15rem; }
+    .participant-topbar-badge {
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--color-accent-sky);
+      color: var(--color-accent-sky);
+      border-radius: 999px;
+    }
+    .participant-content-grid {
+      padding: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .participant-panel {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--color-border);
+      border-radius: 0.9rem;
+      padding: 1rem;
+      display: grid;
+      gap: 0.8rem;
+      min-width: 0;
+    }
+    .participant-panel--materials { grid-column: 1 / -1; }
+    .participant-panel-label {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .participant-panel-title { margin: 0; font-size: 1.1rem; }
+    .participant-panel-copy { margin: 0; color: var(--color-text-muted); line-height: 1.7; }
+    .participant-form-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .participant-textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+    .participant-team-block {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .participant-doc-list,
+    .participant-mini-list {
+      display: grid;
+      gap: 1px;
+      background: var(--color-border);
+      border: 1px solid var(--color-border);
+    }
+    .participant-doc-item,
+    .participant-mini-row {
+      background: var(--color-bg);
+      padding: 0.9rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+    }
+    .participant-doc-item { flex-direction: column; align-items: flex-start; }
+    .participant-mini-row--stacked {
+      align-items: flex-start;
+    }
+    .participant-mini-row--stacked p {
+      margin: 0.35rem 0 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+    .participant-mini-row--action {
+      justify-content: space-between;
+    }
+    .participant-inline-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .participant-recognition-actions {
+      margin-top: 0.25rem;
+    }
+    .participant-join-btn {
+      padding: 0.5rem 0.8rem;
+    }
+    .participant-doc-tag {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+    }
+    .participant-lockbox,
+    .participant-profile-preview {
+      display: flex;
+      gap: 0.9rem;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 0.8rem;
+      background: rgba(13,17,23,0.72);
+      border: 1px dashed var(--color-border-soft);
+      color: var(--color-text-muted);
+    }
+    .participant-lockbox { flex-direction: column; align-items: flex-start; }
+    .participant-lock-state {
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-accent-warn);
+    }
+    .participant-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(96,165,250,0.4), rgba(52,211,153,0.25));
+      border: 1px solid rgba(96,165,250,0.35);
+      flex-shrink: 0;
+    }
+    .participant-profile-preview p,
+    .participant-lockbox p { margin: 0; line-height: 1.6; }
+    @media (max-width: 1180px) {
+      .registro-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .participant-shell { grid-template-columns: 1fr; }
+      .participant-sidebar { border-right: 0; border-bottom: 1px solid var(--color-border); }
+      .participant-content-grid { grid-template-columns: 1fr; }
+      .registro-form-grid,
+      .registro-inline-fields { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

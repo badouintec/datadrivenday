@@ -101,16 +101,16 @@ a { color: var(--color-accent-sky); text-decoration: none; }
 }
 .brand-lockup {
   display: flex; align-items: center; gap: 0.75rem; text-decoration: none;
+  min-width: 0;
 }
-.brand-mark {
-  font-family: var(--display); font-size: 1.25rem; font-weight: 800;
-  color: var(--color-accent-sky); letter-spacing: -0.03em; line-height: 1;
+.brand-logo {
+  width: auto;
+  height: 46px;
+  display: block;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
 }
 .brand-copy { display: flex; flex-direction: column; gap: 0.1em; }
-.brand-copy strong {
-  font-family: var(--display); font-size: 0.95rem; font-weight: 700;
-  color: var(--color-text-primary); letter-spacing: -0.01em;
-}
 .brand-copy small {
   font-family: var(--sans); font-size: 0.65rem; color: var(--color-text-muted);
   letter-spacing: 0.01em;
@@ -136,6 +136,12 @@ a { color: var(--color-accent-sky); text-decoration: none; }
 }
 .footer-brand strong {
   font-family: var(--display); font-size: 1.15rem; font-weight: 700;
+  color: var(--color-text-primary);
+}
+.footer-logo {
+  width: min(100%, 320px);
+  height: auto;
+  display: block;
   color: var(--color-text-primary);
 }
 .footer-copy {
@@ -368,9 +374,20 @@ h1 em { font-style: normal; color: var(--color-accent-sky); }
   width: 100%; height: 30px; display: block; overflow: visible; margin-top: auto;
 }
 @media (max-width: 900px) {
+  .brand-copy {
+    display: none;
+  }
   .hmo-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 520px) {
+  .brand-lockup {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .brand-logo {
+    height: 40px;
+  }
   .hmo-kpi-grid { grid-template-columns: 1fr; }
 }
 .metric-number.urgent  { color: var(--color-accent-heat); }
@@ -441,6 +458,9 @@ h1 em { font-style: normal; color: var(--color-accent-sky); }
   font-size: 0.88rem; color: var(--color-text-muted); line-height: 1.8;
 }
 @media (max-width: 600px) {
+  .footer-logo {
+    width: min(100%, 250px);
+  }
   .axis-summary { grid-template-columns: 1.5rem 1fr 1.5rem; }
   .axis-data-preview { display: none; }
 }

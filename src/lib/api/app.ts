@@ -11,7 +11,33 @@ import { presentationsRoutes, slidesRoutes } from './routes/admin-presentations'
 import { blogRoutes } from './routes/admin-blog';
 import { registrosRoutes } from './routes/admin-registros';
 import { recursosRoutes } from './routes/admin-recursos';
+import { adminParticipantsRoutes, participantRoutes } from './routes/participant';
 import type { AppBindings, AppVariables, SubmissionPayload } from './types';
+
+function getAllowedCorsOrigins(siteUrl?: string, requestUrl?: string) {
+  const allowedOrigins = new Set<string>([
+    'http://localhost:4321',
+    'http://127.0.0.1:4321',
+    'http://localhost:4322',
+    'http://127.0.0.1:4322',
+    'http://localhost:8787',
+    'http://127.0.0.1:8787',
+  ]);
+
+  if (siteUrl) {
+    try {
+      allowedOrigins.add(new URL(siteUrl).origin);
+    } catch {
+      console.warn('[api] Ignoring invalid PUBLIC_SITE_URL for CORS allowlist.');
+    }
+  }
+
+  if (requestUrl) {
+    allowedOrigins.add(new URL(requestUrl).origin);
+  }
+
+  return allowedOrigins;
+}
 
 // ── Fallback data (served when D1 binding is not configured) ──────────────────
 // Mirrors exactly what getCityDashboard() returns from the DB seed.
@@ -114,7 +140,18 @@ const app = new Hono<{ Bindings: Partial<AppBindings>; Variables: AppVariables }
 
 app.use('*', logger());
 
-app.use('*', cors({ origin: '*', allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'] }));
+app.use(
+  '*',
+  cors({
+    origin: (origin, c) => {
+      if (!origin) return null;
+      const allowedOrigins = getAllowedCorsOrigins(c.env.PUBLIC_SITE_URL, c.req.url);
+      return allowedOrigins.has(origin) ? origin : null;
+    },
+    allowHeaders: ['Content-Type'],
+    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  }),
+);
 
 app.use('*', async (c, next) => {
   c.set('requestId', crypto.randomUUID());
@@ -233,6 +270,10 @@ app.route('/admin/slides', slidesRoutes);
 app.route('/admin/blog', blogRoutes);
 app.route('/admin/registros', registrosRoutes);
 app.route('/admin/recursos', recursosRoutes);
+app.route('/admin/participants', adminParticipantsRoutes);
+
+// ── Participant routes ───────────────────────────────────────────────────────
+app.route('/participant', participantRoutes);
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
 app.get('/slides', async (c) => {

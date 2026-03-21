@@ -1,0 +1,240 @@
+---
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const cookie = Astro.request.headers.get('cookie') ?? '';
+if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+
+const usuario = { username: '...', rol: 'editor', nombre: null };
+---
+
+<AdminLayout titulo="Participantes" seccion="participantes" usuario={usuario}>
+
+  <div class="topbar-acciones" slot="acciones">
+    <button id="refreshBtn" type="button" class="admin-btn">Actualizar</button>
+  </div>
+
+  <div style="display:flex;gap:var(--space-md);align-items:center;margin-bottom:var(--space-md);flex-wrap:wrap;">
+    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre o email..." />
+    <div class="filter-tabs" id="participantFilterTabs" style="margin-bottom:0;">
+      <button class="filter-tab is-active" data-filter="all">Todos</button>
+      <button class="filter-tab" data-filter="pending">Pendientes</button>
+      <button class="filter-tab" data-filter="completed">Taller validado</button>
+      <button class="filter-tab" data-filter="recognition">Reconocimiento activo</button>
+    </div>
+  </div>
+
+  <div id="statsLine" class="stat-sub" style="margin-bottom:var(--space-sm);"></div>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Participante</th>
+          <th>Contexto</th>
+          <th>Estado</th>
+          <th>Folio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="participantsBody">
+        <tr><td colspan="5" class="stat-sub">Cargando participantes...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+// @ts-nocheck
+    let allParticipants = [];
+    let searchTerm = '';
+    let currentFilter = 'all';
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function participantMatchesFilter(participant) {
+      if (currentFilter === 'pending') return !participant.workshopCompleted;
+      if (currentFilter === 'completed') return participant.workshopCompleted;
+      if (currentFilter === 'recognition') return participant.recognitionEnabled;
+      return true;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('participantsBody');
+
+      let rows = allParticipants.filter(participantMatchesFilter);
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        rows = rows.filter((participant) =>
+          (participant.fullName ?? '').toLowerCase().includes(term) ||
+          (participant.email ?? '').toLowerCase().includes(term)
+        );
+      }
+
+      document.getElementById('statsLine').textContent = `Total participantes: ${allParticipants.length} · visibles: ${rows.length}`;
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="stat-sub">Sin participantes para este filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map((participant) => `
+        <tr>
+          <td>
+            <div style="display:grid;gap:0.25rem;min-width:220px;">
+              <strong>${escapeHtml(participant.fullName)}</strong>
+              <span class="stat-sub">${escapeHtml(participant.email)}</span>
+            </div>
+          </td>
+          <td>
+            <div style="display:grid;gap:0.25rem;min-width:240px;">
+              <span>${escapeHtml(participant.occupation || '--')}</span>
+              <span class="stat-sub">${escapeHtml(participant.organization || '--')}</span>
+              <span class="stat-sub">${escapeHtml(participant.educationLevel || '--')} · ${participant.age ?? '--'} años</span>
+            </div>
+          </td>
+          <td>
+            <div class="participant-admin-controls">
+              <label class="participant-admin-check">
+                <input type="checkbox" data-field="workshopCompleted" data-id="${participant.id}" ${participant.workshopCompleted ? 'checked' : ''} />
+                <span>Taller validado</span>
+              </label>
+              <label class="participant-admin-check">
+                <input type="checkbox" data-field="profileEnabled" data-id="${participant.id}" ${participant.profileEnabled ? 'checked' : ''} />
+                <span>Perfil habilitado</span>
+              </label>
+              <label class="participant-admin-check">
+                <input type="checkbox" data-field="recognitionEnabled" data-id="${participant.id}" ${participant.recognitionEnabled ? 'checked' : ''} />
+                <span>Reconocimiento activo</span>
+              </label>
+            </div>
+          </td>
+          <td>
+            <input
+              type="text"
+              class="participant-admin-folio"
+              placeholder="DDD-2026-XXXX"
+              value="${escapeHtml(participant.recognitionFolio || '')}"
+              data-folio-id="${participant.id}"
+            />
+          </td>
+          <td>
+            <div style="display:grid;gap:0.5rem;justify-items:start;">
+              <button type="button" class="table-action-btn" data-save="${participant.id}">Guardar</button>
+              <span class="stat-sub" id="status-${participant.id}">${participant.workshopCompleted ? 'validado' : 'pendiente'}</span>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadParticipants() {
+      const res = await fetch('/api/admin/participants');
+      if (!res.ok) {
+        if (res.status === 401) window.location.href = '/admin/login';
+        return;
+      }
+      const data = await res.json();
+      allParticipants = data.participants ?? [];
+      renderTable();
+    }
+
+    async function saveParticipant(id) {
+      const row = allParticipants.find((participant) => participant.id === id);
+      if (!row) return;
+
+      const workshopCompleted = document.querySelector(`[data-field="workshopCompleted"][data-id="${id}"]`)?.checked ?? false;
+      const profileEnabled = document.querySelector(`[data-field="profileEnabled"][data-id="${id}"]`)?.checked ?? false;
+      const recognitionEnabled = document.querySelector(`[data-field="recognitionEnabled"][data-id="${id}"]`)?.checked ?? false;
+      const recognitionFolio = document.querySelector(`[data-folio-id="${id}"]`)?.value?.trim() || null;
+      const statusEl = document.getElementById(`status-${id}`);
+
+      statusEl.textContent = 'guardando...';
+
+      const res = await fetch(`/api/admin/participants/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workshopCompleted,
+          profileEnabled,
+          recognitionEnabled,
+          recognitionFolio,
+        }),
+      });
+
+      if (!res.ok) {
+        statusEl.textContent = 'error';
+        return;
+      }
+
+      const data = await res.json();
+      allParticipants = allParticipants.map((participant) =>
+        participant.id === id ? data.participant : participant
+      );
+      statusEl.textContent = 'guardado';
+      renderTable();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (event) => {
+      searchTerm = event.target.value;
+      renderTable();
+    });
+
+    document.getElementById('participantFilterTabs').addEventListener('click', (event) => {
+      const tab = event.target.closest('.filter-tab');
+      if (!tab) return;
+      document.querySelectorAll('#participantFilterTabs .filter-tab').forEach((button) => button.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      currentFilter = tab.dataset.filter;
+      renderTable();
+    });
+
+    document.getElementById('participantsBody').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-save]');
+      if (!button) return;
+      saveParticipant(button.dataset.save);
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadParticipants);
+
+    loadParticipants();
+  </script>
+
+  <style>
+    .participant-admin-controls {
+      display: grid;
+      gap: 0.45rem;
+      min-width: 180px;
+    }
+    .participant-admin-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-text-secondary);
+      font-size: 0.82rem;
+    }
+    .participant-admin-check input {
+      accent-color: var(--color-accent-blue);
+    }
+    .participant-admin-folio {
+      width: 180px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      padding: 8px 10px;
+      border-radius: 4px;
+    }
+    .participant-admin-folio:focus {
+      outline: none;
+      border-color: var(--color-accent-blue);
+    }
+  </style>
+
+</AdminLayout>

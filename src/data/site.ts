@@ -12,10 +12,10 @@ export const navigation = [
   { href: '/', label: 'Inicio' },
   { href: '/#proyecto', label: 'Vision' },
   { href: '/dataller', label: 'Dataller' },
+  { href: '/registro', label: 'Registro' },
   { href: '/hermosillo', label: 'Hermosillo' },
   { href: '/#recursos-2026', label: 'Recursos' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/#participa', label: 'Participa' }
+  { href: '/blog', label: 'Blog' }
 ];
 
 export const capabilityCards = [

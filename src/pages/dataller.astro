@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SubmissionForm from '../components/SubmissionForm.astro';
 
 export const prerender = true;
 
@@ -81,7 +80,7 @@ const colorMap: Record<string, string> = {
     <div class="page-shell">
       <div class="dt-hero-inner">
         <div class="dt-hero-main">
-          <p class="section-label">Primer evento · Data Driven Day 2026</p>
+          <p class="section-label">Proximo evento · Data Driven Day 2026</p>
           <h1 class="dt-h1">Dataller<br/><em>de IA</em></h1>
           <p class="dt-hero-sub">
             Un taller intensivo de medio día para construir productos reales con inteligencia
@@ -260,23 +259,33 @@ const colorMap: Record<string, string> = {
         <p class="section-label">Participación</p>
         <h2 style="font-size:clamp(1.6rem,2.8vw,2.4rem)">Reserva tu lugar</h2>
         <p style="font-size:1rem;color:var(--color-text-muted);line-height:1.75;margin-top:1rem">
-          El evento es gratuito pero los lugares son limitados a la capacidad del Design
-          Thinking Lab. Regístrate para asegurar tu lugar y recibir confirmación con detalles
-          de acceso.
+          El registro del Dataller se gestiona exclusivamente en Luma. Usa el enlace oficial
+          para reservar tu lugar y recibir ahí la confirmación con los detalles de acceso.
         </p>
         <ul class="dt-beneficios">
-          <li>Lugar confirmado en el taller</li>
-          <li>Reconocimiento impreso de participación</li>
-          <li>Comida durante el evento</li>
-          <li>Acceso a materiales y recursos del día</li>
+          <li>Registro centralizado en el evento oficial</li>
+          <li>Confirmación y recordatorios desde Luma</li>
+          <li>Acceso al programa y actualizaciones del taller</li>
+          <li>Un solo enlace de registro para evitar duplicados</li>
         </ul>
       </div>
-      <div>
-        <SubmissionForm
-          heading="Registro al Dataller de IA"
-          description="28 de marzo · Tecnológico de Monterrey · Hermosillo"
-          submitLabel="Reservar mi lugar"
-        />
+      <div class="dt-registro-cta-wrap">
+        <div class="dt-registro-cta-card">
+          <p class="dt-registro-cta-label">Registro oficial</p>
+          <h3 class="dt-registro-cta-title">Luma</h3>
+          <p class="dt-registro-cta-copy">
+            El botón abre el evento oficial del Dataller de IA 2026. Después de reservar tu lugar,
+            podrás entrar a <a href="/registro">/registro</a> para crear tu cuenta participante y usar tu panel.
+          </p>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+            <a class="button" href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer">
+              Ir al registro en Luma ↗
+            </a>
+            <a class="button-secondary" href="/registro">
+              Abrir cuenta participante &rarr;
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -317,6 +326,38 @@ const colorMap: Record<string, string> = {
   margin-bottom: 2.5rem;
 }
 .dt-hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.dt-registro-cta-wrap {
+  display: flex;
+  align-items: stretch;
+}
+.dt-registro-cta-card {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12), rgba(17, 24, 39, 0.94));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.dt-registro-cta-label {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-sky);
+  margin: 0;
+}
+.dt-registro-cta-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1;
+}
+.dt-registro-cta-copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
 
 /* META PANEL */
 .dt-meta-panel {

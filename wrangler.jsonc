@@ -35,8 +35,6 @@
     "PUBLIC_SANITY_DATASET": "production",
     "SANITY_API_VERSION": "2025-03-01",
     "SITE_NAME": "Data Driven Day",
-    "SITE_TAGLINE": "Datos, politica publica y producto digital para Hermosillo",
-    "ADMIN_USER": "admin",
-    "ADMIN_PASS_HASH": "4eb1d27ff4a93d049ce93f06a5e793838385cce7fd59abd8fba4fbc16af651dc"
+    "SITE_TAGLINE": "Datos, politica publica y producto digital para Hermosillo"
   }
 }

@@ -33,22 +33,27 @@
 
 .sidebar-logo-link {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   text-decoration: none;
   color: var(--color-text-primary);
 }
 
-.sidebar-logo-icon {
-  font-size: 1.25rem;
-  color: var(--color-accent-sky);
+.sidebar-logo-svg {
+  width: 148px;
+  height: auto;
+  display: block;
+  color: var(--color-text-primary);
 }
 
 .sidebar-logo-text {
-  font-family: var(--display);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .sidebar-section {
@@ -713,12 +718,21 @@
   text-align: center;
 }
 
+.login-logo {
+  width: min(100%, 260px);
+  height: auto;
+  display: block;
+  color: var(--color-text-primary);
+  margin: 0 auto var(--space-sm);
+}
+
 .login-brand {
-  font-family: var(--display);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--color-accent-sky);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
   display: block;
   margin-bottom: var(--space-sm);
 }

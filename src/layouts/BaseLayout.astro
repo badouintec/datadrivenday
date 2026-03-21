@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import SiteLogo from '../components/SiteLogo.astro';
 import { navigation, site } from '../data/site';
 
 interface Props {
@@ -11,6 +12,8 @@ const {
   title = site.title,
   description = site.description
 } = Astro.props;
+
+const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
 ---
 
 <!doctype html>
@@ -25,7 +28,12 @@ const {
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:alt" content="Logo de datadriven.day sobre fondo azul" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -54,9 +62,8 @@ const {
       <div class="page-shell nav-shell">
         <div class="site-nav">
           <a class="brand-lockup" href="/">
-            <span class="brand-mark">DD</span>
+            <SiteLogo class="brand-logo" />
             <span class="brand-copy">
-              <strong>{site.name}</strong>
               <small>Hermosillo 2026 &middot; datos, ciudad e inteligencia aplicada</small>
             </span>
           </a>
@@ -80,7 +87,7 @@ const {
     <footer class="site-footer">
       <div class="page-shell footer-panel">
         <div class="footer-brand">
-          <strong>{site.name}</strong>
+          <SiteLogo class="footer-logo" />
           <p class="footer-copy">Una conversacion abierta sobre soberania de datos, infraestructura critica y decisiones publicas asistidas por inteligencia aplicada.</p>
           <p class="footer-copy" style="margin-top:0.5rem">Hermosillo, Sonora &mdash; 2026</p>
         </div>
