@@ -237,7 +237,7 @@ app.route('/admin/recursos', recursosRoutes);
 // ── Public endpoints ──────────────────────────────────────────────────────────
 app.get('/slides', async (c) => {
   if (!c.env.DB) return c.json({ slides: [] });
-  const presentacion = c.req.query('presentacion') ?? 'dataller-2026';
+  const presentacion = c.req.query('presentacion') ?? 'pres-dataller-2026';
   const slides = await getSlides(c.env.DB, presentacion);
   return c.json({
     slides: slides.filter(s => s.isActive),

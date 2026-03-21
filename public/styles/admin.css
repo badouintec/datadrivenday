@@ -888,6 +888,9 @@
   justify-content: center;
   backdrop-filter: blur(4px);
 }
+.modal-overlay[hidden] {
+  display: none;
+}
 
 .modal-box {
   background: var(--color-surface);

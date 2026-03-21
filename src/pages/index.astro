@@ -105,21 +105,69 @@ const { settings: eventSettings } = await getEventSettings();
     <div class="page-shell">
       <p class="section-label">Primera ciudad piloto</p>
       <h2>Hermosillo en datos</h2>
-      <p class="section-intro">
-        Analizamos la ciudad con metodologia del Growth Lab de Harvard para identificar
-        frenos estructurales y oportunidades reales de crecimiento.
-      </p>
-      <div class="metrics-grid" style="margin-top:2rem">
-        {harvardMetricas.slice(0, 3).map((m) => {
-          const cls = m.color === 'heat' ? 'urgent' : m.color === 'go' ? 'data' : 'warning';
-          return (
-            <div class="metric-card">
-              <span class={`metric-number ${cls}`}>{m.valor}</span>
-              <p class="metric-label">{m.descripcion}</p>
+
+      <div class="hmo-kpi-grid" id="hmo-kpi-grid">
+
+        <!-- KPI 1: Agua -->
+        <div class="hmo-kpi">
+          <span class="hmo-kpi-val urgent" data-count="35" data-suffix="%">35%</span>
+          <div class="hmo-bar-wrap">
+            <div class="hmo-bar-row">
+              <span class="hmo-bar-city-label">HMO</span>
+              <div class="hmo-bar-track"><div class="hmo-bar-fill urgent" data-w="35"></div></div>
+              <span class="hmo-bar-pct">35%</span>
             </div>
-          );
-        })}
+            <div class="hmo-bar-row">
+              <span class="hmo-bar-city-label">NAC</span>
+              <div class="hmo-bar-track"><div class="hmo-bar-fill ref" data-w="50"></div></div>
+              <span class="hmo-bar-pct">50%</span>
+            </div>
+          </div>
+          <p class="hmo-kpi-label">Empresas con agua asequible</p>
+        </div>
+
+        <!-- KPI 2: Transbordos -->
+        <div class="hmo-kpi">
+          <span class="hmo-kpi-val warning" data-count="3">3</span>
+          <div class="hmo-dots">
+            <span class="hmo-dot warning"></span>
+            <span class="hmo-dot warning"></span>
+            <span class="hmo-dot warning"></span>
+            <span class="hmo-dot empty"></span>
+            <span class="hmo-dot empty"></span>
+          </div>
+          <p class="hmo-kpi-label">Transbordos máximos — norte a zona industrial</p>
+        </div>
+
+        <!-- KPI 3: Crecimiento digital -->
+        <div class="hmo-kpi">
+          <span class="hmo-kpi-val go" data-count="15" data-suffix="%">15%</span>
+          <svg class="hmo-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" aria-hidden="true">
+            <polyline points="0,24 16,20 32,16 48,11 64,6 80,2"
+              fill="none" stroke="var(--color-accent-data)" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round"
+              class="hmo-spark-line"/>
+            <polygon points="0,24 16,20 32,16 48,11 64,6 80,2 80,28 0,28"
+              fill="var(--color-accent-data)" opacity="0.12" class="hmo-spark-fill"/>
+          </svg>
+          <p class="hmo-kpi-label">Crecimiento anual — servicios digitales desde EUA</p>
+        </div>
+
+        <!-- KPI 4: Solar -->
+        <div class="hmo-kpi">
+          <span class="hmo-kpi-val go" data-count="1423" data-formatted="1,423">1,423</span>
+          <svg class="hmo-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" aria-hidden="true">
+            <rect class="hmo-bar-svg" x="0"  y="20" width="12" height="8"  fill="var(--color-accent-data)" opacity="0.4" data-h="8"  data-y="20"/>
+            <rect class="hmo-bar-svg" x="17" y="16" width="12" height="12" fill="var(--color-accent-data)" opacity="0.55" data-h="12" data-y="16"/>
+            <rect class="hmo-bar-svg" x="34" y="11" width="12" height="17" fill="var(--color-accent-data)" opacity="0.7" data-h="17" data-y="11"/>
+            <rect class="hmo-bar-svg" x="51" y="6"  width="12" height="22" fill="var(--color-accent-data)" opacity="0.85" data-h="22" data-y="6"/>
+            <rect class="hmo-bar-svg" x="68" y="2"  width="12" height="26" fill="var(--color-accent-data)" opacity="1" data-h="26" data-y="2"/>
+          </svg>
+          <p class="hmo-kpi-label">MW solar en Sonora — mayor capacidad nacional</p>
+        </div>
+
       </div>
+
       <a class="button-secondary" href="/hermosillo" style="margin-top:2rem;display:inline-block">Ver analisis completo &rarr;</a>
     </div>
   </section>
@@ -227,6 +275,74 @@ const { settings: eventSettings } = await getEventSettings();
 </BaseLayout>
 
 <script>
+  // ── HMO KPI ANIMATIONS ────────────────────────────────
+  const kpiGrid = document.getElementById('hmo-kpi-grid');
+  if (kpiGrid) {
+    const animateKpi = () => {
+      // Counter animation
+      kpiGrid.querySelectorAll<HTMLElement>('[data-count]').forEach(el => {
+        const target = parseInt(el.dataset.count ?? '0', 10);
+        const suffix = el.dataset.suffix ?? '';
+        const formatted = el.dataset.formatted ?? null;
+        const dur = 1200;
+        const start = performance.now();
+        const step = (now: number) => {
+          const p = Math.min((now - start) / dur, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          const val = Math.round(ease * target);
+          if (formatted && p === 1) {
+            el.textContent = formatted + suffix;
+          } else {
+            el.textContent = val.toLocaleString('en-US') + suffix;
+          }
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+      // Bar fill animation
+      kpiGrid.querySelectorAll<HTMLElement>('.hmo-bar-fill[data-w]').forEach(el => {
+        const w = el.dataset.w ?? '0';
+        setTimeout(() => { el.style.width = w + '%'; }, 100);
+      });
+      // SVG bars grow
+      kpiGrid.querySelectorAll<SVGRectElement>('.hmo-bar-svg').forEach(el => {
+        const h = parseFloat(el.dataset.h ?? '0');
+        const y = parseFloat(el.dataset.y ?? '0');
+        el.setAttribute('height', '0');
+        el.setAttribute('y', String(y + h));
+        setTimeout(() => {
+          el.style.transition = 'height 0.9s cubic-bezier(.22,.68,0,1.2), y 0.9s cubic-bezier(.22,.68,0,1.2)';
+          el.setAttribute('height', String(h));
+          el.setAttribute('y', String(y));
+        }, 80);
+      });
+      // Sparkline draw
+      kpiGrid.querySelectorAll<SVGPolylineElement>('.hmo-spark-line').forEach(el => {
+        const len = el.getTotalLength?.() ?? 120;
+        el.style.strokeDasharray = String(len);
+        el.style.strokeDashoffset = String(len);
+        setTimeout(() => {
+          el.style.transition = 'stroke-dashoffset 1.1s ease';
+          el.style.strokeDashoffset = '0';
+        }, 100);
+      });
+      kpiGrid.querySelectorAll<SVGPolygonElement>('.hmo-spark-fill').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => {
+          el.style.transition = 'opacity 1.2s ease';
+          el.style.opacity = '0.12';
+        }, 400);
+      });
+    };
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateKpi(); obs.disconnect(); }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(kpiGrid);
+  }
+
   // ── TYPEWRITER ─────────────────────────────────────────
   const phrases = ['Soberania de datos', 'Infraestructura critica', 'Resiliencia sistemica'];
   const tw = document.getElementById('typewriter-text');

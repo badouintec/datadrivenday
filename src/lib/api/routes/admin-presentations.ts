@@ -44,7 +44,7 @@ export const slidesRoutes = new Hono<Env>();
 slidesRoutes.use('*', requireAuth('presentations:read'));
 
 slidesRoutes.get('/', async (c) => {
-  const presentacion = c.req.query('presentacion') ?? 'dataller-2026';
+  const presentacion = c.req.query('presentacion') ?? 'pres-dataller-2026';
   const slides = await getSlides(c.env.DB!, presentacion);
   return c.json({ ok: true, slides });
 });
@@ -52,7 +52,7 @@ slidesRoutes.get('/', async (c) => {
 slidesRoutes.post('/', requireAuth('presentations:write'), async (c) => {
   const body = await c.req.json();
   const id = await insertSlide(c.env.DB!, {
-    presentacion: body.presentacion ?? 'dataller-2026',
+    presentacion: body.presentacion ?? 'pres-dataller-2026',
     numero: body.numero ?? 999,
     tag: body.tag ?? 'NUEVO SLIDE',
     titulo: body.titulo ?? 'Sin titulo',

@@ -6,6 +6,7 @@
     "enabled": true
   },
   "routes": [
+    { "pattern": "datadriven.day", "custom_domain": true },
     { "pattern": "www.datadriven.day", "custom_domain": true }
   ],
   "kv_namespaces": [

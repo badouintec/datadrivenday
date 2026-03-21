@@ -101,7 +101,7 @@ export async function deletePresentation(db: D1Database, id: string) {
 
 // ── Slides ────────────────────────────────────────────────────────────────────
 
-export async function getSlides(db: D1Database, presentacion = 'dataller-2026') {
+export async function getSlides(db: D1Database, presentacion = 'pres-dataller-2026') {
   const result = await db
     .prepare(
       `SELECT * FROM presentation_slides
