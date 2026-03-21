@@ -36,12 +36,12 @@ recursosRoutes.post('/', requireAuth('recursos:write'), async (c) => {
 
 recursosRoutes.patch('/:id', requireAuth('recursos:write'), async (c) => {
   const body = await c.req.json();
-  await updateRecurso(c.env.DB!, c.req.param('id'), body);
+  await updateRecurso(c.env.DB!, c.req.param('id')!, body);
   return c.json({ ok: true });
 });
 
 recursosRoutes.delete('/:id', requireAuth('recursos:delete'), async (c) => {
-  await deleteRecurso(c.env.DB!, c.req.param('id'));
+  await deleteRecurso(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 

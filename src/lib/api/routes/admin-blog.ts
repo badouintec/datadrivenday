@@ -34,22 +34,22 @@ blogRoutes.post('/', requireAuth('blog:write'), async (c) => {
 
 blogRoutes.patch('/:id', requireAuth('blog:write'), async (c) => {
   const body = await c.req.json();
-  await updateBlogPost(c.env.DB!, c.req.param('id'), body);
+  await updateBlogPost(c.env.DB!, c.req.param('id')!, body);
   return c.json({ ok: true });
 });
 
 blogRoutes.post('/:id/publicar', requireAuth('blog:publish'), async (c) => {
-  await publishBlogPost(c.env.DB!, c.req.param('id'));
+  await publishBlogPost(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 
 blogRoutes.post('/:id/archivar', requireAuth('blog:publish'), async (c) => {
-  await archiveBlogPost(c.env.DB!, c.req.param('id'));
+  await archiveBlogPost(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 
 blogRoutes.delete('/:id', requireAuth('blog:delete'), async (c) => {
-  await deleteBlogPost(c.env.DB!, c.req.param('id'));
+  await deleteBlogPost(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 

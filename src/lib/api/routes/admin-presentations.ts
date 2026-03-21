@@ -30,12 +30,12 @@ presentationsRoutes.post('/', requireAuth('presentations:write'), async (c) => {
 
 presentationsRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
   const body = await c.req.json();
-  await updatePresentation(c.env.DB!, c.req.param('id'), body);
+  await updatePresentation(c.env.DB!, c.req.param('id')!, body);
   return c.json({ ok: true });
 });
 
 presentationsRoutes.delete('/:id', requireAuth('presentations:delete'), async (c) => {
-  await deletePresentation(c.env.DB!, c.req.param('id'));
+  await deletePresentation(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 
@@ -74,7 +74,7 @@ slidesRoutes.post('/', requireAuth('presentations:write'), async (c) => {
 });
 
 slidesRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
-  const id = c.req.param('id');
+  const id = c.req.param('id')!;
   const body = await c.req.json();
 
   const patch: Record<string, unknown> = { ...body };
@@ -93,7 +93,7 @@ slidesRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
 });
 
 slidesRoutes.delete('/:id', requireAuth('presentations:delete'), async (c) => {
-  await deleteSlide(c.env.DB!, c.req.param('id'));
+  await deleteSlide(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true });
 });
 
@@ -104,6 +104,6 @@ slidesRoutes.post('/reorder', requireAuth('presentations:write'), async (c) => {
 });
 
 slidesRoutes.post('/:id/duplicate', requireAuth('presentations:write'), async (c) => {
-  const newId = await duplicateSlide(c.env.DB!, c.req.param('id'));
+  const newId = await duplicateSlide(c.env.DB!, c.req.param('id')!);
   return c.json({ ok: true, id: newId }, 201);
 });

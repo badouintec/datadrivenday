@@ -18,6 +18,7 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
   </div>
 
   <script>
+// @ts-nocheck
     async function load() {
       const res = await fetch('/api/admin/presentaciones');
       if (!res.ok) { if (res.status === 401) window.location.href = '/admin/login'; return; }

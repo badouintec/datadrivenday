@@ -288,6 +288,7 @@ h1 em { font-style: normal; color: var(--color-accent-sky); }
   display: block; font-family: var(--mono);
   font-size: clamp(1.4rem, 2.2vw, 1.8rem);
   font-weight: 600; line-height: 1; margin-bottom: 0.5rem;
+}
 
 /* HMO KPI GRID */
 .hmo-kpi-grid {

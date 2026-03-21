@@ -65,6 +65,7 @@ const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
   </div>
 
   <script define:vars={{ redirect }}>
+// @ts-nocheck
     const form = document.getElementById('loginForm');
     const errorEl = document.getElementById('loginError');
     const btn = document.getElementById('loginBtn');

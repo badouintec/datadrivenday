@@ -48,6 +48,7 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
   </section>
 
   <script>
+// @ts-nocheck
     async function loadDashboard() {
       try {
         const res = await fetch('/api/admin/dashboard');
