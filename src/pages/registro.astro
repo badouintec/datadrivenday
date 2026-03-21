@@ -19,16 +19,42 @@ export const prerender = true;
         <p class="section-label">Registro</p>
         <h1 class="registro-h1">Registrate a la comunidad y plataforma de aprendizaje</h1>
         <p class="registro-intro">
-          Registrate a la comunidad y plataforma de aprendizaje.
+          Crea tu cuenta, administra tu perfil y entra al panel de participante para materiales,
+          equipos y reconocimiento del Dataller.
         </p>
 
+        <div class="registro-feature-grid" aria-label="Beneficios del registro">
+          <article class="registro-feature-card">
+            <span class="registro-feature-step">01</span>
+            <h2 class="registro-feature-title">Crea tu cuenta</h2>
+            <p class="registro-feature-copy">Nombre, correo, trayectoria y tu proyecto en un solo paso.</p>
+          </article>
+          <article class="registro-feature-card">
+            <span class="registro-feature-step">02</span>
+            <h2 class="registro-feature-title">Activa tu perfil</h2>
+            <p class="registro-feature-copy">Cuando admin valide tu taller podrás editar tu perfil completo.</p>
+          </article>
+          <article class="registro-feature-card">
+            <span class="registro-feature-step">03</span>
+            <h2 class="registro-feature-title">Usa tu panel</h2>
+            <p class="registro-feature-copy">Accede a materiales, forma equipo y descarga tu reconocimiento.</p>
+          </article>
+        </div>
+
         <div id="authShell" class="registro-auth-card">
+          <div class="registro-card-heading">
+            <p class="registro-card-kicker">Acceso participante</p>
+            <h2 class="registro-card-title">Tu cuenta de Data Driven Day</h2>
+            <p class="registro-card-copy">Aquí se concentra tu registro y tu perfil. El lugar al evento sigue reservado en Luma.</p>
+          </div>
+
           <div class="registro-auth-tabs">
-            <button class="registro-tab is-active" type="button" data-auth-tab="signup">Sign up</button>
-            <button class="registro-tab" type="button" data-auth-tab="login">Login</button>
+            <button class="registro-tab is-active" type="button" data-auth-tab="signup">Crear cuenta</button>
+            <button class="registro-tab" type="button" data-auth-tab="login">Entrar</button>
           </div>
 
           <form id="signupForm" class="registro-auth-pane is-active" data-auth-pane="signup">
+            <p class="registro-pane-intro">Completa tu perfil base para aparecer correctamente en el panel y en tu reconocimiento.</p>
             <div class="registro-form-grid">
               <label class="registro-field registro-field--full">
                 <span class="registro-field-label">Nombre completo</span>
@@ -79,6 +105,7 @@ export const prerender = true;
           </form>
 
           <form id="loginForm" class="registro-auth-pane" data-auth-pane="login">
+            <p class="registro-pane-intro">Si ya tienes cuenta, entra para continuar con tu perfil, equipos y materiales.</p>
             <div class="registro-form-grid registro-form-grid--login">
               <label class="registro-field registro-field--full">
                 <span class="registro-field-label">Correo</span>
@@ -140,11 +167,29 @@ export const prerender = true;
           <div class="participant-main">
             <header class="participant-topbar">
               <div>
-                <p class="participant-topbar-label">Vista de cuenta</p>
-                <h2 id="dashboardTitle" class="participant-topbar-title">Preview del panel</h2>
+                <p class="participant-topbar-label">Panel de participante</p>
+                <h2 id="dashboardTitle" class="participant-topbar-title">Tu espacio de trabajo</h2>
               </div>
-              <div id="dashboardBadge" class="participant-topbar-badge">Sin sesión</div>
+              <div id="dashboardBadge" class="participant-topbar-badge">Cuenta no iniciada</div>
             </header>
+
+            <section class="participant-overview-strip" aria-label="Resumen del panel">
+              <article class="participant-overview-card">
+                <span class="participant-overview-label">Estado</span>
+                <strong>Registro activo</strong>
+                <p>Tu cuenta vive aquí aunque el acceso al evento se confirme desde Luma.</p>
+              </article>
+              <article class="participant-overview-card">
+                <span class="participant-overview-label">Perfil</span>
+                <strong>Edición con validación</strong>
+                <p>El perfil se desbloquea cuando admin valida tu participación en el taller.</p>
+              </article>
+              <article class="participant-overview-card">
+                <span class="participant-overview-label">Comunidad</span>
+                <strong>Equipos y materiales</strong>
+                <p>Esta vista centraliza recursos, colaboración y reconocimiento.</p>
+              </article>
+            </section>
 
             <div class="participant-content-grid">
               <section class="participant-panel participant-panel--materials">
@@ -399,8 +444,8 @@ export const prerender = true;
       state.participant = null;
       authShell.hidden = false;
       accountShell.hidden = true;
-      dashboardTitle.textContent = 'Preview del panel';
-      dashboardBadge.textContent = 'Sin sesión';
+      dashboardTitle.textContent = 'Tu espacio de trabajo';
+      dashboardBadge.textContent = 'Cuenta no iniciada';
       resourceSummary.textContent = 'Cuando entras a tu cuenta, esta sección se llena con recursos activos desde el backend.';
       renderResources();
       renderTeams([], [], false);
@@ -421,7 +466,7 @@ export const prerender = true;
       accountShell.hidden = false;
       renderAccount(data.participant);
       dashboardTitle.textContent = `Hola, ${data.participant.fullName.split(' ')[0]}`;
-      dashboardBadge.textContent = data.participant.workshopCompleted ? 'Validado' : 'Participante activo';
+      dashboardBadge.textContent = data.participant.workshopCompleted ? 'Validado' : 'Cuenta activa';
       resourceSummary.textContent = data.recursos?.length
         ? `${data.recursos.length} recursos activos cargados desde el backend.`
         : 'No hay recursos activos todavía.';
@@ -639,7 +684,13 @@ export const prerender = true;
   </script>
 
   <style>
-    .registro-shell { padding-top: 4.5rem; }
+    .registro-shell {
+      padding-top: 4.5rem;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%),
+        radial-gradient(circle at 85% 8%, rgba(52,211,153,0.08), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.015), transparent 18%);
+    }
     .registro-brand-lockup {
       display: grid;
       gap: 0.45rem;
@@ -660,22 +711,60 @@ export const prerender = true;
     }
     .registro-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(420px, 0.95fr);
-      gap: 2rem;
+      grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
+      gap: 2.25rem;
       align-items: start;
+    }
+    .registro-auth-column {
+      display: grid;
+      gap: 1.4rem;
     }
     .registro-h1 {
       font-family: var(--display);
       font-size: clamp(2.4rem, 5vw, 4.8rem);
       line-height: 0.95;
       letter-spacing: -0.04em;
-      margin: 0.8rem 0 1.25rem;
+      margin: 0.65rem 0 0.5rem;
     }
     .registro-intro {
       font-size: 1.05rem;
       color: var(--color-text-secondary);
       line-height: 1.8;
-      max-width: 62ch;
+      max-width: 60ch;
+    }
+    .registro-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+    .registro-feature-card {
+      padding: 1rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(96,165,250,0.16);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .registro-feature-step {
+      display: inline-flex;
+      margin-bottom: 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .registro-feature-title {
+      margin: 0 0 0.45rem;
+      font-size: 1rem;
+      font-family: var(--display);
+      line-height: 1.2;
+      color: var(--color-text-primary);
+    }
+    .registro-feature-copy {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.65;
+      font-size: 0.92rem;
     }
     .registro-flow-grid {
       display: grid;
@@ -695,18 +784,41 @@ export const prerender = true;
     }
     .registro-flow-copy { margin: 0; color: var(--color-text-muted); line-height: 1.7; }
     .registro-auth-card {
-      margin-top: 2rem;
       background: linear-gradient(180deg, rgba(14,165,233,0.12), rgba(17,24,39,0.95));
-      border: 1px solid rgba(14,165,233,0.2);
-      border-radius: 1rem;
+      border: 1px solid rgba(14,165,233,0.18);
+      border-radius: 1.2rem;
       padding: 1.5rem;
+      box-shadow: 0 20px 60px rgba(2, 8, 23, 0.32);
     }
     .registro-account-card {
-      margin-top: 2rem;
       border: 1px solid var(--color-border);
-      border-radius: 1rem;
+      border-radius: 1.2rem;
       padding: 1.35rem;
-      background: rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    }
+    .registro-card-heading {
+      display: grid;
+      gap: 0.45rem;
+      margin-bottom: 1.15rem;
+    }
+    .registro-card-kicker {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .registro-card-title {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+      line-height: 1.1;
+      font-family: var(--display);
+    }
+    .registro-card-copy {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.7;
     }
     .registro-account-title { margin: 0.4rem 0 0.2rem; font-size: 1.6rem; }
     .registro-account-copy { margin: 0; color: var(--color-text-muted); }
@@ -742,6 +854,12 @@ export const prerender = true;
     }
     .registro-auth-pane { display: none; }
     .registro-auth-pane.is-active { display: block; }
+    .registro-pane-intro {
+      margin: 0 0 1rem;
+      color: var(--color-text-muted);
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
     .registro-form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -765,6 +883,13 @@ export const prerender = true;
       color: var(--color-text-primary);
       padding: 0.85rem 0.95rem;
       font: inherit;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .registro-input:focus {
+      outline: none;
+      border-color: rgba(96,165,250,0.55);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.16);
+      background: rgba(12, 18, 30, 0.92);
     }
     .registro-select { appearance: none; }
     .registro-inline-fields {
@@ -803,11 +928,11 @@ export const prerender = true;
       display: grid;
       grid-template-columns: 220px minmax(0, 1fr);
       border: 1px solid var(--color-border);
-      background: var(--color-surface);
+      background: linear-gradient(180deg, rgba(22,27,34,0.98), rgba(13,17,23,0.98));
       min-height: 780px;
-      border-radius: 1rem;
+      border-radius: 1.25rem;
       overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
     }
     .participant-sidebar {
       border-right: 1px solid var(--color-border);
@@ -870,9 +995,9 @@ export const prerender = true;
     }
     .participant-main { display: flex; flex-direction: column; min-width: 0; }
     .participant-topbar {
-      height: 72px;
+      min-height: 84px;
       border-bottom: 1px solid var(--color-border);
-      padding: 0 1.25rem;
+      padding: 1rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -895,6 +1020,40 @@ export const prerender = true;
       color: var(--color-accent-sky);
       border-radius: 999px;
     }
+    .participant-overview-strip {
+      padding: 1rem 1.25rem 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+    .participant-overview-card {
+      padding: 1rem;
+      border-radius: 0.95rem;
+      border: 1px solid rgba(96,165,250,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      min-width: 0;
+    }
+    .participant-overview-label {
+      display: inline-flex;
+      margin-bottom: 0.55rem;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .participant-overview-card strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.98rem;
+      color: var(--color-text-primary);
+    }
+    .participant-overview-card p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.65;
+      font-size: 0.88rem;
+    }
     .participant-content-grid {
       padding: 1.25rem;
       display: grid;
@@ -909,6 +1068,7 @@ export const prerender = true;
       display: grid;
       gap: 0.8rem;
       min-width: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
     .participant-panel--materials { grid-column: 1 / -1; }
     .participant-panel-label {
@@ -1011,6 +1171,10 @@ export const prerender = true;
     .participant-lockbox p { margin: 0; line-height: 1.6; }
     @media (max-width: 1180px) {
       .registro-grid { grid-template-columns: 1fr; }
+      .registro-feature-grid,
+      .participant-overview-strip {
+        grid-template-columns: 1fr;
+      }
     }
     @media (max-width: 900px) {
       .participant-shell { grid-template-columns: 1fr; }
