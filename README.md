@@ -1,8 +1,8 @@
 # Data Driven Day 2026
 
-**Hermosillo, Sonora · Septiembre 18, 2026**
+**Hermosillo, Sonora · 28 de marzo de 2026**
 
-Plataforma web y proyecto editorial para impulsar una agenda regional de soberanía de datos, infraestructura crítica e inteligencia aplicada. El sitio convoca a la edición 2026, documenta el **Dataller de IA** como evento central, y conecta a gobierno, industria, academia y salud alrededor de temas urgentes para la ciudad.
+Plataforma web completa para el **Dataller de IA 2026**: sitio público, sistema de registros, CMS de blog y recursos, editor visual de presentaciones con canvas animado y modo presenter, todo corriendo en Cloudflare Workers + D1 + KV.
 
 ---
 
@@ -11,9 +11,13 @@ Plataforma web y proyecto editorial para impulsar una agenda regional de soberan
 - [Arquitectura general](#arquitectura-general)
 - [Stack técnico](#stack-técnico)
 - [Estructura del proyecto](#estructura-del-proyecto)
-- [Flujo de datos](#flujo-de-datos)
+- [Rutas y páginas](#rutas-y-páginas)
+- [API — endpoints completos](#api--endpoints-completos)
+- [Sistema admin](#sistema-admin)
+- [Flujo de autenticación](#flujo-de-autenticación)
+- [Flujo de presentaciones](#flujo-de-presentaciones)
+- [Flujo de registro de participantes](#flujo-de-registro-de-participantes)
 - [Modelo de base de datos](#modelo-de-base-de-datos)
-- [Flujo de contenido con Sanity](#flujo-de-contenido-con-sanity)
 - [Flujo de deploy](#flujo-de-deploy)
 - [Setup local](#setup-local)
 - [Variables de entorno](#variables-de-entorno)
@@ -26,50 +30,62 @@ Plataforma web y proyecto editorial para impulsar una agenda regional de soberan
 
 ```mermaid
 graph TD
-    subgraph Edge["Cloudflare Edge"]
+    subgraph Edge["☁ Cloudflare Edge"]
         W["Workers SSR\n@astrojs/cloudflare"]
-        KV["KV — APP_SESSION\nSesiones de visitante"]
-        D1["D1 — datadrivenday\nSubmissions / registros"]
-        R2["R2 — datadrivenday-assets\nImágenes, PDFs"]
+        KV["KV — APP_SESSION\nSesiones admin 8h TTL"]
+        D1["D1 — datadrivenday\nsubmissions · slides · blog\nrecursos · admin_users"]
+        R2["R2 — datadrivenday-assets\nImágenes · PDFs · media"]
     end
 
-    subgraph App["Aplicación Astro"]
-        Pages["Páginas Astro\n(SSR + prerender)"]
-        API["API Routes\n/api/[...route].ts\nHono"]
-        CMS["Sanity Studio\n/admin"]
+    subgraph App["⚡ Aplicación"]
+        subgraph Public["Sitio Público (prerendered)"]
+            PI["/ index"]
+            PD["/ dataller"]
+            PH["/ hermosillo"]
+            PB["/ blog"]
+            PR["/ datos"]
+            PM["/ manual"]
+        end
+        subgraph SSR["SSR dinámico"]
+            PP["/ dataller/present\nPresenter mode"]
+            ADMIN["/ admin/*\n5 secciones"]
+            API["/ api/*\nHono router"]
+        end
     end
 
-    subgraph Content["Contenido"]
-        Sanity["Sanity CMS\nCloud API"]
+    subgraph Content["📦 Datos"]
+        Sanity["Sanity CMS\n(blog editorial)"]
         SiteTS["src/data/site.ts\nContenido estático"]
+        Seed["db/seed-dataller.sql\n9 slides + presentación"]
     end
 
-    Browser["Navegador"] -->|Primera petición| W
-    W --> Pages
-    W --> API
-    API -->|INSERT| D1
+    Browser -->|GET| W
+    W --> Public
+    W --> SSR
+    API -->|CRUD| D1
+    API -->|session R/W| KV
     API -->|GET objects| R2
-    Pages -->|fetch GROQ| Sanity
-    Pages -->|import| SiteTS
-    W --> KV
-    CMS -->|escribe schemas| Sanity
+    Public -->|fetch GROQ| Sanity
+    Public -->|import| SiteTS
+    PP -->|GET /api/slides| API
+    ADMIN -->|GET/POST/PATCH/DELETE /api/admin/*| API
 ```
 
 ---
 
 ## Stack técnico
 
-| Capa | Tecnología | Rol |
-|------|-----------|-----|
-| Frontend | [Astro](https://astro.build) 5 | Páginas SSR, componentes, layouts |
-| Runtime | [Cloudflare Workers](https://workers.cloudflare.com) | Edge compute, SSR, API |
-| API | [Hono](https://hono.dev) | Rutas `/api/*` ligeras sobre Workers |
-| Base de datos | [Cloudflare D1](https://developers.cloudflare.com/d1/) | Submissions, registros, contacto |
-| Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) | Imágenes, PDFs, assets de evento |
-| Sesiones | [Cloudflare KV](https://developers.cloudflare.com/kv/) | Compatibilidad de sesiones del adaptador |
-| CMS | [Sanity](https://sanity.io) | Contenido editorial: agenda, speakers, posts |
-| Estilos | CSS custom properties | Sistema de diseño propio, sin framework CSS |
-| Tipografía | Syne + Public Sans | Google Fonts, display + texto |
+| Capa | Tecnología | Versión | Rol |
+|------|-----------|---------|-----|
+| Framework | [Astro](https://astro.build) | 6 | Páginas SSR + prerender, componentes |
+| Runtime | [Cloudflare Workers](https://workers.cloudflare.com) | — | Edge compute, SSR, API |
+| API | [Hono](https://hono.dev) | — | Rutas `/api/*` montadas sobre Workers |
+| Base de datos | [Cloudflare D1](https://developers.cloudflare.com/d1/) | SQLite | 7 tablas: submissions, slides, blog, recursos, admin |
+| Sesiones | [Cloudflare KV](https://developers.cloudflare.com/kv/) | — | Sesiones admin con TTL 8h |
+| Storage | [Cloudflare R2](https://developers.cloudflare.com/r2/) | — | Imágenes blog, PDFs, media |
+| CMS editorial | [Sanity](https://sanity.io) | — | Blog público (opcional, fallback si no configurado) |
+| Estilos | CSS custom properties | — | Sistema de diseño propio, sin framework CSS |
+| Tipografía | DM Sans + DM Mono | — | Display + código / UI |
 
 ---
 
@@ -79,88 +95,277 @@ graph TD
 datadrivenday/
 ├── src/
 │   ├── components/
-│   │   └── SubmissionForm.astro    # Formulario de registro conectado a /api/submissions
+│   │   ├── SubmissionForm.astro      # Formulario de registro → POST /api/submissions
+│   │   ├── HermosilloHarvard.astro   # Componente datos ciudad
+│   │   └── admin/
+│   │       └── AdminLayout.astro     # Shell del panel admin (sidebar + topbar)
 │   ├── data/
-│   │   └── site.ts                 # Contenido estático: stats, agenda, cards, recursos
+│   │   └── site.ts                   # Contenido estático: stats, agenda, navigation
 │   ├── layouts/
-│   │   └── BaseLayout.astro        # Shell HTML, nav, footer, scripts de animación
+│   │   └── BaseLayout.astro          # Shell HTML público
 │   ├── lib/
 │   │   ├── api/
-│   │   │   ├── app.ts              # App Hono: /health, /submissions
-│   │   │   └── types.ts            # Tipos compartidos: AppBindings, SubmissionPayload
+│   │   │   ├── app.ts                # App Hono: registra todas las rutas
+│   │   │   ├── auth.ts               # Auth: SHA-256, KV sessions, RBAC
+│   │   │   ├── types.ts              # AppBindings, AppVariables, SubmissionPayload
+│   │   │   └── routes/
+│   │   │       ├── admin-presentations.ts  # CRUD presentaciones + slides
+│   │   │       ├── admin-blog.ts           # CRUD artículos blog
+│   │   │       ├── admin-registros.ts      # Ver/exportar registros
+│   │   │       └── admin-recursos.ts       # CRUD biblioteca de recursos
 │   │   ├── sanity/
-│   │   │   └── content.ts          # getEventSettings(): fetch GROQ desde Sanity
+│   │   │   └── content.ts            # getEventSettings(): fetch GROQ
 │   │   └── server/
-│   │       ├── assets.ts           # Helpers para R2
+│   │       ├── assets.ts             # Helpers R2
 │   │       └── db/
-│   │           └── submissions.ts  # insertSubmission(): INSERT a D1
+│   │           ├── submissions.ts    # insertSubmission()
+│   │           └── slides.ts         # CRUD presentations + presentation_slides
 │   ├── pages/
-│   │   ├── index.astro             # Home: hero, métricas, pillars, dataller, form
-│   │   ├── blog/index.astro        # Blog / bitácora editorial
-│   │   ├── datos/index.astro       # Recursos y biblioteca de datos
-│   │   ├── manual/index.astro      # Documentación operativa
+│   │   ├── index.astro               # Home (prerender)
+│   │   ├── dataller.astro            # Documento dataller público (prerender)
+│   │   ├── dataller/
+│   │   │   └── present.astro         # Modo presenter full-screen (SSR)
+│   │   ├── hermosillo.astro          # Datos ciudad (prerender)
+│   │   ├── blog/index.astro          # Blog (prerender)
+│   │   ├── datos/index.astro         # Biblioteca datos (prerender)
+│   │   ├── manual/index.astro        # Documentación (prerender)
+│   │   ├── admin/
+│   │   │   ├── index.astro           # Dashboard → redirect a presentaciones
+│   │   │   ├── login.astro           # Login admin
+│   │   │   ├── presentaciones/
+│   │   │   │   ├── index.astro       # Lista presentaciones
+│   │   │   │   └── [id].astro        # Editor visual de slides
+│   │   │   ├── blog/
+│   │   │   │   ├── index.astro       # Lista artículos
+│   │   │   │   └── [id].astro        # Editor artículo
+│   │   │   ├── registros/index.astro # Tabla de participantes registrados
+│   │   │   └── recursos/index.astro  # Biblioteca de recursos
 │   │   └── api/
-│   │       └── [...route].ts       # Handler que monta la app Hono
+│   │       └── [...route].ts         # Handler catch-all → Hono app
 │   ├── sanity/
-│   │   └── schemaTypes/            # Schemas de Sanity: article, eventSettings
+│   │   └── schemaTypes/              # Schemas Sanity: article, eventSettings
 │   └── styles/
-│       └── global.css              # Sistema de diseño completo
+│       └── global.css                # Sistema de diseño completo
 ├── db/
-│   └── migrations/                 # SQL para D1 (schema de submissions)
-├── public/                         # Assets estáticos (favicon, etc.)
+│   ├── migrations/
+│   │   ├── 0001_initial.sql          # submissions
+│   │   ├── 0002_chart_data.sql       # chart_timeseries, chart_categorical
+│   │   ├── 0003_slides.sql           # presentations, presentation_slides, admin_users
+│   │   ├── 0004_blog.sql             # blog_posts
+│   │   ├── 0005_recursos.sql         # recursos
+│   │   └── 0006_submissions_asistencia.sql  # ALTER submissions (asistio)
+│   └── seed-dataller.sql             # Presentación + 9 slides del Dataller 2026
+├── public/
+│   ├── scripts/
+│   │   └── dataller-editor.js        # Engine partículas canvas (400 particles, 10 estados)
+│   └── styles/
+│       ├── admin.css                 # Estilos panel admin
+│       └── editor.css                # Estilos editor de slides
 ├── astro.config.mjs
-├── wrangler.jsonc                  # Config Cloudflare: bindings, vars
+├── wrangler.jsonc                    # Bindings + vars Cloudflare
 ├── sanity.config.ts
 └── tsconfig.json
 ```
 
 ---
 
-## Flujo de datos
+## Rutas y páginas
 
-### Registro de un participante
+```mermaid
+graph LR
+    subgraph Public["Público (prerendered)"]
+        R1["/"]
+        R2["/dataller"]
+        R3["/hermosillo"]
+        R4["/blog"]
+        R5["/datos"]
+        R6["/manual"]
+    end
+
+    subgraph SSR["SSR dinámico"]
+        R7["/dataller/present\nPresenter mode"]
+        R8["/admin/login"]
+        R9["/admin"]
+        R10["/admin/presentaciones"]
+        R11["/admin/presentaciones/:id\nEditor slides"]
+        R12["/admin/blog"]
+        R13["/admin/blog/:id"]
+        R14["/admin/registros"]
+        R15["/admin/recursos"]
+        R16["/api/*\nHono catch-all"]
+    end
+
+    R9 -->|redirect| R10
+    R11 -->|Abrir presenter| R7
+    R7 -->|fetch| R16
+    R10 & R11 & R12 & R13 & R14 & R15 -->|auth check| R8
+```
+
+---
+
+## API — endpoints completos
+
+### Públicos (sin auth)
+
+| Método | Path | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/submissions` | Registro de participante |
+| `GET` | `/api/city-data/:city` | Datos de ciudad (charts) |
+| `GET` | `/api/slides?presentacion=` | Slides activos de una presentación |
+| `GET` | `/api/blog` | Artículos públicos publicados |
+| `GET` | `/api/blog/:slug` | Artículo por slug |
+| `GET` | `/api/recursos` | Recursos activos |
+| `GET` | `/api/media/*` | Proxy R2 |
+
+### Admin — autenticación
+
+| Método | Path | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/admin/login` | Login → crea sesión KV |
+| `POST` | `/api/admin/logout` | Elimina sesión KV |
+| `GET` | `/api/admin/me` | Usuario actual |
+| `GET` | `/api/admin/dashboard` | Stats generales |
+
+### Admin — presentaciones y slides
+
+| Método | Path | Permiso |
+|--------|------|---------|
+| `GET` | `/api/admin/presentaciones` | `presentations:read` |
+| `POST` | `/api/admin/presentaciones` | `presentations:write` |
+| `PATCH` | `/api/admin/presentaciones/:id` | `presentations:write` |
+| `DELETE` | `/api/admin/presentaciones/:id` | `presentations:delete` |
+| `GET` | `/api/admin/slides?presentacion=` | `presentations:read` |
+| `POST` | `/api/admin/slides` | `presentations:write` |
+| `PATCH` | `/api/admin/slides/:id` | `presentations:write` |
+| `DELETE` | `/api/admin/slides/:id` | `presentations:delete` |
+| `POST` | `/api/admin/slides/reorder` | `presentations:write` |
+| `POST` | `/api/admin/slides/:id/duplicate` | `presentations:write` |
+
+### Admin — blog, registros, recursos
+
+| Método | Path | Permiso |
+|--------|------|---------|
+| `GET/POST` | `/api/admin/blog` | `blog:read/write` |
+| `GET/PATCH/DELETE` | `/api/admin/blog/:id` | `blog:read/write/delete` |
+| `POST` | `/api/admin/blog/:id/publicar` | `blog:publish` |
+| `GET` | `/api/admin/registros` | `registros:read` |
+| `GET` | `/api/admin/registros/export` | `registros:export` |
+| `PATCH` | `/api/admin/registros/:id/asistio` | `registros:read` |
+| `GET/POST` | `/api/admin/recursos` | `recursos:read/write` |
+| `PATCH/DELETE` | `/api/admin/recursos/:id` | `recursos:write/delete` |
+| `POST` | `/api/admin/recursos/reorder` | `recursos:write` |
+
+---
+
+## Sistema admin
+
+```mermaid
+graph TD
+    subgraph Roles["Roles y permisos"]
+        SA["superadmin\nTodos los permisos"]
+        ED["editor\npresentations:read/write\nblog:read/write/publish\nregistros:read\nrecursos:read/write"]
+        VW["viewer\npresentations:read\nblog:read\nregistros:read\nrecursos:read"]
+    end
+
+    subgraph Secciones["Secciones admin"]
+        S1["Presentaciones\nEditor visual de slides"]
+        S2["Blog\nCMS artículos"]
+        S3["Registros\nParticipantes + asistencia"]
+        S4["Recursos\nBiblioteca datos"]
+    end
+
+    SA --> S1 & S2 & S3 & S4
+    ED --> S1 & S2 & S3 & S4
+    VW -.->|solo lectura| S1 & S2 & S3 & S4
+```
+
+---
+
+## Flujo de autenticación
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Login as /admin/login
+    participant Hono as POST /api/admin/login
+    participant D1 as D1 admin_users
+    participant KV as KV APP_SESSION
+
+    Admin->>Login: username + password
+    Login->>Hono: { username, password }
+    Hono->>Hono: SHA-256(password) → hash
+    Hono->>D1: SELECT WHERE username = ? AND pass_hash = ?
+    alt Credenciales correctas
+        D1-->>Hono: { id, username, rol, nombre }
+        Hono->>KV: SET session:<uuid> → { user, exp: now+8h }
+        KV-->>Hono: ok
+        Hono-->>Login: Set-Cookie: ddd_session=<uuid> + { ok: true }
+        Login-->>Admin: Redirect → /admin/presentaciones
+    else Inválidas
+        Hono-->>Login: { ok: false, error: "Credenciales inválidas" }
+        Login-->>Admin: Mensaje de error
+    end
+
+    Note over Admin,KV: En cada request SSR: cookie → KV lookup → user object
+```
+
+---
+
+## Flujo de presentaciones
+
+```mermaid
+flowchart TD
+    subgraph Editor["Admin — Editor visual /admin/presentaciones/:id"]
+        SB["Sidebar\nLista de slides\nDrag to reorder"]
+        CV["Canvas preview\ndataller-editor.js\n400 partículas · 10 estados"]
+        PP["Panel propiedades\ntitulo · subtitulo · tag\ncuerpo · notas · conceptos\nparticle_state · accent_color"]
+    end
+
+    subgraph DB["D1 Database"]
+        PT["presentations\nid · nombre · slug · estado"]
+        PS["presentation_slides\nnumero · tag · titulo\nsubtitulo · cuerpo · notas\nparticle_state · accent_color\nconceptos_json · is_active"]
+    end
+
+    subgraph Presenter["Modo Presenter /dataller/present"]
+        FC["Full-screen canvas\nAnimación partículas"]
+        HUD["Slide HUD\ntitulo · subtitulo · cuerpo\nconceptos en pills"]
+        NAV["Navegación keyboard\n← → Space N F"]
+        NP["Panel notas\n(toggle con N)"]
+    end
+
+    SB -->|PATCH /api/admin/slides/reorder| PS
+    CV -->|live preview| PP
+    PP -->|PATCH /api/admin/slides/:id| PS
+    PT -->|1:N| PS
+    PS -->|GET /api/slides?presentacion=X| Presenter
+    FC & HUD & NAV & NP --> Presenter
+```
+
+---
+
+## Flujo de registro de participantes
 
 ```mermaid
 sequenceDiagram
     actor Visitante
     participant Form as SubmissionForm.astro
-    participant Worker as Cloudflare Worker
-    participant Hono as Hono /api/submissions
-    participant D1 as D1 Database
+    participant Hono as POST /api/submissions
+    participant D1 as D1 submissions
 
-    Visitante->>Form: Llena nombre, email, org, mensaje
-    Form->>Worker: POST /api/submissions (JSON)
-    Worker->>Hono: Enruta petición
-    Hono->>Hono: Valida payload (type, name, email requeridos)
+    Visitante->>Form: nombre · email · organización · mensaje
+    Form->>Hono: { type, name, email, organization, message }
+    Hono->>Hono: Valida campos requeridos
     alt DB binding disponible
-        Hono->>D1: INSERT INTO submissions
-        D1-->>Hono: OK + UUID
+        Hono->>D1: INSERT INTO submissions (id=UUID, ...)
+        D1-->>Hono: ok
         Hono-->>Form: { ok: true, persisted: true }
-    else Sin DB binding (dev local)
+    else Dev local sin binding
         Hono-->>Form: { ok: true, persisted: false }
     end
-    Form-->>Visitante: Mensaje de confirmación
-```
+    Form-->>Visitante: Confirmación visual
 
-### Carga de contenido editorial
-
-```mermaid
-sequenceDiagram
-    participant Build as Astro Build / SSR
-    participant Sanity as Sanity GROQ API
-    participant SiteTS as src/data/site.ts
-
-    Build->>Sanity: getEventSettings() — GROQ query
-    alt Sanity responde
-        Sanity-->>Build: { heroMessage, city, eventDate, ... }
-        Note over Build: source = 'sanity'
-    else Sin credenciales o error
-        Build-->>Build: fallback hardcoded en content.ts
-        Note over Build: source = 'fallback'
-    end
-    Build->>SiteTS: import { strategicStats, datallerAgenda, ... }
-    SiteTS-->>Build: Arrays y objetos estáticos tipados
-    Build->>Build: Renderiza index.astro con ambas fuentes
+    Note over D1: Admin accede en /admin/registros\nPuede marcar asistencia y exportar CSV
 ```
 
 ---
@@ -169,54 +374,114 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
-    SUBMISSIONS {
-        text id PK "UUID v4"
+    submissions {
+        text id PK
         text type "registration | contact | proposal"
-        text name "Nombre del participante"
-        text email "Email (lowercase)"
-        text organization "Opcional"
-        text message "Opcional"
-        text metadata "JSON serializado"
-        text created_at "ISO 8601"
+        text name
+        text email
+        text organization
+        text message
+        text metadata "JSON"
+        text created_at
+        integer asistio "0|1 — migration 0006"
+        text asistio_at
     }
+
+    chart_timeseries {
+        text id PK
+        text city "hermosillo"
+        text indicator "modal_share | subsidio_mdp"
+        text series "tp | auto"
+        integer year
+        real value
+    }
+
+    chart_categorical {
+        text id PK
+        text city
+        text indicator
+        text category
+        real value
+        integer sort_order
+    }
+
+    presentations {
+        text id PK
+        text nombre
+        text slug UK
+        text token
+        text descripcion
+        text estado "borrador | publicada"
+        text pagina_url
+        text created_at
+        text updated_at
+    }
+
+    presentation_slides {
+        text id PK
+        text presentacion FK
+        integer numero
+        text tag
+        text titulo
+        text subtitulo
+        text cuerpo
+        text notas
+        integer duracion "minutos"
+        text particle_state "chaos|flow|cluster..."
+        text accent_color "primary|alert|sage..."
+        real particle_speed
+        text conceptos_json "[]"
+        text referencias_json "[]"
+        text codigo_demo
+        integer is_active "0|1"
+        text created_at
+        text updated_at
+    }
+
+    admin_users {
+        text id PK
+        text username UK
+        text pass_hash "SHA-256"
+        text rol "superadmin|editor|viewer"
+        text nombre
+        text created_at
+        text last_login
+    }
+
+    blog_posts {
+        text id PK
+        text slug UK
+        text titulo
+        text subtitulo
+        text cuerpo_md
+        text extracto
+        text imagen_url
+        text autor
+        text tags_json "[]"
+        text estado "borrador|publicado|archivado"
+        text publicado_en
+        text created_at
+        text updated_at
+    }
+
+    recursos {
+        text id PK
+        text titulo
+        text fuente
+        text anio
+        text url
+        text tipo "informe|dataset|herramienta"
+        text categoria
+        text descripcion
+        integer is_featured "0|1"
+        integer is_active "0|1"
+        integer orden
+        text created_at
+        text updated_at
+    }
+
+    presentations ||--o{ presentation_slides : "tiene"
 ```
-
-El schema se provisiona con las migraciones en `db/migrations/`. Para aplicar localmente:
-
-```bash
-npm run db:migrate:local
-```
-
----
-
-## Flujo de contenido con Sanity
-
-```mermaid
-flowchart LR
-    subgraph Sanity["Sanity Cloud"]
-        Studio["Studio /admin\n(Astro embedded)"]
-        API["Content API\nGROQ queries"]
-        Schemas["Schemas\narticle\neventSettings"]
-    end
-
-    subgraph Code["Codebase"]
-        ContentTS["src/lib/sanity/content.ts\ngetEventSettings()"]
-        SchemaTypes["src/sanity/schemaTypes/\narticle.ts\neventSettings.ts"]
-    end
-
-    Editor["Editor / Operador"] -->|Edita en browser /admin| Studio
-    Studio -->|Publica| API
-    ContentTS -->|Fetch GROQ| API
-    SchemaTypes -->|Define tipos| Studio
-    ContentTS -->|Provee datos| Pages["Páginas Astro"]
-```
-
-El CMS controla en tiempo real:
-- `heroMessage` — texto del hero en producción
-- `city`, `eventDate` — datos del evento
-- Artículos de blog y recursos editoriales
-
-Si Sanity no está configurado, el sitio usa valores fallback definidos en `content.ts` y nunca rompe.
 
 ---
 
@@ -224,24 +489,25 @@ Si Sanity no está configurado, el sitio usa valores fallback definidos en `cont
 
 ```mermaid
 flowchart TD
-    Dev["npm run dev\nAstro dev server local"] -->|Listo para producción| Build
+    Dev["npm run dev\nastro dev · localhost:4321\nSin Cloudflare bindings"] -.->|solo UI| Build
+
+    WDev["npx wrangler dev --local\n--config dist/server/wrangler.json\nlocalhost:4322 · D1 + KV reales"] -->|requiere build previo| Build
 
     Build["npm run build\nastro check + astro build"]
-    Build --> CheckTypes["astro check\n0 errors / 0 warnings"]
-    Build --> BundleClient["dist/client/\nAssets estáticos"]
-    Build --> BundleServer["dist/server/\nWorker bundle + wrangler.json"]
+    Build --> CheckTypes["0 errores TypeScript"]
+    Build --> BundleClient["dist/client/ — Assets estáticos"]
+    Build --> BundleServer["dist/server/ — Worker bundle\n+ wrangler.json generado"]
 
-    BundleServer --> Deploy["npx wrangler deploy\n--config dist/server/wrangler.json"]
+    BundleServer --> Deploy["npm run deploy\nwrangler deploy\n--config dist/server/wrangler.json"]
     BundleClient --> Deploy
 
-    Deploy --> CloudflareEdge["Cloudflare Workers\nGlobal edge network"]
-
-    CloudflareEdge --> KV2["KV Namespace\nAPP_SESSION"]
-    CloudflareEdge --> D1_2["D1 Database\ndatadrivenday"]
-    CloudflareEdge --> R2_2["R2 Bucket\ndatadrivenday-assets"]
+    Deploy --> CF["☁ Cloudflare Workers\ndatadriven.day"]
+    CF --> KV2["KV — APP_SESSION"]
+    CF --> D1_2["D1 — datadrivenday"]
+    CF --> R2_2["R2 — datadrivenday-assets"]
 ```
 
-> **Nota:** Astro genera `dist/server/wrangler.json` durante el build con la config final del Worker. El `wrangler.jsonc` de la raíz solo guarda bindings y variables compartidas entre entornos.
+> **Importante:** Para el dev server con bindings reales (admin, base de datos), usar siempre `wrangler dev` con `--config dist/server/wrangler.json`. El `astro dev` en puerto 4321 no tiene acceso a D1/KV.
 
 ---
 
@@ -262,44 +528,57 @@ cp .env.example .env
 # Edita el .env con tus valores
 ```
 
-### 3. Base de datos local
-
-```bash
-npm run db:migrate:local
-# Aplica las migraciones en .wrangler/state/v3/d1
-```
-
-### 4. Levantar servidor de desarrollo
-
-```bash
-npm run dev
-# http://localhost:4321
-```
-
-### 5. Preview en Worker local (opcional)
+### 3. Build inicial (requerido para wrangler dev)
 
 ```bash
 npm run build
-npm run preview:worker
-# Emula Cloudflare Workers con wrangler
 ```
+
+### 4. Aplicar migraciones al D1 local
+
+```bash
+# Aplica las 6 migraciones
+for f in db/migrations/000*.sql; do
+  npx wrangler d1 execute datadrivenday --local \
+    --config dist/server/wrangler.json --file="$f"
+done
+
+# Seed: presentación + 9 slides del Dataller
+npx wrangler d1 execute datadrivenday --local \
+  --config dist/server/wrangler.json --file=db/seed-dataller.sql
+
+# Usuario admin (pass: ddd2026admin)
+npx wrangler d1 execute datadrivenday --local \
+  --config dist/server/wrangler.json \
+  --command="INSERT OR REPLACE INTO admin_users \
+  (id,username,pass_hash,rol,nombre) VALUES \
+  ('admin-001','admin','4eb1d27ff4a93d049ce93f06a5e793838385cce7fd59abd8fba4fbc16af651dc','superadmin','Administrador')"
+```
+
+### 5. Servidor de desarrollo con bindings
+
+```bash
+npx wrangler dev --config dist/server/wrangler.json --local --port 4322
+# http://localhost:4322
+# http://localhost:4322/admin → login: admin / ddd2026admin
+```
+
+> Si solo necesitas iterar sobre UI sin el admin, puedes usar `npm run dev` (puerto 4321) — más rápido, sin migraciones.
 
 ---
 
 ## Variables de entorno
 
-Copia `.env.example` a `.env` y configura:
-
 | Variable | Requerida | Descripción |
 |----------|-----------|-------------|
-| `PUBLIC_SITE_URL` | Sí | URL pública del sitio (sin trailing slash) |
-| `SANITY_PROJECT_ID` | Sí (CMS) | ID de tu proyecto en Sanity |
-| `SANITY_DATASET` | Sí (CMS) | Dataset de Sanity (por defecto `production`) |
-| `PUBLIC_SANITY_PROJECT_ID` | Sí (CMS) | Mismo ID, expuesto al cliente para el Studio |
-| `PUBLIC_SANITY_DATASET` | Sí (CMS) | Mismo dataset, expuesto al cliente |
-| `SANITY_API_VERSION` | No | Versión de la API Sanity (default: `2025-03-01`) |
+| `PUBLIC_SITE_URL` | Sí | URL pública sin trailing slash |
+| `SANITY_PROJECT_ID` | Solo CMS | ID proyecto Sanity |
+| `SANITY_DATASET` | Solo CMS | Dataset Sanity (default `production`) |
+| `PUBLIC_SANITY_PROJECT_ID` | Solo CMS | Mismo ID, expuesto al cliente |
+| `PUBLIC_SANITY_DATASET` | Solo CMS | Mismo dataset, expuesto al cliente |
+| `SANITY_API_VERSION` | No | Default `2025-03-01` |
 
-> Si no configuras Sanity, el sitio carga con contenido fallback y no rompe. El Studio en `/admin` no funcionará sin las variables.
+> Sin Sanity configurado el sitio carga con contenido fallback y no rompe.
 
 ---
 
@@ -309,8 +588,13 @@ Configura `wrangler.jsonc` con los IDs reales antes del primer deploy:
 
 ```jsonc
 {
-  "kv_namespaces": [{ "binding": "APP_SESSION", "id": "REEMPLAZAR" }],
-  "d1_databases": [{ "binding": "DB", "database_id": "REEMPLAZAR" }],
+  "kv_namespaces": [{ "binding": "APP_SESSION", "id": "TU_KV_ID" }],
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "datadrivenday",
+    "database_id": "TU_D1_ID",
+    "migrations_dir": "db/migrations"
+  }],
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "datadrivenday-assets" }]
 }
 ```
@@ -318,23 +602,16 @@ Configura `wrangler.jsonc` con los IDs reales antes del primer deploy:
 ### Provisioning inicial
 
 ```bash
-# KV para sesiones
 wrangler kv namespace create APP_SESSION
-
-# D1 para submissions
 wrangler d1 create datadrivenday
-
-# R2 para assets
 wrangler r2 bucket create datadrivenday-assets
 ```
-
-Copia los IDs devueltos por cada comando a `wrangler.jsonc`.
 
 ### Generar tipos de bindings
 
 ```bash
 npm run cf-typegen
-# Actualiza src/env.d.ts con los tipos correctos de D1, R2 y KV
+# Actualiza src/env.d.ts
 ```
 
 ---
@@ -343,79 +620,20 @@ npm run cf-typegen
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run dev` | Servidor de desarrollo Astro en `localhost:4321` |
-| `npm run build` | Type-check (`astro check`) + build de producción |
+| `npm run dev` | Astro dev server `localhost:4321` (solo UI, sin bindings) |
+| `npm run build` | `astro check` + build de producción |
 | `npm run preview` | Preview estático del build |
-| `npm run preview:worker` | Preview en Worker local con Wrangler |
+| `npm run preview:worker` | Build + `wrangler dev` con config generada |
 | `npm run deploy` | Build + deploy a Cloudflare Workers |
-| `npm run cf-typegen` | Genera tipos TypeScript desde `wrangler.jsonc` |
-| `npm run db:migrate:local` | Aplica migraciones SQL a D1 local |
+| `npm run cf-typegen` | Regenera tipos de bindings en `src/env.d.ts` |
+| `npm run sanity` | Studio Sanity local |
 
----
+### Dev con bindings (comando manual)
 
-## Páginas públicas
-
-| Ruta | Archivo | Descripción |
-|------|---------|-------------|
-| `/` | `src/pages/index.astro` | Home: hero, métricas, Dataller, formulario de registro |
-| `/blog` | `src/pages/blog/index.astro` | Bitácora editorial del proyecto |
-| `/datos` | `src/pages/datos/index.astro` | Biblioteca de recursos y datos abiertos |
-| `/manual` | `src/pages/manual/index.astro` | Documentación operativa |
-| `/admin` | Sanity Studio (embedded) | CMS de contenido (requiere auth) |
-| `/api/health` | Hono | Health check del Worker |
-| `/api/submissions` | Hono | POST registros al evento |
-
----
-
-## Créditos
-
-**Data Driven Day** es un proyecto independiente con base en Hermosillo, Sonora.  
-Edición 2026 · datos, ciudad e inteligencia aplicada.
-
-
-## Endpoints incluidos
-
-- `GET /api/health`
-- `POST /api/submissions`
-
-La home ya incluye un formulario conectado a `POST /api/submissions` para validar el flujo desde UI.
-
-## Contenido con Sanity
-
-- Si `PUBLIC_SANITY_PROJECT_ID` y `PUBLIC_SANITY_DATASET` están configurados con valores reales, la home y `/blog` intentan leer contenido desde Sanity.
-- Si no están configurados, o si la consulta falla, ambas páginas hacen fallback a contenido local para mantener `build`, `preview` y `deploy` estables.
-- Esto permite migrar contenido gradualmente sin bloquear el despliegue del sitio.
-
-Ejemplo de body para submissions:
-
-```json
-{
-  "type": "registration",
-  "name": "Ada Lovelace",
-  "email": "ada@example.com",
-  "organization": "Tec de Monterrey",
-  "message": "Quiero recibir noticias del evento"
-}
+```bash
+# Siempre con --config dist/server/wrangler.json para usar el D1 correcto
+npx wrangler dev --config dist/server/wrangler.json --local --port 4322
 ```
 
-## Sanity Studio
 
-La integración queda preparada en `/admin`.
 
-Schemas iniciales:
-
-- `article`
-- `eventSettings`
-
-## Migración sugerida
-
-1. Migrar contenido real del home y agenda.
-2. Pasar blog y FAQ a Sanity.
-3. Conectar formularios al endpoint de Hono.
-4. Mover media pesada a R2.
-5. Reemplazar placeholders y activar analítica real.
-
-## Documentacion complementaria
-
-- `DOCUMENTACION_PROYECTO.md`: analisis completo del sitio legacy.
-- `PLAN_MIGRACION_Y_SETUP.md`: guia operativa para provisionar infraestructura y mover contenido al nuevo stack.

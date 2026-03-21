@@ -1,0 +1,889 @@
+---
+// Presenter mode — full-screen, keyboard-driven slide viewer
+// Navegación: ← → (slides), N (notas), F (fullscreen), ESC (salir notas)
+const cookie = Astro.request.headers.get('cookie') ?? '';
+const isAdmin = /ddd_session=/.test(cookie);
+---
+
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presenter · Data Driven Day</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: rgba(255,255,255,0.08);
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --mono: 'DM Mono', 'Fira Code', monospace;
+      --display: 'DM Sans', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--display);
+    }
+
+    /* ── TOPBAR ─────────────────────────────────────────── */
+    .pres-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.25rem;
+      background: rgba(13,17,23,0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      opacity: 1; transition: opacity 0.4s ease;
+    }
+    .pres-topbar.hidden { opacity: 0; pointer-events: none; }
+    .topbar-brand {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.12em; color: var(--muted);
+    }
+    .topbar-center {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--muted); letter-spacing: 0.08em;
+    }
+    .topbar-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .topbar-btn {
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 600;
+      padding: 0.2em 0.7em; border-radius: 3px; cursor: pointer;
+      text-decoration: none; border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .topbar-btn:hover { background: var(--surface); color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .slide-counter {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+    }
+
+    /* ── STAGE ──────────────────────────────────────────── */
+    .pres-stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* ── SLIDE HUD ──────────────────────────────────────── */
+    .slide-hud {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 1000px;
+      padding: 0 4rem;
+      pointer-events: none;
+    }
+    .slide-meta {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .slide-num {
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
+      color: var(--accent, #34d399); letter-spacing: 0.1em;
+    }
+    .slide-divider { color: var(--muted); opacity: 0.4; }
+    .slide-tag {
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 600;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .slide-titulo {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 5.5vw, 5rem);
+      font-weight: 800; line-height: 1.0;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .slide-subtitulo {
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      color: var(--muted);
+      font-weight: 400; line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .slide-cuerpo {
+      font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+      color: rgba(230,237,243,0.65);
+      line-height: 1.7; max-width: 680px;
+      margin-bottom: 1.5rem;
+    }
+    .slide-concepts {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .concept-pill {
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 600;
+      padding: 0.25em 0.7em;
+      border: 1px solid var(--accent, #34d399);
+      color: var(--accent, #34d399); border-radius: 2px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ── NAVIGATION ARROWS ──────────────────────────────── */
+    .pres-nav {
+      position: fixed; bottom: 2rem;
+      left: 50%; transform: translateX(-50%);
+      z-index: 100;
+      display: flex; gap: 0.75rem; align-items: center;
+      opacity: 1; transition: opacity 0.4s ease;
+    }
+    .pres-nav.hidden { opacity: 0; pointer-events: none; }
+    .nav-btn {
+      width: 40px; height: 40px;
+      background: rgba(22,27,34,0.9);
+      border: 1px solid var(--border);
+      border-radius: 4px; cursor: pointer;
+      color: var(--text); font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .nav-btn:hover { background: var(--surface); border-color: rgba(255,255,255,0.2); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .nav-progress {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+      min-width: 4rem; text-align: center;
+    }
+
+    /* ── NOTES PANEL ────────────────────────────────────── */
+    .notes-panel {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      max-height: 35vh;
+      background: rgba(13,17,23,0.97);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      padding: 1.25rem 2rem;
+      overflow-y: auto;
+    }
+    .notes-panel.open { transform: translateY(0); }
+    .notes-label {
+      font-family: var(--mono); font-size: 0.58rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--accent, #34d399);
+      margin-bottom: 0.6rem;
+    }
+    .notes-text {
+      font-size: 0.95rem; color: var(--text);
+      line-height: 1.7; white-space: pre-wrap;
+    }
+    .notes-empty {
+      font-size: 0.85rem; color: var(--muted); font-style: italic;
+    }
+    .notes-close {
+      position: absolute; top: 0.75rem; right: 1.25rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.1rem; cursor: pointer; padding: 0.25rem;
+    }
+    .notes-close:hover { color: var(--text); }
+
+    /* ── TRANSITION ─────────────────────────────────────── */
+    .slide-hud { transition: opacity 0.25s ease, transform 0.25s ease; }
+    .slide-hud.exit-left  { opacity: 0; transform: translateX(-3%); }
+    .slide-hud.exit-right { opacity: 0; transform: translateX(3%); }
+    .slide-hud.enter      { opacity: 1; transform: translateX(0); }
+
+    /* ── FULLSCREEN INDICATOR ───────────────────────────── */
+    .hint-bar {
+      position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
+      z-index: 50;
+      font-family: var(--mono); font-size: 0.62rem; color: var(--muted);
+      background: rgba(13,17,23,0.85);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 0.3em 0.8em;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .hint-bar.show { opacity: 1; }
+
+    /* ── LOADING ─────────────────────────────────────────── */
+    .pres-loading {
+      position: fixed; inset: 0; z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    /* ── VOICE ───────────────────────────────────────────── */
+    .voice-dot {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--muted);
+      margin-right: 0.35em; vertical-align: middle;
+      transition: background 0.2s;
+    }
+    .topbar-btn.voice-active { border-color: #34d399; color: #34d399; }
+    .topbar-btn.voice-active .voice-dot {
+      background: #34d399;
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(1.5); }
+    }
+    .voice-flash {
+      position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
+      z-index: 500;
+      font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
+      color: #34d399; letter-spacing: 0.08em; text-transform: uppercase;
+      background: rgba(13,17,23,0.96); border: 1px solid #34d399;
+      border-radius: 3px; padding: 0.35em 1em;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+    .voice-flash.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div class="pres-loading" id="loading">Cargando slides...</div>
+
+  <!-- Topbar -->
+  <div class="pres-topbar" id="topbar">
+    <span class="topbar-brand">DDD · PRESENTER</span>
+    <span class="topbar-center" id="presTitle">–</span>
+    <div class="topbar-actions">
+      {isAdmin && (
+        <a href="/admin/presentaciones" class="topbar-btn">← Admin</a>
+      )}
+      <span class="slide-counter" id="slideCounter">– / –</span>
+      <button class="topbar-btn" id="btnVoice" type="button"><span class="voice-dot"></span>V Voz</button>
+      <button class="topbar-btn" id="btnFullscreen" type="button">⛶</button>
+      <button class="topbar-btn" id="btnNotes" type="button">N Notas</button>
+    </div>
+  </div>
+
+  <!-- Canvas background -->
+  <div class="pres-stage">
+    <canvas id="presCanvas"></canvas>
+
+    <!-- Slide HUD -->
+    <div class="slide-hud enter" id="slideHud">
+      <div class="slide-meta">
+        <span class="slide-num" id="slideNum">01</span>
+        <span class="slide-divider">—</span>
+        <span class="slide-tag" id="slideTag"></span>
+      </div>
+      <h1 class="slide-titulo" id="slideTitulo">–</h1>
+      <p  class="slide-subtitulo" id="slideSubtitulo"></p>
+      <p  class="slide-cuerpo"    id="slideCuerpo"></p>
+      <div class="slide-concepts" id="slideConcepts"></div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="pres-nav" id="presNav">
+    <button class="nav-btn" id="btnPrev" disabled>←</button>
+    <span class="nav-progress" id="navProgress">– / –</span>
+    <button class="nav-btn" id="btnNext">→</button>
+  </div>
+
+  <!-- Notes panel -->
+  <div class="notes-panel" id="notesPanel">
+    <button class="notes-close" id="notesClose" type="button">✕</button>
+    <p class="notes-label">Notas del presentador</p>
+    <div id="notesContent"></div>
+  </div>
+
+  <!-- Keyboard hint -->
+  <div class="hint-bar" id="hintBar"></div>
+
+  <!-- Voice flash feedback -->
+  <div class="voice-flash" id="voiceFlash"></div>
+
+  <script>
+// @ts-nocheck
+const PARTICLE_COUNT = 400;
+const ACCENT_COLORS = [
+  { id: 'primary', hex: '#34d399' },
+  { id: 'alert',   hex: '#f87171' },
+  { id: 'sage',    hex: '#8EA676' },
+  { id: 'light',   hex: '#EAEBE6' },
+  { id: 'amber',   hex: '#fbbf24' },
+];
+
+const STATE = {
+  slides: [],
+  idx: 0,
+  particles: [],
+  animTime: 0,
+  animFrame: null,
+  canvas: null,
+  ctx: null,
+  notesOpen: false,
+  uiHideTimer: null,
+  audioCtx: null,
+  recognition: null,
+  voiceActive: false,
+  voiceFlashTimer: null,
+  micStream: null,
+  micSource: null,
+  analyser: null,
+  analyserData: null,
+  voiceLevel: 0,
+  voicePitch: 0,
+  reactiveAccent: null,
+  reactiveAccentUntil: 0,
+};
+
+const VOICE_COLOR_RULES = [
+  { accent: 'alert', words: ['alerta', 'urgente', 'riesgo', 'crisis', 'rojo', 'peligro'] },
+  { accent: 'amber', words: ['dato', 'datos', 'valor', 'señal', 'senal', 'oportunidad'] },
+  { accent: 'sage', words: ['salud', 'verde', 'territorio', 'sistema', 'equilibrio'] },
+  { accent: 'light', words: ['luz', 'claro', 'claridad', 'blanco', 'transparencia'] },
+  { accent: 'primary', words: ['ia', 'inteligencia', 'modelo', 'agente', 'copilot', 'automatizacion', 'automatización'] },
+];
+
+// ── INIT ─────────────────────────────────────────────────
+async function init() {
+  STATE.canvas = document.getElementById('presCanvas');
+  STATE.ctx = STATE.canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  initParticles();
+
+  const params = new URLSearchParams(location.search);
+  const presId = params.get('pres') ?? 'pres-dataller-2026';
+
+  try {
+    const res = await fetch(`/api/slides?presentacion=${presId}`);
+    const data = await res.json();
+    STATE.slides = (data.slides ?? []).filter(s => s.isActive !== false);
+  } catch(e) {
+    STATE.slides = [];
+  }
+
+  document.getElementById('loading').style.display = 'none';
+
+  if (!STATE.slides.length) {
+    document.getElementById('slideTitulo').textContent = 'Sin slides activos';
+    document.getElementById('slideSubtitulo').textContent = 'Crea slides en el panel de admin';
+    startLoop();
+    return;
+  }
+
+  renderSlide(0);
+  bindEvents();
+  startLoop();
+  scheduleHideUI();
+  initVoice();
+}
+
+// ── SLIDE RENDERING ──────────────────────────────────────
+function renderSlide(idx, direction) {
+  const slides = STATE.slides;
+  if (!slides.length) return;
+  STATE.idx = idx;
+
+  const slide = slides[idx];
+  const hud = document.getElementById('slideHud');
+
+  // Transition out
+  if (direction) {
+    hud.classList.remove('enter');
+    hud.classList.add(direction === 'next' ? 'exit-left' : 'exit-right');
+    setTimeout(() => {
+      applySlide(slide);
+      hud.classList.remove('exit-left', 'exit-right');
+      hud.classList.add('enter');
+    }, 220);
+  } else {
+    applySlide(slide);
+  }
+
+  // Update nav
+  document.getElementById('btnPrev').disabled = idx === 0;
+  document.getElementById('btnNext').disabled = idx === slides.length - 1;
+  document.getElementById('navProgress').textContent = `${idx + 1} / ${slides.length}`;
+  document.getElementById('slideCounter').textContent = `${idx + 1} / ${slides.length}`;
+
+  // Accent color on body
+  const accentHex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
+  document.documentElement.style.setProperty('--accent', accentHex);
+}
+
+function applySlide(slide) {
+  document.getElementById('slideNum').textContent = String(slide.numero ?? 1).padStart(2, '0');
+  document.getElementById('slideTag').textContent = slide.tag ?? '';
+  document.getElementById('slideTitulo').textContent = slide.titulo ?? '';
+  document.getElementById('slideSubtitulo').textContent = slide.subtitulo ?? '';
+  document.getElementById('slideCuerpo').textContent = slide.cuerpo ?? '';
+
+  const concepts = slide.conceptosClave ?? [];
+  const el = document.getElementById('slideConcepts');
+  el.innerHTML = concepts.map(c => `<span class="concept-pill">${c}</span>`).join('');
+
+  // Notes
+  const notes = slide.notas ?? '';
+  const nc = document.getElementById('notesContent');
+  if (notes.trim()) {
+    nc.innerHTML = `<p class="notes-text">${notes.replace(/</g,'&lt;')}</p>`;
+  } else {
+    nc.innerHTML = `<p class="notes-empty">Este slide no tiene notas.</p>`;
+  }
+
+  const chord = slide.chord ?? [];
+  if (chord.length) playChord(chord);
+
+  // Pres title
+  document.getElementById('presTitle').textContent = 'Dataller de IA · 28 mar';
+}
+
+// ── EVENTS ───────────────────────────────────────────────
+function bindEvents() {
+  document.getElementById('btnPrev').addEventListener('click', () => go(-1));
+  document.getElementById('btnNext').addEventListener('click', () => go(1));
+  document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+  document.getElementById('notesClose').addEventListener('click', closeNotes);
+  document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+  document.getElementById('btnVoice').addEventListener('click', toggleVoice);
+
+  document.addEventListener('keydown', (e) => {
+    ensureAudioContext();
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); go(-1); }
+    if (e.key === 'n' || e.key === 'N') toggleNotes();
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    if (e.key === 'v' || e.key === 'V') toggleVoice();
+    if (e.key === 'Escape') closeNotes();
+    showUI();
+  });
+
+  document.addEventListener('mousemove', showUI);
+  document.addEventListener('click', () => {
+    ensureAudioContext();
+    showUI();
+  });
+}
+
+function go(dir) {
+  const next = STATE.idx + dir;
+  if (next < 0 || next >= STATE.slides.length) return;
+  renderSlide(next, dir > 0 ? 'next' : 'prev');
+  scheduleHideUI();
+}
+
+function toggleNotes() {
+  STATE.notesOpen = !STATE.notesOpen;
+  document.getElementById('notesPanel').classList.toggle('open', STATE.notesOpen);
+}
+function closeNotes() {
+  STATE.notesOpen = false;
+  document.getElementById('notesPanel').classList.remove('open');
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+// ── AUDIO ────────────────────────────────────────────────
+function ensureAudioContext() {
+  if (!STATE.audioCtx) {
+    try {
+      STATE.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch {
+      return null;
+    }
+  }
+  if (STATE.audioCtx.state === 'suspended') {
+    STATE.audioCtx.resume().catch(() => {});
+  }
+  return STATE.audioCtx;
+}
+
+function playChord(freqs) {
+  if (!freqs?.length) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const t = ctx.currentTime;
+  freqs.forEach((freq) => {
+    if (!freq || Number.isNaN(freq) || freq <= 0) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 2.6);
+  });
+}
+
+async function ensureMicInput() {
+  const ctx = ensureAudioContext();
+  if (!ctx) return false;
+  if (STATE.analyser && STATE.micStream) return true;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.82;
+    source.connect(analyser);
+
+    STATE.micStream = stream;
+    STATE.micSource = source;
+    STATE.analyser = analyser;
+    STATE.analyserData = new Float32Array(analyser.fftSize);
+    return true;
+  } catch {
+    showVoiceFlash('Micrófono no disponible');
+    return false;
+  }
+}
+
+function updateVoiceMetrics() {
+  if (!STATE.voiceActive || !STATE.analyser || !STATE.analyserData) {
+    STATE.voiceLevel *= 0.9;
+    STATE.voicePitch *= 0.9;
+    return;
+  }
+
+  STATE.analyser.getFloatTimeDomainData(STATE.analyserData);
+  let sum = 0;
+  for (let i = 0; i < STATE.analyserData.length; i += 1) {
+    sum += STATE.analyserData[i] * STATE.analyserData[i];
+  }
+  const rms = Math.sqrt(sum / STATE.analyserData.length);
+  const level = Math.min(1, Math.max(0, (rms - 0.012) * 10));
+  STATE.voiceLevel = STATE.voiceLevel * 0.72 + level * 0.28;
+
+  const pitch = detectPitch(STATE.analyserData, ensureAudioContext()?.sampleRate ?? 48000);
+  if (pitch > 0) {
+    STATE.voicePitch = STATE.voicePitch * 0.75 + pitch * 0.25;
+  } else {
+    STATE.voicePitch *= 0.92;
+  }
+}
+
+function detectPitch(buffer, sampleRate) {
+  let rms = 0;
+  for (let i = 0; i < buffer.length; i += 1) rms += buffer[i] * buffer[i];
+  rms = Math.sqrt(rms / buffer.length);
+  if (rms < 0.015) return 0;
+
+  let bestOffset = -1;
+  let bestCorrelation = 0;
+  const minOffset = Math.floor(sampleRate / 900);
+  const maxOffset = Math.floor(sampleRate / 80);
+
+  for (let offset = minOffset; offset <= maxOffset; offset += 1) {
+    let correlation = 0;
+    for (let i = 0; i < buffer.length - offset; i += 1) {
+      correlation += 1 - Math.abs(buffer[i] - buffer[i + offset]);
+    }
+    correlation /= (buffer.length - offset);
+    if (correlation > bestCorrelation) {
+      bestCorrelation = correlation;
+      bestOffset = offset;
+    }
+  }
+
+  if (bestCorrelation < 0.9 || bestOffset === -1) return 0;
+  return sampleRate / bestOffset;
+}
+
+function getActiveAccent(slide) {
+  if (STATE.reactiveAccent && performance.now() < STATE.reactiveAccentUntil) {
+    return STATE.reactiveAccent;
+  }
+  return slide?.accentColor ?? slide?.accent_color ?? 'primary';
+}
+
+function setReactiveAccent(accent) {
+  STATE.reactiveAccent = accent;
+  STATE.reactiveAccentUntil = performance.now() + 2200;
+  const slide = STATE.slides[STATE.idx];
+  const hex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
+  document.documentElement.style.setProperty('--accent', hex);
+}
+
+// ── VOICE COMMANDS ───────────────────────────────────────
+function initVoice() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) return;
+
+  const recognition = new Recognition();
+  recognition.lang = 'es-MX';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+
+  recognition.onresult = (event) => {
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const result = event.results[i];
+      if (!result.isFinal) continue;
+
+      const transcripts = [];
+      for (let j = 0; j < result.length; j += 1) {
+        transcripts.push(result[j].transcript.toLowerCase().trim());
+      }
+      handleVoiceTranscript(transcripts);
+    }
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === 'no-speech' || event.error === 'aborted') return;
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      STATE.voiceActive = false;
+      updateVoiceButton();
+      showVoiceFlash('Micrófono bloqueado');
+      return;
+    }
+    showVoiceFlash(`Voz: ${event.error}`);
+  };
+
+  recognition.onend = () => {
+    if (!STATE.voiceActive) return;
+    try {
+      recognition.start();
+    } catch {}
+  };
+
+  STATE.recognition = recognition;
+}
+
+async function toggleVoice() {
+  if (!STATE.recognition) {
+    showVoiceFlash('Voz no disponible');
+    return;
+  }
+
+  ensureAudioContext();
+  STATE.voiceActive = !STATE.voiceActive;
+
+  if (STATE.voiceActive) {
+    const micReady = await ensureMicInput();
+    if (!micReady) {
+      STATE.voiceActive = false;
+      updateVoiceButton();
+      return;
+    }
+    try {
+      STATE.recognition.start();
+      showVoiceFlash('Escuchando');
+    } catch {
+      STATE.voiceActive = false;
+      showVoiceFlash('No se pudo iniciar voz');
+    }
+  } else {
+    try {
+      STATE.recognition.stop();
+    } catch {}
+    showVoiceFlash('Voz desactivada');
+  }
+
+  updateVoiceButton();
+}
+
+function updateVoiceButton() {
+  const btn = document.getElementById('btnVoice');
+  btn.classList.toggle('voice-active', STATE.voiceActive);
+}
+
+function showVoiceFlash(message) {
+  const flash = document.getElementById('voiceFlash');
+  flash.textContent = message;
+  flash.classList.add('show');
+  clearTimeout(STATE.voiceFlashTimer);
+  STATE.voiceFlashTimer = setTimeout(() => {
+    flash.classList.remove('show');
+  }, 1800);
+}
+
+function handleVoiceTranscript(transcripts) {
+  const spoken = transcripts.join(' ');
+
+  for (const rule of VOICE_COLOR_RULES) {
+    if (rule.words.some(word => spoken.includes(word))) {
+      setReactiveAccent(rule.accent);
+      break;
+    }
+  }
+
+  if (/siguiente|adelante|avanzar|próxima|proxima|próximo|proximo/.test(spoken)) {
+    showVoiceFlash('Siguiente');
+    go(1);
+    return;
+  }
+
+  if (/anterior|atrás|atras|volver|regresar/.test(spoken)) {
+    showVoiceFlash('Anterior');
+    go(-1);
+    return;
+  }
+
+  if (/notas|nota/.test(spoken)) {
+    showVoiceFlash('Notas');
+    toggleNotes();
+    return;
+  }
+
+  if (/pantalla completa|fullscreen/.test(spoken)) {
+    showVoiceFlash('Pantalla completa');
+    toggleFullscreen();
+    return;
+  }
+
+  for (let idx = 0; idx < STATE.slides.length; idx += 1) {
+    const words = STATE.slides[idx].commandWords ?? [];
+    const hasMatch = words.some((word) => {
+      const normalized = String(word).toLowerCase().trim();
+      return normalized && transcripts.some((transcript) => transcript.includes(normalized));
+    });
+
+    if (!hasMatch) continue;
+    showVoiceFlash(`Slide ${idx + 1}`);
+    renderSlide(idx, idx > STATE.idx ? 'next' : 'prev');
+    return;
+  }
+}
+
+// ── UI HIDE / SHOW ────────────────────────────────────────
+function scheduleHideUI() {
+  clearTimeout(STATE.uiHideTimer);
+  STATE.uiHideTimer = setTimeout(hideUI, 3000);
+}
+function showUI() {
+  document.getElementById('topbar').classList.remove('hidden');
+  document.getElementById('presNav').classList.remove('hidden');
+  scheduleHideUI();
+}
+function hideUI() {
+  document.getElementById('topbar').classList.add('hidden');
+  document.getElementById('presNav').classList.add('hidden');
+}
+
+// ── PARTICLE ENGINE ───────────────────────────────────────
+function resizeCanvas() {
+  const c = STATE.canvas;
+  if (!c) return;
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+}
+
+function initParticles() {
+  STATE.particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.002,
+    vy: (Math.random() - 0.5) * 0.002,
+    size: 1 + Math.random() * 2,
+  }));
+}
+
+function startLoop() {
+  function frame() {
+    STATE.animTime += 0.016;
+    updateVoiceMetrics();
+    drawParticles();
+    STATE.animFrame = requestAnimationFrame(frame);
+  }
+  if (STATE.animFrame) cancelAnimationFrame(STATE.animFrame);
+  frame();
+}
+
+function drawParticles() {
+  const { ctx, canvas, particles, animTime } = STATE;
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  const slide = STATE.slides[STATE.idx];
+  const state   = slide?.particleState ?? slide?.particle_state ?? 'chaos';
+  const level = STATE.voiceLevel;
+  const pitch = STATE.voicePitch;
+  const pitchNorm = pitch ? Math.min(1, Math.max(0, (pitch - 120) / 720)) : 0;
+  const speed   = (slide?.particleSpeed ?? slide?.particle_speed ?? 0.04) * (1 + level * 2.2);
+  const colorId = getActiveAccent(slide);
+  const color   = ACCENT_COLORS.find(c => c.id === colorId)?.hex ?? '#34d399';
+
+  ctx.fillStyle = `rgba(13,17,23,${Math.max(0.06, 0.16 - level * 0.08)})`;
+  ctx.fillRect(0, 0, w, h);
+
+  particles.forEach((p, i) => {
+    applyState(p, i, state, speed, animTime, w, h);
+    const tremor = level * 0.0025;
+    p.vx += (Math.random() - 0.5) * tremor * (1 + pitchNorm * 2);
+    p.vy += (Math.random() - 0.5) * tremor * (0.6 + pitchNorm * 1.8);
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+    if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+    const alpha = 0.28 + Math.sin(animTime * (2 + level * 6) + i) * 0.18 + level * 0.32;
+    ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2,'0');
+    ctx.beginPath();
+    ctx.arc(p.x * w, p.y * h, p.size * (1 + level * 1.9 + pitchNorm * 0.8), 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function applyState(p, i, state, speed, t, w, h) {
+  const s = speed * 0.5;
+  switch (state) {
+    case 'chaos':
+      p.vx += (Math.random()-0.5)*s; p.vy += (Math.random()-0.5)*s;
+      p.vx *= 0.98; p.vy *= 0.98; break;
+    case 'flow':
+      p.vx += Math.sin(p.y*6+t)*s*0.5; p.vy += 0.0002;
+      p.vx *= 0.99; p.vy *= 0.99; break;
+    case 'cluster': {
+      const cx=0.3+(i%3)*0.2, cy=0.3+Math.floor((i%9)/3)*0.2;
+      p.vx+=(cx-p.x)*s*0.1; p.vy+=(cy-p.y)*s*0.1;
+      p.vx*=0.97; p.vy*=0.97; break; }
+    case 'network': {
+      const nx=(i%8)/8+0.06, ny=Math.floor(i/8)/(PARTICLE_COUNT/8)+0.06;
+      p.vx+=(nx-p.x)*s*0.05; p.vy+=(ny-p.y)*s*0.05;
+      p.vx+=Math.sin(t+i)*s*0.02; p.vy+=Math.cos(t+i)*s*0.02;
+      p.vx*=0.96; p.vy*=0.96; break; }
+    case 'helix': {
+      const a=(i/PARTICLE_COUNT)*Math.PI*4+t;
+      p.vx+=(0.5+Math.cos(a)*0.25-p.x)*s*0.08;
+      p.vy+=((i/PARTICLE_COUNT)-p.y)*s*0.08;
+      p.vx*=0.96; p.vy*=0.96; break; }
+    case 'grid': {
+      const cols=20, gx=((i%cols)+0.5)/cols, gy=(Math.floor(i/cols)+0.5)/(PARTICLE_COUNT/cols);
+      p.vx+=(gx-p.x)*s*0.1; p.vy+=(gy-p.y)*s*0.1;
+      p.vx*=0.95; p.vy*=0.95; break; }
+    case 'pulse': {
+      const a=Math.atan2(p.y-0.5,p.x-0.5), r=0.15+Math.sin(t*2)*0.1;
+      p.vx+=(0.5+Math.cos(a)*r-p.x)*s*0.08;
+      p.vy+=(0.5+Math.sin(a)*r-p.y)*s*0.08;
+      p.vx*=0.96; p.vy*=0.96; break; }
+    case 'orbit': {
+      const oa=(i/PARTICLE_COUNT)*Math.PI*2+t*(0.5+(i%3)*0.2), or=0.1+(i%5)*0.06;
+      p.vx+=(0.5+Math.cos(oa)*or-p.x)*s*0.1;
+      p.vy+=(0.5+Math.sin(oa)*or-p.y)*s*0.1;
+      p.vx*=0.96; p.vy*=0.96; break; }
+    case 'collapse':
+      p.vx+=(0.5-p.x)*s*0.05; p.vy+=(0.5-p.y)*s*0.05;
+      p.vx*=0.98; p.vy*=0.98; break;
+    case 'expand':
+      p.vx+=(p.x-0.5)*s*0.02; p.vy+=(p.y-0.5)*s*0.02;
+      p.vx*=0.99; p.vy*=0.99; break;
+  }
+}
+
+init();
+  </script>
+</body>
+</html>
