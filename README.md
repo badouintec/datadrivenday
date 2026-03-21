@@ -232,6 +232,7 @@ graph LR
 | `POST` | `/api/participant/logout` | Cerrar sesión participante |
 | `GET` | `/api/participant/me` | Estado de sesión participante |
 | `GET` | `/api/participant/dashboard` | Participante + recursos + equipos |
+| `PATCH` | `/api/participant/dataller` | Activar o salir del Dataller |
 | `PATCH` | `/api/participant/profile` | Actualizar perfil habilitado |
 | `GET` | `/api/participant/teams` | Equipos propios y abiertos |
 | `POST` | `/api/participant/teams` | Crear equipo |
@@ -560,10 +561,7 @@ npm run build
 
 ```bash
 # Aplica todas las migraciones disponibles
-for f in db/migrations/000*.sql; do
-  npx wrangler d1 execute datadrivenday --local \
-    --config dist/server/wrangler.json --file="$f"
-done
+npm run db:migrate:local
 
 # Seed: presentación + 9 slides del Dataller
 npx wrangler d1 execute datadrivenday --local \
@@ -586,6 +584,18 @@ npx wrangler dev --config dist/server/wrangler.json --local --port 4322
 ```
 
 > Si solo necesitas iterar sobre UI sin el admin, puedes usar `npm run dev` (puerto 4321) — más rápido, sin migraciones.
+
+### 5.1 Migraciones remotas antes de deploy
+
+```bash
+npm run db:migrate:remote
+```
+
+La migración `0008_participant_dataller.sql` agrega `participants.dataller_registered`, necesario para:
+
+- separar quién está en Dataller desde `/admin/participantes`
+- permitir que el participante active su estado desde `/registro`
+- exigir `datallerRegistered + workshopCompleted + recognitionEnabled` antes de descargar certificado
 
 ### 6. Credenciales admin
 
@@ -654,6 +664,8 @@ npm run cf-typegen
 | `npm run preview` | Preview estático del build |
 | `npm run preview:worker` | Build + `wrangler dev` con config generada |
 | `npm run deploy` | Build + deploy a Cloudflare Workers |
+| `npm run db:migrate:local` | Aplica todas las migraciones D1 al entorno local |
+| `npm run db:migrate:remote` | Aplica todas las migraciones D1 al entorno remoto |
 | `npm run cf-typegen` | Regenera tipos de bindings en `src/env.d.ts` |
 | `npm run sanity` | Studio Sanity local |
 

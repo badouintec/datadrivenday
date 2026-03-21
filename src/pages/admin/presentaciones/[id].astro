@@ -28,7 +28,7 @@ const presId = Astro.params.id;
     </div>
     <div class="topbar-right">
       <button class="topbar-btn topbar-btn--ghost" id="btnPreview" type="button">Previsualizar &rarr;</button>
-      <a href="/dataller/present" target="_blank" class="topbar-btn topbar-btn--primary">Abrir presenter &#8599;</a>
+      <a href={`/dataller/present?pres=${presId}`} target="_blank" class="topbar-btn topbar-btn--primary">Abrir presenter &#8599;</a>
       <a href="/admin/presentaciones" class="topbar-btn topbar-btn--danger">Volver</a>
     </div>
   </div>

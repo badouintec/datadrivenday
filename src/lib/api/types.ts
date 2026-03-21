@@ -11,6 +11,7 @@ export interface ParticipantUser {
   id: string;
   email: string;
   fullName: string;
+  datallerRegistered: boolean;
   occupation: string | null;
   organization: string | null;
   projectUrl: string | null;

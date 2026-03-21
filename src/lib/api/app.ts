@@ -3,7 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { getCityDashboard } from '../server/db/cityData';
 import { insertSubmission } from '../server/db/submissions';
-import { getSlides } from '../server/db/slides';
+import { getSlides, getPresentation } from '../server/db/slides';
 import { getBlogPosts, getBlogPostBySlug } from '../server/db/blog';
 import { getPublicRecursos } from '../server/db/recursos';
 import { handleLogin, handleLogout, handleMe, requireAuth } from './auth';
@@ -277,11 +277,15 @@ app.route('/participant', participantRoutes);
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
 app.get('/slides', async (c) => {
-  if (!c.env.DB) return c.json({ slides: [] });
+  if (!c.env.DB) return c.json({ slides: [], presentation: null });
   const presentacion = c.req.query('presentacion') ?? 'pres-dataller-2026';
-  const slides = await getSlides(c.env.DB, presentacion);
+  const [slides, presentation] = await Promise.all([
+    getSlides(c.env.DB, presentacion),
+    getPresentation(c.env.DB, presentacion),
+  ]);
   return c.json({
     slides: slides.filter(s => s.isActive),
+    presentation: presentation ? { nombre: presentation.nombre, descripcion: presentation.descripcion } : null,
   }, 200, { 'Cache-Control': 'public, max-age=60' });
 });
 

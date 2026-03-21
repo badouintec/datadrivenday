@@ -187,7 +187,6 @@ function renderParticleStateGrid(currentState) {
 
     btn.addEventListener('click', () => {
       setSlideField('particleState', id);
-      setSlideField('particle_state', id);
       renderParticleStateGrid(id);
     });
 
@@ -212,7 +211,6 @@ function renderAccentColorRow(currentColor) {
 
     btn.addEventListener('click', () => {
       setSlideField('accentColor', id);
-      setSlideField('accent_color', id);
       renderAccentColorRow(id);
     });
 
@@ -562,7 +560,7 @@ function bindDeleteModal() {
 // ── BIND TOPBAR ──────────────────────────────────────────────────────────────
 function bindTopbar() {
   document.getElementById('btnPreview')?.addEventListener('click', () => {
-    window.open(`/dataller/present`, '_blank');
+    window.open(`/dataller/present?pres=${EDITOR.presId}`, '_blank');
   });
 }
 

@@ -18,6 +18,7 @@ import {
   listParticipants,
   serializeParticipant,
   updateParticipantAdminFlags,
+  updateParticipantDatallerRegistration,
   updateParticipantProfile,
 } from '../../server/db/participants';
 import { buildParticipantRecognitionPdf } from '../../server/documents/participant-recognition';
@@ -36,6 +37,10 @@ participantRoutes.get('/recognition', requireParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  if (!participant.datallerRegistered) {
+    return c.json({ ok: false, error: 'dataller_required' }, 403);
   }
 
   if (!participant.workshopCompleted) {
@@ -70,6 +75,30 @@ participantRoutes.get('/dashboard', requireParticipantAuth(), async (c) => {
   ]);
 
   return c.json({ ok: true, participant, recursos, myTeams, openTeams });
+});
+
+participantRoutes.patch('/dataller', requireParticipantAuth(), async (c) => {
+  const participant = c.get('participant');
+  if (!participant) {
+    return c.json({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  const body = await c.req.json<{ datallerRegistered?: boolean }>().catch(() => null);
+  if (!body || typeof body.datallerRegistered !== 'boolean') {
+    return c.json({ ok: false, error: 'invalid_body' }, 400);
+  }
+
+  const updated = await updateParticipantDatallerRegistration(
+    c.env.DB!,
+    participant.id,
+    body.datallerRegistered,
+  );
+
+  if (!updated) {
+    return c.json({ ok: false, error: 'not_found' }, 404);
+  }
+
+  return c.json({ ok: true, participant: serializeParticipant(updated) });
 });
 
 participantRoutes.patch('/profile', requireParticipantAuth(), async (c) => {
@@ -186,6 +215,7 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
   }
 
   const body = await c.req.json<{
+    datallerRegistered?: boolean;
     workshopCompleted?: boolean;
     profileEnabled?: boolean;
     recognitionEnabled?: boolean;
@@ -202,6 +232,7 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
   }
 
   const updated = await updateParticipantAdminFlags(c.env.DB!, participantId, {
+    datallerRegistered: body.datallerRegistered,
     workshopCompleted: body.workshopCompleted,
     profileEnabled: body.profileEnabled,
     recognitionEnabled: body.recognitionEnabled,

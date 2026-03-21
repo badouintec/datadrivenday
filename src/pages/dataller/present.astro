@@ -332,6 +332,7 @@ const STATE = {
   voicePitch: 0,
   reactiveAccent: null,
   reactiveAccentUntil: 0,
+  presentation: null,
 };
 
 const VOICE_COLOR_RULES = [
@@ -357,8 +358,10 @@ async function init() {
     const res = await fetch(`/api/slides?presentacion=${presId}`);
     const data = await res.json();
     STATE.slides = (data.slides ?? []).filter(s => s.isActive !== false);
+    STATE.presentation = data.presentation ?? null;
   } catch(e) {
     STATE.slides = [];
+    STATE.presentation = null;
   }
 
   document.getElementById('loading').style.display = 'none';
@@ -434,7 +437,8 @@ function applySlide(slide) {
   if (chord.length) playChord(chord);
 
   // Pres title
-  document.getElementById('presTitle').textContent = 'Dataller de IA · 28 mar';
+  const presName = STATE.presentation?.nombre ?? 'Presentacion';
+  document.getElementById('presTitle').textContent = presName;
 }
 
 // ── EVENTS ───────────────────────────────────────────────

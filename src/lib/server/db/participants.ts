@@ -5,6 +5,7 @@ export interface ParticipantRow {
   email: string;
   password_hash: string;
   full_name: string;
+  dataller_registered: number;
   occupation: string | null;
   organization: string | null;
   project_url: string | null;
@@ -42,6 +43,7 @@ export function serializeParticipant(row: ParticipantRow): ParticipantUser {
     id: row.id,
     email: row.email,
     fullName: row.full_name,
+    datallerRegistered: Boolean(row.dataller_registered),
     occupation: row.occupation,
     organization: row.organization,
     projectUrl: row.project_url,
@@ -91,15 +93,16 @@ export async function insertParticipant(
   await db
     .prepare(
       `INSERT INTO participants (
-        id, email, password_hash, full_name, occupation, organization,
+        id, email, password_hash, full_name, dataller_registered, occupation, organization,
         project_url, education_level, age, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id,
       data.email.trim().toLowerCase(),
       data.passwordHash,
       data.fullName.trim(),
+      0,
       data.occupation?.trim() || null,
       data.organization?.trim() || null,
       data.projectUrl?.trim() || null,
@@ -163,6 +166,7 @@ export async function updateParticipantAdminFlags(
   db: D1Database,
   id: string,
   patch: {
+    datallerRegistered?: boolean;
     workshopCompleted?: boolean;
     profileEnabled?: boolean;
     recognitionEnabled?: boolean;
@@ -172,7 +176,8 @@ export async function updateParticipantAdminFlags(
   await db
     .prepare(
       `UPDATE participants
-       SET workshop_completed = COALESCE(?, workshop_completed),
+       SET dataller_registered = COALESCE(?, dataller_registered),
+           workshop_completed = COALESCE(?, workshop_completed),
            profile_enabled = COALESCE(?, profile_enabled),
            recognition_enabled = COALESCE(?, recognition_enabled),
            recognition_folio = COALESCE(?, recognition_folio),
@@ -180,6 +185,7 @@ export async function updateParticipantAdminFlags(
        WHERE id = ?`
     )
     .bind(
+      patch.datallerRegistered == null ? null : patch.datallerRegistered ? 1 : 0,
       patch.workshopCompleted == null ? null : patch.workshopCompleted ? 1 : 0,
       patch.profileEnabled == null ? null : patch.profileEnabled ? 1 : 0,
       patch.recognitionEnabled == null ? null : patch.recognitionEnabled ? 1 : 0,
@@ -187,6 +193,23 @@ export async function updateParticipantAdminFlags(
       new Date().toISOString(),
       id,
     )
+    .run();
+
+  return getParticipantById(db, id);
+}
+
+export async function updateParticipantDatallerRegistration(
+  db: D1Database,
+  id: string,
+  datallerRegistered: boolean,
+) {
+  await db
+    .prepare(
+      `UPDATE participants
+       SET dataller_registered = ?, updated_at = ?
+       WHERE id = ?`
+    )
+    .bind(datallerRegistered ? 1 : 0, new Date().toISOString(), id)
     .run();
 
   return getParticipantById(db, id);

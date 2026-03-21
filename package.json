@@ -11,8 +11,8 @@
     "preview:worker": "npm run build && wrangler dev --config dist/server/wrangler.json",
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
     "cf-typegen": "wrangler types",
-    "db:migrate:local": "wrangler d1 execute datadrivenday --local --file=./db/migrations/0001_initial.sql",
-    "db:migrate:remote": "wrangler d1 execute datadrivenday --remote --file=./db/migrations/0001_initial.sql",
+    "db:migrate:local": "wrangler d1 migrations apply datadrivenday --local",
+    "db:migrate:remote": "wrangler d1 migrations apply datadrivenday --remote",
     "sanity": "sanity dev"
   },
   "dependencies": {
