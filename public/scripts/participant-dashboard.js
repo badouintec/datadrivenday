@@ -706,8 +706,15 @@ async function restoreSession() {
 tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
     const view = tab.getAttribute('data-auth-tab');
-    tabs.forEach((item) => item.classList.toggle('is-active', item === tab));
+    tabs.forEach((item) => {
+      item.classList.toggle('is-active', item === tab);
+      item.setAttribute('aria-selected', String(item === tab));
+    });
     panes.forEach((pane) => pane.classList.toggle('is-active', pane.getAttribute('data-auth-pane') === view));
+    // Hide forgot/reset shells when switching tabs
+    if (forgotShell) forgotShell.hidden = true;
+    if (resetShell) resetShell.hidden = true;
+    authShell.hidden = false;
   });
 });
 
@@ -1005,6 +1012,173 @@ profileForm.addEventListener('submit', async (event) => {
     setStatus(profileStatus, 'Error de red al guardar el perfil.', 'error');
   }
 });
+
+// ── FORGOT / RESET PASSWORD ────────────────────────────────────
+
+const forgotShell = document.getElementById('forgotShell');
+const forgotForm = document.getElementById('forgotForm');
+const forgotStatus = document.getElementById('forgotStatus');
+const forgotBackBtn = document.getElementById('forgotBackBtn');
+const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+const resetShell = document.getElementById('resetShell');
+const resetForm = document.getElementById('resetForm');
+const resetStatus = document.getElementById('resetStatus');
+const resetTokenInput = document.getElementById('resetToken');
+
+function showForgotUI() {
+  authShell.hidden = true;
+  verifyShell.hidden = true;
+  forgotShell.hidden = false;
+  resetShell.hidden = true;
+  setStatus(forgotStatus, '', 'info');
+  forgotForm?.reset();
+}
+
+function showResetUI(token) {
+  authShell.hidden = true;
+  verifyShell.hidden = true;
+  forgotShell.hidden = true;
+  resetShell.hidden = false;
+  if (resetTokenInput) resetTokenInput.value = token;
+  setStatus(resetStatus, '', 'info');
+  resetForm?.reset();
+  if (resetTokenInput) resetTokenInput.value = token;
+}
+
+function showAuthUI() {
+  authShell.hidden = false;
+  verifyShell.hidden = true;
+  forgotShell.hidden = true;
+  resetShell.hidden = true;
+  const tab = document.querySelector('[data-auth-tab="login"]');
+  const loginPane = document.querySelector('[data-auth-pane="login"]');
+  if (tab && loginPane) {
+    tabs.forEach((t) => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
+    panes.forEach((p) => p.classList.remove('is-active'));
+    tab.classList.add('is-active');
+    tab.setAttribute('aria-selected', 'true');
+    loginPane.classList.add('is-active');
+  }
+}
+
+forgotPasswordBtn?.addEventListener('click', () => {
+  setPageMode('auth');
+  showForgotUI();
+});
+
+forgotBackBtn?.addEventListener('click', () => {
+  showAuthUI();
+});
+
+forgotForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  setStatus(forgotStatus, 'Enviando...', 'info');
+  const email = forgotForm.email.value.trim();
+  try {
+    const response = await fetch('/api/participant/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json();
+    if (data.resetDirectUrl) {
+      setStatus(forgotStatus, 'Entorno local — usa el link directo.', 'warn');
+      const linkEl = document.createElement('a');
+      linkEl.href = data.resetDirectUrl;
+      linkEl.className = 'button-secondary';
+      linkEl.style.display = 'inline-flex';
+      linkEl.style.marginTop = '0.75rem';
+      linkEl.textContent = 'Abrir link de restablecimiento';
+      forgotStatus.after(linkEl);
+    } else {
+      setStatus(forgotStatus, 'Si el correo existe, te mandamos un link en los próximos minutos.', 'success');
+      forgotForm.reset();
+    }
+  } catch {
+    setStatus(forgotStatus, 'Error de red. Intenta de nuevo.', 'error');
+  }
+});
+
+resetForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const token = resetTokenInput?.value?.trim();
+  const password = resetForm.password.value;
+  if (!token) {
+    setStatus(resetStatus, 'Token inválido. Usa el link del correo de nuevo.', 'error');
+    return;
+  }
+  setStatus(resetStatus, 'Guardando nueva contraseña...', 'info');
+  try {
+    const response = await fetch('/api/participant/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const message = data.error === 'token_invalid_or_expired'
+        ? 'El link expiró o ya fue usado. Solicita uno nuevo.'
+        : data.error === 'password_too_short'
+          ? 'La contraseña debe tener al menos 8 caracteres.'
+          : data.error === 'password_too_long'
+            ? 'La contraseña no puede superar 128 caracteres.'
+            : 'No se pudo actualizar la contraseña.';
+      setStatus(resetStatus, message, 'error');
+      return;
+    }
+    setStatus(resetStatus, 'Contraseña actualizada. Ya puedes iniciar sesión.', 'success');
+    setTimeout(() => {
+      window.history.replaceState(null, '', '/registro');
+      showAuthUI();
+    }, 2000);
+  } catch {
+    setStatus(resetStatus, 'Error de red. Intenta de nuevo.', 'error');
+  }
+});
+
+// ── DELETE ACCOUNT ────────────────────────────────────────────
+
+const deleteAccountForm = document.getElementById('deleteAccountForm');
+const deleteAccountStatus = document.getElementById('deleteAccountStatus');
+
+deleteAccountForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!state.participant) return;
+  const password = deleteAccountForm.password.value;
+  setStatus(deleteAccountStatus, 'Verificando...', 'info');
+  try {
+    const response = await fetch('/api/participant/account', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const message = data.error === 'invalid_password'
+        ? 'La contraseña no es correcta.'
+        : 'No se pudo eliminar la cuenta. Intenta de nuevo.';
+      setStatus(deleteAccountStatus, message, 'error');
+      return;
+    }
+    setStatus(deleteAccountStatus, 'Tu cuenta fue eliminada. Redirigiendo...', 'success');
+    setTimeout(() => {
+      renderLoggedOut();
+    }, 1800);
+  } catch {
+    setStatus(deleteAccountStatus, 'Error de red. Intenta de nuevo.', 'error');
+  }
+});
+
+// ── INIT: check for reset_token in URL ────────────────────────
+
+(function checkResetToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('reset_token');
+  if (token) {
+    setPageMode('auth');
+    showResetUI(token);
+  }
+}());
 
 renderLoggedOut();
 restoreSession();

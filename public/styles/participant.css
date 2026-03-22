@@ -151,6 +151,81 @@
   gap: 0.5rem;
 }
 
+.registro-auth-actions--col {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Link-style button for secondary text actions */
+.registro-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent-sky);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.registro-link-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* ── DANGER ZONE ──────────────────────────────────────────────── */
+.button-danger {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(248, 113, 113, 0.18);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  padding: 0.65em 1.5em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.18s, border-color 0.18s;
+}
+.button-danger:hover {
+  background: rgba(248, 113, 113, 0.32);
+  border-color: rgba(248, 113, 113, 0.7);
+}
+
+.participant-danger-details {
+  margin-top: 1rem;
+}
+.participant-danger-details summary {
+  list-style: none;
+}
+.participant-danger-details summary::-webkit-details-marker {
+  display: none;
+}
+.participant-form-grid--delete {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+  max-width: 420px;
+}
+
+/* label-wrapped fields in profile form */
+.registro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.registro-field--wide {
+  grid-column: 1 / -1;
+}
+.registro-field-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* ── STATUS MESSAGES ──────────────────────────────────────────── */
 .registro-status {
   margin-top: 0.9rem;
@@ -307,6 +382,7 @@
 .participant-admin-nav-link.is-active {
   color: var(--color-accent-sky);
   border-left-color: var(--color-accent-blue);
+  background: rgba(59, 130, 246, 0.08);
   background: color-mix(in srgb, var(--color-accent-blue) 8%, transparent);
 }
 

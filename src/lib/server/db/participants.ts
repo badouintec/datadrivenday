@@ -174,6 +174,21 @@ export async function updateParticipantLastLogin(db: D1Database, id: string) {
     .run();
 }
 
+export async function updateParticipantPassword(db: D1Database, id: string, passwordHash: string) {
+  const now = new Date().toISOString();
+  await db
+    .prepare('UPDATE participants SET password_hash = ?, updated_at = ? WHERE id = ?')
+    .bind(passwordHash, now, id)
+    .run();
+}
+
+export async function deleteParticipant(db: D1Database, id: string) {
+  await db
+    .prepare('DELETE FROM participants WHERE id = ?')
+    .bind(id)
+    .run();
+}
+
 export async function updateParticipantProfile(
   db: D1Database,
   id: string,

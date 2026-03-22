@@ -13,11 +13,16 @@ import {
   markEmailVerified,
   serializeParticipant,
   updateParticipantLastLogin,
+  updateParticipantPassword,
+  deleteParticipant,
 } from '../server/db/participants';
 import {
   generateVerificationToken,
   checkVerificationToken,
   sendVerificationEmail,
+  generatePasswordResetToken,
+  checkPasswordResetToken,
+  sendPasswordResetEmail,
   type VerificationEmailError,
 } from '../server/email';
 
@@ -497,5 +502,136 @@ export async function handleResendVerification(c: ParticipantContext) {
     delivered: delivery.verificationEmailSent,
     verificationDirectUrl: delivery.verificationDirectUrl,
     verificationError: delivery.verificationError,
+  });
+}
+
+// POST /api/participant/forgot-password — request a password reset email
+export async function handleForgotPassword(c: ParticipantContext) {
+  const body = await c.req.json<{ email: string }>().catch(() => null);
+
+  if (!body?.email || !isValidEmail(body.email)) {
+    return c.json({ ok: false, error: 'invalid_email' }, 400);
+  }
+
+  if (!c.env.APP_SESSION) {
+    return c.json({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+
+  // Rate limit: 3 requests per hour per IP to prevent email flooding
+  const ip = getClientIp(c.req);
+  const forgotCount = await getRateLimitCount(c.env.APP_SESSION, `forgot-pwd:${ip}`, 3600);
+  if (forgotCount >= 3) {
+    // Return ok:true to avoid user enumeration via timing
+    return c.json({ ok: true });
+  }
+  await incrementRateLimitCount(c.env.APP_SESSION, `forgot-pwd:${ip}`, 3600);
+
+  const email = normalizeEmail(body.email);
+
+  if (!c.env.DB) {
+    return c.json({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+
+  const row = await getParticipantByEmail(c.env.DB, email);
+
+  // Always return ok:true — do not leak whether email exists
+  if (!row) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 100));
+    return c.json({ ok: true });
+  }
+
+  const resendApiKey = typeof c.env.RESEND_API_KEY === 'string' ? c.env.RESEND_API_KEY : null;
+  if (!resendApiKey) {
+    // In dev without email: still create token and return direct URL for testing
+    const token = await generatePasswordResetToken(c.env.APP_SESSION, row.id);
+    const siteUrl = getSiteUrl(c);
+    const resetUrl = `${siteUrl}/registro?reset_token=${token}`;
+    const allowDirectUrl = isLocalOrigin(getRequestOrigin(c));
+    return c.json({ ok: true, resetDirectUrl: allowDirectUrl ? resetUrl : undefined });
+  }
+
+  const token = await generatePasswordResetToken(c.env.APP_SESSION, row.id);
+  const siteUrl = getSiteUrl(c);
+  const resetUrl = `${siteUrl}/registro?reset_token=${token}`;
+  const fromDomain = getSenderDomain(siteUrl);
+  const participant = serializeParticipant(row);
+
+  await sendPasswordResetEmail(resendApiKey, email, participant.fullName, resetUrl, fromDomain);
+
+  return c.json({ ok: true });
+}
+
+// POST /api/participant/reset-password — set new password using token
+export async function handleResetPassword(c: ParticipantContext) {
+  const body = await c.req.json<{ token: string; password: string }>().catch(() => null);
+
+  if (!body?.token || !body?.password) {
+    return c.json({ ok: false, error: 'missing_fields' }, 400);
+  }
+
+  if (body.password.length < 8) {
+    return c.json({ ok: false, error: 'password_too_short' }, 400);
+  }
+
+  if (body.password.length > 128) {
+    return c.json({ ok: false, error: 'password_too_long' }, 400);
+  }
+
+  if (!c.env.APP_SESSION || !c.env.DB) {
+    return c.json({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+
+  const participantId = await checkPasswordResetToken(c.env.APP_SESSION, body.token);
+  if (!participantId) {
+    return c.json({ ok: false, error: 'token_invalid_or_expired' }, 400);
+  }
+
+  const newHash = await hashPassword(body.password);
+  await updateParticipantPassword(c.env.DB, participantId, newHash);
+
+  // Invalidate all existing sessions for this participant for security
+  // (KV doesn't support prefix scan in Workers free tier, so we rely on
+  //  short session TTL and the user re-logging in)
+
+  return c.json({ ok: true });
+}
+
+// DELETE /api/participant/account — erase participant account (GDPR/LFPDPPP)
+export async function handleDeleteAccount(c: ParticipantContext) {
+  const participant = c.get('participant');
+  if (!participant) {
+    return c.json({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  // Require password confirmation to prevent accidental/CSRF deletion
+  const body = await c.req.json<{ password: string }>().catch(() => null);
+  if (!body?.password) {
+    return c.json({ ok: false, error: 'password_required' }, 400);
+  }
+
+  if (!c.env.DB || !c.env.APP_SESSION) {
+    return c.json({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+
+  const row = await getParticipantById(c.env.DB, participant.id);
+  if (!row) {
+    return c.json({ ok: false, error: 'not_found' }, 404);
+  }
+
+  const valid = await verifyPassword(body.password, row.password_hash);
+  if (!valid) {
+    return c.json({ ok: false, error: 'invalid_password' }, 401);
+  }
+
+  // Delete participant data from DB
+  await deleteParticipant(c.env.DB, participant.id);
+
+  // Clear current session cookie
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': buildSessionCookie(c, '', 0),
+    },
   });
 }

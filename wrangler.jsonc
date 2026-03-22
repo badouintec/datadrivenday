@@ -5,6 +5,9 @@
   "observability": {
     "enabled": true
   },
+  "limits": {
+    "cpu_ms": 30000
+  },
   "routes": [
     { "pattern": "datadriven.day", "custom_domain": true },
     { "pattern": "www.datadriven.day", "custom_domain": true }

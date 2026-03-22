@@ -35,12 +35,12 @@ const staticDashboardData = {
       <div class="registro-grid">
         <div id="authColumn" class="registro-auth-column">
           <div id="authShell" class="registro-auth-card">
-            <div class="registro-auth-tabs">
-              <button class="registro-tab is-active" type="button" data-auth-tab="signup">Crear cuenta</button>
-              <button class="registro-tab" type="button" data-auth-tab="login">Entrar</button>
+            <div class="registro-auth-tabs" role="tablist" aria-label="Acceso a cuenta">
+              <button class="registro-tab is-active" type="button" data-auth-tab="signup" role="tab" aria-selected="true" aria-controls="signupPane" id="tab-signup">Crear cuenta</button>
+              <button class="registro-tab" type="button" data-auth-tab="login" role="tab" aria-selected="false" aria-controls="loginPane" id="tab-login">Entrar</button>
             </div>
 
-            <form id="signupForm" class="registro-auth-pane is-active" data-auth-pane="signup">
+            <form id="signupForm" class="registro-auth-pane is-active" data-auth-pane="signup" id="signupPane" role="tabpanel" aria-labelledby="tab-signup">
               <div class="registro-form-grid">
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Nombre completo</span>
@@ -63,7 +63,7 @@ const staticDashboardData = {
               </div>
             </form>
 
-            <form id="loginForm" class="registro-auth-pane" data-auth-pane="login">
+            <form id="loginForm" class="registro-auth-pane" data-auth-pane="login" id="loginPane" role="tabpanel" aria-labelledby="tab-login">
               <div class="registro-form-grid registro-form-grid--login">
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Correo</span>
@@ -77,8 +77,43 @@ const staticDashboardData = {
 
               <div id="loginStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
 
-              <div class="registro-auth-actions">
+              <div class="registro-auth-actions registro-auth-actions--col">
                 <button class="button" type="submit">Entrar</button>
+                <button id="forgotPasswordBtn" class="registro-link-btn" type="button">¿Olvidaste tu contraseña?</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="forgotShell" class="registro-account-card" hidden>
+            <p class="registro-account-kicker">Recuperar acceso</p>
+            <h2 class="registro-account-title">¿Olvidaste tu contraseña?</h2>
+            <p class="registro-account-copy">Escribe tu correo y te mandamos un link para crear una nueva contraseña.</p>
+            <form id="forgotForm">
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Correo registrado</span>
+                <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required autocomplete="email" />
+              </label>
+              <div id="forgotStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
+              <div class="registro-auth-actions registro-auth-actions--tight">
+                <button class="button" type="submit">Enviar link</button>
+                <button id="forgotBackBtn" class="button-secondary" type="button">Regresar</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="resetShell" class="registro-account-card" hidden>
+            <p class="registro-account-kicker">Nueva contraseña</p>
+            <h2 class="registro-account-title">Restablece tu contraseña</h2>
+            <p class="registro-account-copy">Elige una contraseña de al menos 8 caracteres.</p>
+            <form id="resetForm">
+              <input type="hidden" name="token" id="resetToken" />
+              <label class="registro-field registro-field--full">
+                <span class="registro-field-label">Nueva contraseña</span>
+                <input class="registro-input" type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128" required autocomplete="new-password" />
+              </label>
+              <div id="resetStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
+              <div class="registro-auth-actions">
+                <button class="button" type="submit">Guardar contraseña</button>
               </div>
             </form>
           </div>
@@ -354,15 +389,50 @@ const staticDashboardData = {
 
                     <article class="participant-panel participant-panel--wide">
                       <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
-                        <input class="registro-input" type="text" name="fullName" placeholder="Nombre en reconocimiento" />
-                        <input class="registro-input" type="text" name="occupation" placeholder="Ocupación" />
-                        <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
-                        <input class="registro-input" type="url" name="projectUrl" placeholder="URL de proyecto" />
-                        <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto" />
-                        <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Bio corta"></textarea>
-                        <button class="button-secondary" type="submit">Guardar</button>
+                        <label class="registro-field">
+                          <span class="registro-field-label">Nombre en reconocimiento</span>
+                          <input class="registro-input" type="text" name="fullName" placeholder="Tu nombre completo" maxlength="120" />
+                        </label>
+                        <label class="registro-field">
+                          <span class="registro-field-label">Ocupación</span>
+                          <input class="registro-input" type="text" name="occupation" placeholder="Desarrollador, Diseñador…" maxlength="120" />
+                        </label>
+                        <label class="registro-field">
+                          <span class="registro-field-label">Escuela o trabajo</span>
+                          <input class="registro-input" type="text" name="organization" placeholder="Nombre de empresa o institución" maxlength="120" />
+                        </label>
+                        <label class="registro-field">
+                          <span class="registro-field-label">URL de proyecto</span>
+                          <input class="registro-input" type="url" name="projectUrl" placeholder="https://" />
+                        </label>
+                        <label class="registro-field">
+                          <span class="registro-field-label">URL de foto</span>
+                          <input class="registro-input" type="url" name="avatarUrl" placeholder="https://" />
+                        </label>
+                        <label class="registro-field registro-field--wide">
+                          <span class="registro-field-label">Bio corta</span>
+                          <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Cuéntanos un poco sobre ti" maxlength="500"></textarea>
+                        </label>
+                        <button class="button-secondary" type="submit">Guardar perfil</button>
                       </form>
                       <div id="profileStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--wide" id="deleteAccountPanel">
+                      <p class="participant-panel-label">Zona de peligro</p>
+                      <h3 class="participant-panel-title">Eliminar cuenta</h3>
+                      <p class="participant-panel-copy">Esta acción es permanente. Se borrarán tu perfil, comentarios y participación. No se puede deshacer.</p>
+                      <details class="participant-danger-details">
+                        <summary class="button-danger">Eliminar mi cuenta</summary>
+                        <form id="deleteAccountForm" class="participant-form-grid participant-form-grid--delete">
+                          <label class="registro-field registro-field--full">
+                            <span class="registro-field-label">Confirma tu contraseña actual</span>
+                            <input class="registro-input" type="password" name="password" placeholder="Tu contraseña" required autocomplete="current-password" />
+                          </label>
+                          <div id="deleteAccountStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
+                          <button class="button-danger" type="submit">Confirmar eliminación</button>
+                        </form>
+                      </details>
                     </article>
                 </section>
               </main>

@@ -8,6 +8,9 @@ import {
   handleParticipantSignup,
   handleResendVerification,
   handleVerifyEmail,
+  handleForgotPassword,
+  handleResetPassword,
+  handleDeleteAccount,
   normalizeOptionalUrl,
   requireParticipantAuth,
   requireVerifiedParticipantAuth,
@@ -52,6 +55,9 @@ participantRoutes.post('/logout', handleParticipantLogout);
 participantRoutes.get('/me', requireParticipantAuth(), handleParticipantMe);
 participantRoutes.get('/verify-email', handleVerifyEmail);
 participantRoutes.post('/resend-verification', requireParticipantAuth(), handleResendVerification);
+participantRoutes.post('/forgot-password', handleForgotPassword);
+participantRoutes.post('/reset-password', handleResetPassword);
+participantRoutes.delete('/account', requireParticipantAuth(), handleDeleteAccount);
 
 participantRoutes.get('/recognition', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
@@ -351,6 +357,13 @@ participantRoutes.post('/teams/:id/join', requireVerifiedParticipantAuth(), asyn
 
   if (!team.is_open) {
     return c.json({ ok: false, error: 'team_closed' }, 400);
+  }
+
+  const memberCountRow = await c.env.DB!.prepare(
+    'SELECT COUNT(*) as count FROM participant_team_members WHERE team_id = ?',
+  ).bind(team.id).first<{ count: number }>();
+  if ((memberCountRow?.count ?? 0) >= 20) {
+    return c.json({ ok: false, error: 'team_full' }, 400);
   }
 
   await joinParticipantTeam(c.env.DB!, team.id, participant.id);
