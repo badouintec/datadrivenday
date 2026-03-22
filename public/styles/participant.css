@@ -20,7 +20,7 @@
 }
 
 .registro-page--auth-only {
-  min-height: calc(100vh - 10rem);
+  min-height: calc(100vh - 9rem);
   align-items: center;
 }
 
@@ -38,6 +38,17 @@
 
 .registro-page--dashboard .registro-grid {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* Dashboard mode: break out of page-shell and registro-shell constraints */
+.registro-page--dashboard.page-shell {
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.registro-shell:has(.registro-page--dashboard) {
+  padding-top: 0;
 }
 
 .registro-auth-column {
@@ -273,7 +284,7 @@
 .participant-admin-shell {
   display: grid;
   grid-template-columns: 230px 1fr;
-  height: calc(100vh - 4.5rem);
+  height: calc(100vh - 68px);
   overflow: hidden;
   background: var(--color-bg);
 }
