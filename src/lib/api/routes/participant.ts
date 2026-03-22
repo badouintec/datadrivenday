@@ -226,6 +226,7 @@ participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) 
   }
 
   const body = await c.req.json<{
+    fullName?: string;
     occupation?: string;
     organization?: string;
     projectUrl?: string;
@@ -239,6 +240,11 @@ participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) 
 
   const projectUrl = normalizeOptionalUrl(body.projectUrl);
   const avatarUrl = normalizeOptionalUrl(body.avatarUrl);
+  const fullName = body.fullName?.trim();
+
+  if (body.fullName !== undefined && !fullName) {
+    return c.json({ ok: false, error: 'invalid_full_name' }, 400);
+  }
 
   if (body.projectUrl?.trim() && !projectUrl) {
     return c.json({ ok: false, error: 'invalid_project_url' }, 400);
@@ -250,6 +256,7 @@ participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) 
 
   const updated = await updateParticipantProfile(c.env.DB!, participant.id, {
     ...body,
+    fullName,
     projectUrl,
     avatarUrl,
   });

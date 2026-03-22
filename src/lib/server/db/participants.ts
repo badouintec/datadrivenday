@@ -178,6 +178,7 @@ export async function updateParticipantProfile(
   db: D1Database,
   id: string,
   patch: {
+    fullName?: string | null;
     occupation?: string | null;
     organization?: string | null;
     projectUrl?: string | null;
@@ -188,10 +189,11 @@ export async function updateParticipantProfile(
   await db
     .prepare(
       `UPDATE participants
-       SET occupation = ?, organization = ?, project_url = ?, bio = ?, avatar_url = ?, updated_at = ?
+       SET full_name = COALESCE(?, full_name), occupation = ?, organization = ?, project_url = ?, bio = ?, avatar_url = ?, updated_at = ?
        WHERE id = ?`
     )
     .bind(
+      patch.fullName?.trim() || null,
       patch.occupation?.trim() || null,
       patch.organization?.trim() || null,
       patch.projectUrl?.trim() || null,

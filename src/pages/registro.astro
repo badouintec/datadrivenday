@@ -125,8 +125,56 @@ const staticDashboardData = {
               <main class="participant-admin-content">
                 <section id="overviewSection" class="participant-admin-section">
                   <div class="participant-admin-section-head">
-                    <p class="participant-admin-section-kicker">Resumen</p>
-                    <h3 class="participant-admin-section-title">Estado de tu cuenta</h3>
+                    <p class="participant-admin-section-kicker">Empieza aqui</p>
+                    <h3 class="participant-admin-section-title">Súmate al Data Driven Day y abre tus materiales</h3>
+                  </div>
+
+                  <div class="participant-overview-grid">
+                    <article class="participant-panel participant-panel--hero participant-panel--wide">
+                      <div class="participant-hero-head">
+                        <div>
+                          <p class="participant-panel-label">Acceso principal</p>
+                          <h3 id="onboardingTitle" class="participant-panel-title">Únete al Dataller para abrir el libro interactivo</h3>
+                        </div>
+                        <span id="journeyBadge" class="participant-doc-tag">Paso 1</span>
+                      </div>
+                      <p id="onboardingSummary" class="participant-panel-copy">Activa tu lugar para ver la presentación como lectura interactiva, comentar y seguir las novedades del evento.</p>
+                      <div id="onboardingSteps" class="participant-concept-list"></div>
+                      <div class="participant-inline-actions">
+                        <button id="jumpToDatallerBtn" class="button" type="button">Ir al Dataller</button>
+                        <button id="jumpToProfileBtn" class="button-secondary" type="button">Completar perfil</button>
+                      </div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--recognition">
+                      <p class="participant-panel-label">Reconocimiento</p>
+                      <h3 class="participant-panel-title">Tu autorización</h3>
+                      <div class="participant-lockbox">
+                        <span id="recognitionState" class="participant-lock-state">Sin sesión</span>
+                        <p id="recognitionCopy">Inicia sesión para ver el estado de tu reconocimiento.</p>
+                        <div id="recognitionActions" class="participant-inline-actions participant-recognition-actions" hidden>
+                          <a id="recognitionDownload" class="button-secondary" href="/api/participant/recognition" target="_blank" rel="noreferrer">Descargar PDF</a>
+                          <span id="recognitionMeta" class="participant-doc-tag"></span>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Notificaciones</p>
+                      <h3 class="participant-panel-title">Lo siguiente que te conviene hacer</h3>
+                      <div id="notificationList" class="participant-notification-list">
+                        <div class="participant-notification-item"><strong>Sin sesión</strong><span>Entra para ver tus pendientes del Dataller.</span></div>
+                      </div>
+                    </article>
+
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Biblioteca</p>
+                      <h3 class="participant-panel-title">Recursos activos en plataforma</h3>
+                      <p id="platformSummary" class="participant-panel-copy">Inicia sesión para cargar tus recursos activos.</p>
+                      <div id="platformResourceList" class="participant-doc-list">
+                        <div class="participant-doc-item"><strong>Accede con tu cuenta para ver tus recursos</strong></div>
+                      </div>
+                    </article>
                   </div>
 
                   <div class="participant-stats-grid">
@@ -149,30 +197,6 @@ const staticDashboardData = {
                       <span class="participant-stat-label">Comentarios</span>
                       <strong id="statComments" class="participant-stat-value">0</strong>
                       <span id="statCommentsMeta" class="participant-stat-meta">Notas compartidas</span>
-                    </article>
-                  </div>
-
-                  <div class="participant-overview-grid">
-                    <article class="participant-panel participant-panel--recognition">
-                      <p class="participant-panel-label">Reconocimiento</p>
-                      <h3 class="participant-panel-title">Tu autorización</h3>
-                      <div class="participant-lockbox">
-                        <span id="recognitionState" class="participant-lock-state">Sin sesión</span>
-                        <p id="recognitionCopy">Inicia sesión para ver el estado de tu reconocimiento.</p>
-                        <div id="recognitionActions" class="participant-inline-actions participant-recognition-actions" hidden>
-                          <a id="recognitionDownload" class="button-secondary" href="/api/participant/recognition" target="_blank" rel="noreferrer">Descargar PDF</a>
-                          <span id="recognitionMeta" class="participant-doc-tag"></span>
-                        </div>
-                      </div>
-                    </article>
-
-                    <article class="participant-panel">
-                      <p class="participant-panel-label">Biblioteca</p>
-                      <h3 class="participant-panel-title">Recursos activos en plataforma</h3>
-                      <p id="platformSummary" class="participant-panel-copy">Inicia sesión para cargar tus recursos activos.</p>
-                      <div id="platformResourceList" class="participant-doc-list">
-                        <div class="participant-doc-item"><strong>Accede con tu cuenta para ver tus recursos</strong></div>
-                      </div>
                     </article>
                   </div>
                 </section>
@@ -286,6 +310,7 @@ const staticDashboardData = {
 
                   <article class="participant-panel participant-panel--wide">
                     <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
+                      <input class="registro-input" type="text" name="fullName" placeholder="Nombre como debe aparecer en tu reconocimiento" />
                       <input class="registro-input" type="text" name="occupation" placeholder="Qué estudias o a qué te dedicas" />
                       <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
                       <input class="registro-input" type="url" name="projectUrl" placeholder="Enlace a tu proyecto" />
@@ -293,6 +318,7 @@ const staticDashboardData = {
                       <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Descripción corta"></textarea>
                       <button class="button-secondary" type="submit">Guardar perfil</button>
                     </form>
+                    <p id="recognitionNameHint" class="participant-panel-copy participant-panel-copy--hint">Ese nombre será el que usemos en tu reconocimiento cuando esté liberado.</p>
                     <div id="profileStatus" class="registro-status" hidden></div>
                   </article>
                 </section>
@@ -336,6 +362,13 @@ const staticDashboardData = {
     const dashboardTitle = document.getElementById('dashboardTitle');
     const dashboardBadge = document.getElementById('dashboardBadge');
     const recognitionBadge = document.getElementById('recognitionBadge');
+    const onboardingTitle = document.getElementById('onboardingTitle');
+    const onboardingSummary = document.getElementById('onboardingSummary');
+    const onboardingSteps = document.getElementById('onboardingSteps');
+    const journeyBadge = document.getElementById('journeyBadge');
+    const jumpToDatallerBtn = document.getElementById('jumpToDatallerBtn');
+    const jumpToProfileBtn = document.getElementById('jumpToProfileBtn');
+    const notificationList = document.getElementById('notificationList');
     const statDataller = document.getElementById('statDataller');
     const statDatallerMeta = document.getElementById('statDatallerMeta');
     const statSlides = document.getElementById('statSlides');
@@ -378,6 +411,7 @@ const staticDashboardData = {
     const recognitionDownload = document.getElementById('recognitionDownload');
     const recognitionMeta = document.getElementById('recognitionMeta');
     const profileForm = document.getElementById('profileForm');
+    const recognitionNameHint = document.getElementById('recognitionNameHint');
     const profileStatus = document.getElementById('profileStatus');
     const navButtons = document.querySelectorAll('[data-scroll-target]');
 
@@ -443,6 +477,11 @@ const staticDashboardData = {
         hour: '2-digit',
         minute: '2-digit',
       }).format(date);
+    }
+
+    function scrollToSection(sectionId) {
+      navButtons.forEach((item) => item.classList.toggle('is-active', item.dataset.scrollTarget === sectionId));
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function renderSidebar(participant) {
@@ -550,11 +589,15 @@ const staticDashboardData = {
         field.disabled = !enabled;
       });
 
+      profileForm.fullName.value = participant?.fullName || '';
       profileForm.occupation.value = participant?.occupation || '';
       profileForm.organization.value = participant?.organization || '';
       profileForm.projectUrl.value = participant?.projectUrl || '';
       profileForm.avatarUrl.value = participant?.avatarUrl || '';
       profileForm.bio.value = participant?.bio || '';
+      recognitionNameHint.textContent = participant
+        ? `El reconocimiento saldrá a nombre de: ${participant.fullName}`
+        : 'Ese nombre será el que usemos en tu reconocimiento cuando esté liberado.';
 
       if (!participant) {
         setStatus(profileStatus, 'Inicia sesión para editar tu perfil.', 'info');
@@ -565,11 +608,101 @@ const staticDashboardData = {
       }
     }
 
+    function renderNotifications(participant) {
+      if (!participant) {
+        notificationList.innerHTML = '<div class="participant-notification-item"><strong>Inicia sesión</strong><span>Entra con tu cuenta para activar el Dataller y ver tus materiales.</span></div>';
+        return;
+      }
+
+      const notifications = [];
+
+      if (!participant.datallerRegistered) {
+        notifications.push({
+          title: 'Súmate al Dataller',
+          copy: 'Activa tu lugar para abrir la presentación tipo libro interactivo y comentar con el grupo.',
+        });
+      }
+
+      if (participant.datallerRegistered && !state.presentation?.slides?.length) {
+        notifications.push({
+          title: 'Materiales en preparación',
+          copy: 'Tu acceso está listo; en cuanto haya slides activos aparecerán aquí mismo como lectura interactiva.',
+        });
+      }
+
+      if (participant.datallerRegistered && state.presentation?.slides?.length) {
+        notifications.push({
+          title: 'Libro interactivo disponible',
+          copy: `${state.presentation.slides.length} slides activos ya se pueden leer y navegar dentro del panel.`,
+        });
+      }
+
+      if (!participant.profileEnabled && !participant.workshopCompleted) {
+        notifications.push({
+          title: 'Perfil bloqueado por admin',
+          copy: 'Tu perfil se habilita cuando el equipo del evento lo libera o al validar tu participación.',
+        });
+      } else {
+        notifications.push({
+          title: 'Completa tu nombre para reconocimiento',
+          copy: `Hoy aparece como “${participant.fullName}”. Cámbialo si quieres otra versión para constancias y reconocimientos.`,
+        });
+      }
+
+      if (state.comments.length) {
+        notifications.push({
+          title: 'Conversación activa',
+          copy: `Ya hay ${state.comments.length} comentario${state.comments.length === 1 ? '' : 's'} en la presentación del Dataller.`,
+        });
+      }
+
+      notificationList.innerHTML = notifications.slice(0, 4).map((item) => `
+        <div class="participant-notification-item">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span>${escapeHtml(item.copy)}</span>
+        </div>
+      `).join('');
+    }
+
     function renderOverview(participant) {
       dashboardTitle.textContent = participant
         ? `Hola, ${participant.fullName.split(' ')[0]}`
         : 'Tu sesión de Data Driven Day';
       dashboardBadge.textContent = participant ? 'Sesión activa' : 'Sin sesión';
+
+      if (!participant) {
+        onboardingTitle.textContent = 'Únete al Dataller para abrir el libro interactivo';
+        onboardingSummary.textContent = 'Activa tu lugar para leer la presentación, dejar comentarios y seguir el avance del evento desde un solo tablero.';
+        journeyBadge.textContent = 'Paso 1';
+        onboardingSteps.innerHTML = [
+          'Activa tu participación',
+          'Lee la presentación como libro online',
+          'Comenta y recibe novedades',
+        ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
+        renderNotifications(participant);
+      } else if (!participant.datallerRegistered) {
+        onboardingTitle.textContent = 'Tu siguiente paso es sumarte al Dataller';
+        onboardingSummary.textContent = 'En cuanto lo actives, se abre la presentación interactiva, comentarios y la biblioteca base del evento.';
+        journeyBadge.textContent = 'Paso 1';
+        onboardingSteps.innerHTML = [
+          'Activar Dataller',
+          'Abrir materiales interactivos',
+          'Completar perfil para reconocimiento',
+        ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
+        renderNotifications(participant);
+      } else {
+        onboardingTitle.textContent = 'Tu libro interactivo del Dataller ya está abierto';
+        onboardingSummary.textContent = state.presentation?.slides?.length
+          ? 'Navega la presentación, deja observaciones y usa las notificaciones para no perder el siguiente paso importante.'
+          : 'Tu acceso ya está activo. En cuanto el equipo publique slides, aparecerán aquí como un libro online interactivo.';
+        journeyBadge.textContent = participant.workshopCompleted ? 'En curso' : 'Activo';
+        onboardingSteps.innerHTML = [
+          `${state.presentation?.slides?.length ?? 0} slides visibles`,
+          `${state.comments.length} comentario${state.comments.length === 1 ? '' : 's'}`,
+          `${state.members.length} persona${state.members.length === 1 ? '' : 's'} en comunidad`,
+        ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
+        renderNotifications(participant);
+      }
 
       statDataller.textContent = participant?.datallerRegistered ? 'Activo' : 'Inactivo';
       statDatallerMeta.textContent = participant?.workshopCompleted
@@ -877,11 +1010,12 @@ const staticDashboardData = {
 
     navButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        navButtons.forEach((item) => item.classList.remove('is-active'));
-        button.classList.add('is-active');
-        document.getElementById(button.dataset.scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToSection(button.dataset.scrollTarget);
       });
     });
+
+    jumpToDatallerBtn.addEventListener('click', () => scrollToSection('datallerSection'));
+    jumpToProfileBtn.addEventListener('click', () => scrollToSection('profileSection'));
 
     signupForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1130,6 +1264,7 @@ const staticDashboardData = {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            fullName: profileForm.fullName.value.trim(),
             occupation: profileForm.occupation.value.trim(),
             organization: profileForm.organization.value.trim(),
             projectUrl: profileForm.projectUrl.value.trim(),
@@ -1142,6 +1277,8 @@ const staticDashboardData = {
         if (!response.ok) {
           const message = data.error === 'profile_locked'
             ? 'Tu perfil aun no esta habilitado.'
+            : data.error === 'invalid_full_name'
+              ? 'Escribe el nombre tal como quieres que aparezca en tu reconocimiento.'
             : data.error === 'invalid_project_url'
               ? 'El enlace del proyecto debe iniciar con http:// o https://.'
               : data.error === 'invalid_avatar_url'
@@ -1516,9 +1653,20 @@ const staticDashboardData = {
     .participant-panel--comments {
       grid-column: 1 / -1;
     }
+    .participant-panel--hero {
+      background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.16), transparent 36%),
+        linear-gradient(135deg, rgba(9, 14, 24, 0.92), rgba(18, 30, 50, 0.84));
+    }
     .participant-panel--presentation,
     .participant-panel--recognition {
       min-height: 100%;
+    }
+    .participant-hero-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
     }
     .participant-lockbox {
       display: grid;
@@ -1541,6 +1689,7 @@ const staticDashboardData = {
     }
     .participant-doc-list,
     .participant-link-list,
+    .participant-notification-list,
     .participant-resource-groups,
     .participant-concept-list,
     .participant-comment-list,
@@ -1550,6 +1699,7 @@ const staticDashboardData = {
     }
     .participant-doc-item,
     .participant-link-item,
+    .participant-notification-item,
     .participant-comment-card,
     .participant-member-chip {
       display: grid;
@@ -1596,6 +1746,11 @@ const staticDashboardData = {
     .participant-slide-subtitle {
       margin: 0;
       font-size: 0.96rem;
+    }
+    .participant-panel-copy--hint {
+      margin: 0;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--color-border-soft);
     }
     .participant-slide-body {
       color: var(--color-text-secondary);
