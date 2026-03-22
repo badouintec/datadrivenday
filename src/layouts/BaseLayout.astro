@@ -6,11 +6,13 @@ import { navigation, site } from '../data/site';
 interface Props {
   title?: string;
   description?: string;
+  hideFooter?: boolean;
 }
 
 const {
   title = site.title,
-  description = site.description
+  description = site.description,
+  hideFooter = false,
 } = Astro.props;
 
 const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
@@ -115,7 +117,7 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
       <slot />
     </main>
 
-    <footer class="site-footer">
+    {!hideFooter && <footer class="site-footer">
       <div class="page-shell footer-panel">
         <div class="footer-brand">
           <SiteLogo class="footer-logo" />
@@ -140,7 +142,7 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
           </div>
         </div>
       </div>
-    </footer>
+    </footer>}
 
     <script>
       // ── MOBILE NAV TOGGLE ──────────────────────────────────────
