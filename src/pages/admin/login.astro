@@ -3,7 +3,9 @@ import '../../styles/global.css';
 import SiteLogo from '../../components/SiteLogo.astro';
 
 const expired = Astro.url.searchParams.get('expired') === '1';
-const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
+let redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
+// Prevent open redirect: only allow relative paths (must start with single '/')
+if (!redirect.startsWith('/') || redirect.startsWith('//')) redirect = '/admin';
 ---
 
 <html lang="es">
@@ -69,10 +71,9 @@ const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
   </div>
 
   <script define:vars={{ redirect }}>
-// @ts-nocheck
-    const form = document.getElementById('loginForm');
+    const form = /** @type {HTMLFormElement} */ (document.getElementById('loginForm'));
     const errorEl = document.getElementById('loginError');
-    const btn = document.getElementById('loginBtn');
+    const btn = /** @type {HTMLButtonElement} */ (document.getElementById('loginBtn'));
     const btnText = document.getElementById('loginBtnText');
 
     form.addEventListener('submit', async (e) => {

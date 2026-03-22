@@ -270,12 +270,17 @@ participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) 
     return c.json({ ok: false, error: 'invalid_avatar_url' }, 400);
   }
 
-  const updated = await updateParticipantProfile(c.env.DB!, participant.id, {
-    ...body,
-    fullName,
-    projectUrl,
-    avatarUrl,
-  });
+  // Build patch with only keys explicitly present in the request body.
+  // Spreading body directly would cause omitted fields to be set to null (data loss).
+  const profilePatch: Parameters<typeof updateParticipantProfile>[2] = {};
+  if (body.fullName !== undefined) profilePatch.fullName = fullName ?? null;
+  if (body.occupation !== undefined) profilePatch.occupation = body.occupation?.trim() || null;
+  if (body.organization !== undefined) profilePatch.organization = body.organization?.trim() || null;
+  if (body.projectUrl !== undefined) profilePatch.projectUrl = projectUrl;
+  if (body.bio !== undefined) profilePatch.bio = body.bio?.trim() || null;
+  if (body.avatarUrl !== undefined) profilePatch.avatarUrl = avatarUrl;
+
+  const updated = await updateParticipantProfile(c.env.DB!, participant.id, profilePatch);
   if (!updated) {
     return c.json({ ok: false, error: 'not_found' }, 404);
   }
@@ -305,6 +310,20 @@ participantRoutes.post('/teams', requireVerifiedParticipantAuth(), async (c) => 
 
   if (!body?.name) {
     return c.json({ ok: false, error: 'missing_name' }, 400);
+  }
+
+  const teamName = body.name.trim();
+  if (!teamName) {
+    return c.json({ ok: false, error: 'missing_name' }, 400);
+  }
+  if (teamName.length > 120) {
+    return c.json({ ok: false, error: 'name_too_long' }, 400);
+  }
+  if (body.description && body.description.trim().length > 500) {
+    return c.json({ ok: false, error: 'description_too_long' }, 400);
+  }
+  if (body.focusArea && body.focusArea.trim().length > 120) {
+    return c.json({ ok: false, error: 'focus_area_too_long' }, 400);
   }
 
   const teamId = await insertParticipantTeam(c.env.DB!, {

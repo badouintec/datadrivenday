@@ -186,22 +186,39 @@ export async function updateParticipantProfile(
     avatarUrl?: string | null;
   }
 ) {
+  const now = new Date().toISOString();
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+
+  // Only update fields that are explicitly present in the patch object.
+  // This prevents partial updates from silently nulling out omitted fields.
+  const fieldMap: [keyof typeof patch, string][] = [
+    ['fullName', 'full_name'],
+    ['occupation', 'occupation'],
+    ['organization', 'organization'],
+    ['projectUrl', 'project_url'],
+    ['bio', 'bio'],
+    ['avatarUrl', 'avatar_url'],
+  ];
+
+  for (const [patchKey, col] of fieldMap) {
+    if (patchKey in patch) {
+      setClauses.push(`${col} = ?`);
+      const val = patch[patchKey];
+      values.push(typeof val === 'string' ? val.trim() || null : null);
+    }
+  }
+
+  if (setClauses.length === 0) {
+    return getParticipantById(db, id);
+  }
+
+  setClauses.push('updated_at = ?');
+  values.push(now, id);
+
   await db
-    .prepare(
-      `UPDATE participants
-       SET full_name = COALESCE(?, full_name), occupation = ?, organization = ?, project_url = ?, bio = ?, avatar_url = ?, updated_at = ?
-       WHERE id = ?`
-    )
-    .bind(
-      patch.fullName?.trim() || null,
-      patch.occupation?.trim() || null,
-      patch.organization?.trim() || null,
-      patch.projectUrl?.trim() || null,
-      patch.bio?.trim() || null,
-      patch.avatarUrl?.trim() || null,
-      new Date().toISOString(),
-      id,
-    )
+    .prepare(`UPDATE participants SET ${setClauses.join(', ')} WHERE id = ?`)
+    .bind(...values)
     .run();
 
   return getParticipantById(db, id);
@@ -209,7 +226,12 @@ export async function updateParticipantProfile(
 
 export async function listParticipants(db: D1Database) {
   const result = await db
-    .prepare('SELECT * FROM participants ORDER BY created_at DESC')
+    .prepare(
+      `SELECT id, email, full_name, email_verified, dataller_registered, occupation, organization,
+              project_url, education_level, age, bio, avatar_url, workshop_completed, profile_enabled,
+              recognition_enabled, recognition_folio, created_at, updated_at, last_login_at
+       FROM participants ORDER BY created_at DESC`
+    )
     .all<ParticipantRow>();
   return result.results.map(serializeParticipant);
 }

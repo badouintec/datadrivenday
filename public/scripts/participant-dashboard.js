@@ -552,8 +552,9 @@ function renderMembers() {
   `).join('');
 }
 
-async function loadDatallerWorkspace() {
+async function loadDatallerWorkspace(prefetchedResponse) {
   if (!state.participant?.datallerRegistered) {
+    if (prefetchedResponse) prefetchedResponse.catch(() => {});
     state.presentation = null;
     state.comments = [];
     state.members = [];
@@ -564,7 +565,7 @@ async function loadDatallerWorkspace() {
   }
 
   try {
-    const response = await fetch('/api/participant/dataller/workspace');
+    const response = await (prefetchedResponse ?? fetch('/api/participant/dataller/workspace'));
     const data = await response.json();
 
     if (!response.ok) {
@@ -589,8 +590,11 @@ async function loadDatallerWorkspace() {
 }
 
 async function loadDashboard() {
+  // Fire both requests in parallel to avoid sequential round-trips on page load
+  const workspacePrefetch = fetch('/api/participant/dataller/workspace');
   const response = await fetch('/api/participant/dashboard');
   if (!response.ok) {
+    workspacePrefetch.catch(() => {});
     throw new Error('dashboard_failed');
   }
 
@@ -618,7 +622,7 @@ async function loadDashboard() {
   renderDatallerState(data.participant);
   applyProfileState(data.participant);
   renderEducationalResources();
-  await loadDatallerWorkspace();
+  await loadDatallerWorkspace(workspacePrefetch);
 }
 
 function renderLoggedOut() {

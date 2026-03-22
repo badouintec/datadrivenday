@@ -372,15 +372,27 @@ export async function handleParticipantLogin(c: ParticipantContext) {
     return c.json({ ok: false, error: 'server_misconfigured' }, 500);
   }
 
+  const loginEmail = normalizeEmail(body.email);
   const loginIp = getClientIp(c.req);
+
+  // Rate limit by IP
   const loginFails = await getRateLimitCount(c.env.APP_SESSION, `login-fail:${loginIp}`, 900);
   if (loginFails >= 10) {
     return c.json({ ok: false, error: 'too_many_attempts' }, 429);
   }
 
+  // Rate limit by email address — prevents distributed credential stuffing
+  const emailFails = await getRateLimitCount(c.env.APP_SESSION, `login-fail-email:${loginEmail}`, 900);
+  if (emailFails >= 10) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+
   const participant = await verifyParticipantCredentials(c.env.DB, body.email, body.password);
   if (!participant) {
-    await incrementRateLimitCount(c.env.APP_SESSION, `login-fail:${loginIp}`, 900);
+    await Promise.all([
+      incrementRateLimitCount(c.env.APP_SESSION, `login-fail:${loginIp}`, 900),
+      incrementRateLimitCount(c.env.APP_SESSION, `login-fail-email:${loginEmail}`, 900),
+    ]);
     await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 100));
     return c.json({ ok: false, error: 'invalid_credentials' }, 401);
   }

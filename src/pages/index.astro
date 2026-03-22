@@ -394,25 +394,46 @@ const { settings: eventSettings } = await getEventSettings();
   // ── TEMPERATURE FETCH ───────────────────────────────────
   const tempEl = document.getElementById('temp-value');
   if (tempEl) {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 3000);
-    fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=29.07&longitude=-110.97&current=temperature_2m',
-      { signal: ctrl.signal }
-    )
-      .then(r => r.json())
-      .then((data: unknown) => {
-        clearTimeout(tid);
-        const d = data as Record<string, unknown>;
-        const cur = d.current as Record<string, unknown> | undefined;
-        const t = cur?.temperature_2m as number | undefined;
-        if (typeof t === 'number') {
-          tempEl.textContent = t.toFixed(1);
-          if (t >= 40) tempEl.style.color = 'var(--color-accent-heat)';
-          else if (t >= 30) tempEl.style.color = 'var(--color-accent-amber)';
-          else tempEl.style.color = 'var(--color-accent-data)';
+    function applyTempColor(el: HTMLElement, t: number) {
+      if (t >= 40) el.style.color = 'var(--color-accent-heat)';
+      else if (t >= 30) el.style.color = 'var(--color-accent-amber)';
+      else el.style.color = 'var(--color-accent-data)';
+    }
+    // Client-side cache: 5-minute TTL in sessionStorage
+    try {
+      const cached = sessionStorage.getItem('hmo_temp');
+      if (cached) {
+        const { value, ts } = JSON.parse(cached) as { value: string; ts: number };
+        if (Date.now() - ts < 300_000) {
+          tempEl.textContent = value;
+          applyTempColor(tempEl, parseFloat(value));
         }
-      })
-      .catch(() => { clearTimeout(tid); });
+      }
+    } catch { /* sessionStorage may be unavailable */ }
+
+    if (tempEl.textContent === '--') {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 3000);
+      fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=29.07&longitude=-110.97&current=temperature_2m',
+        { signal: ctrl.signal }
+      )
+        .then(r => r.json())
+        .then((data: unknown) => {
+          clearTimeout(tid);
+          const d = data as Record<string, unknown>;
+          const cur = d.current as Record<string, unknown> | undefined;
+          const t = cur?.temperature_2m as number | undefined;
+          if (typeof t === 'number') {
+            const formatted = t.toFixed(1);
+            tempEl.textContent = formatted;
+            applyTempColor(tempEl, t);
+            try { sessionStorage.setItem('hmo_temp', JSON.stringify({ value: formatted, ts: Date.now() })); } catch { /* ignore */ }
+          } else {
+            tempEl.textContent = 'N/D';
+          }
+        })
+        .catch(() => { clearTimeout(tid); tempEl.textContent = 'N/D'; });
+    }
   }
 </script>

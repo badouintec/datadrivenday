@@ -48,15 +48,15 @@ const staticDashboardData = {
                 </label>
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Correo</span>
-                  <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required />
+                  <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required autocomplete="email" />
                 </label>
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Contraseña</span>
-                  <input class="registro-input" type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128" required />
+                  <input class="registro-input" type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128" required autocomplete="new-password" />
                 </label>
               </div>
 
-              <div id="signupStatus" class="registro-status" hidden></div>
+              <div id="signupStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
 
               <div class="registro-auth-actions">
                 <button class="button" type="submit">Crear cuenta</button>
@@ -67,15 +67,15 @@ const staticDashboardData = {
               <div class="registro-form-grid registro-form-grid--login">
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Correo</span>
-                  <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required />
+                  <input class="registro-input" type="email" name="email" placeholder="correo@ejemplo.com" required autocomplete="email" />
                 </label>
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Contraseña</span>
-                  <input class="registro-input" type="password" name="password" placeholder="Tu contraseña" required />
+                  <input class="registro-input" type="password" name="password" placeholder="Tu contraseña" required autocomplete="current-password" />
                 </label>
               </div>
 
-              <div id="loginStatus" class="registro-status" hidden></div>
+              <div id="loginStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
 
               <div class="registro-auth-actions">
                 <button class="button" type="submit">Entrar</button>
@@ -90,7 +90,7 @@ const staticDashboardData = {
             <p class="registro-account-copy registro-account-copy--subtle">
               Te enviamos un link de verificación. Da click en el link y listo.
             </p>
-            <div id="verifyStatus" class="registro-status" hidden></div>
+            <div id="verifyStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
             <div class="registro-auth-actions registro-auth-actions--tight">
               <button id="resendBtn" class="button-secondary" type="button">Reenviar correo</button>
               <a id="verifyDirectLink" class="button-secondary" href="#" hidden>Abrir link de verificación</a>
@@ -362,7 +362,7 @@ const staticDashboardData = {
                         <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Bio corta"></textarea>
                         <button class="button-secondary" type="submit">Guardar</button>
                       </form>
-                      <div id="profileStatus" class="registro-status" hidden></div>
+                      <div id="profileStatus" class="registro-status" role="status" aria-live="polite" hidden></div>
                     </article>
                 </section>
               </main>

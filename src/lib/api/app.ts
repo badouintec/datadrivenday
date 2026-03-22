@@ -6,7 +6,8 @@ import { insertSubmission } from '../server/db/submissions';
 import { getSlides, getPresentation } from '../server/db/slides';
 import { getBlogPosts, getBlogPostBySlug } from '../server/db/blog';
 import { getPublicRecursos } from '../server/db/recursos';
-import { handleLogin, handleLogout, handleMe, requireAuth } from './auth';
+import { handleLogin, handleLogout, handleMe, requireAuth, getClientIp, getRateLimitCount, incrementRateLimitCount } from './auth';
+import { isValidEmail } from './participant-auth';
 import { presentationsRoutes, slidesRoutes } from './routes/admin-presentations';
 import { blogRoutes } from './routes/admin-blog';
 import { registrosRoutes } from './routes/admin-registros';
@@ -161,6 +162,7 @@ app.use('*', async (c, next) => {
   c.res.headers.set('X-Frame-Options', 'DENY');
   c.res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   c.res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  c.res.headers.set('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
 });
 
 app.onError((err, c) => {
@@ -189,10 +191,30 @@ app.post('/submissions', async (c) => {
     return c.json({ ok: false, error: 'type, name and email are required.' }, 400);
   }
 
+  const normalizedEmail = body.email.trim().toLowerCase();
+  if (!isValidEmail(normalizedEmail)) {
+    return c.json({ ok: false, error: 'Invalid email address.' }, 400);
+  }
+
+  const allowedTypes = ['registration', 'interest', 'contact', 'feedback', 'sponsor'];
+  if (!allowedTypes.includes(body.type)) {
+    return c.json({ ok: false, error: 'Invalid submission type.' }, 400);
+  }
+
+  // Rate limit by IP: 10 submissions per hour
+  if (c.env.APP_SESSION) {
+    const ip = getClientIp(c.req);
+    const submissionCount = await getRateLimitCount(c.env.APP_SESSION, `submissions:${ip}`, 3600);
+    if (submissionCount >= 10) {
+      return c.json({ ok: false, error: 'Too many submissions. Please try again later.' }, 429);
+    }
+    await incrementRateLimitCount(c.env.APP_SESSION, `submissions:${ip}`, 3600);
+  }
+
   const payload: SubmissionPayload = {
     type: body.type,
     name: body.name.trim(),
-    email: body.email.trim().toLowerCase(),
+    email: normalizedEmail,
     organization: body.organization?.trim(),
     message: body.message?.trim(),
     metadata: body.metadata

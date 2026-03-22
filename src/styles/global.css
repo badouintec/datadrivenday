@@ -125,6 +125,40 @@ a { color: var(--color-accent-sky); text-decoration: none; }
 .nav-links a:hover { color: var(--color-text-primary); background: rgba(255,255,255,0.04); }
 .nav-cta { color: var(--color-accent-sky) !important; }
 
+/* MOBILE NAV */
+.mobile-nav-toggle {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; width: 40px; height: 40px; padding: 8px;
+  background: none; border: none; cursor: pointer; border-radius: 4px;
+  color: var(--color-text-muted);
+}
+.mobile-nav-toggle:hover { background: rgba(255,255,255,0.04); }
+.hamburger-bar {
+  display: block; width: 22px; height: 2px;
+  background: currentColor; border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.mobile-nav-toggle[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.mobile-nav-toggle[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.mobile-nav-toggle[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-nav-panel {
+  display: none; position: fixed; top: 4.5rem; left: 0; right: 0;
+  background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1rem 1rem; z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.mobile-nav-panel.is-open { display: block; }
+.mobile-nav-links { display: flex; flex-direction: column; gap: 0.25rem; }
+.mobile-nav-links a {
+  font-family: var(--sans); font-size: 1rem; font-weight: 500;
+  color: var(--color-text-muted); padding: 0.75rem 1rem;
+  text-decoration: none; border-radius: 4px;
+  transition: color 0.18s, background 0.18s; display: block;
+}
+.mobile-nav-links a:hover { color: var(--color-text-primary); background: rgba(255,255,255,0.04); }
+.mobile-nav-links .nav-cta { color: var(--color-accent-sky) !important; }
+
 /* FOOTER */
 .site-footer {
   margin-top: 6rem; border-top: 1px solid var(--color-border);
@@ -670,6 +704,7 @@ h1 em { font-style: normal; color: var(--color-accent-sky); }
   .footer-panel { grid-template-columns: 1fr; }
   .hero-side { grid-template-columns: repeat(2, 1fr); }
   .nav-links { display: none; }
+  .mobile-nav-toggle { display: flex; }
 }
 
 /* REDUCED MOTION */

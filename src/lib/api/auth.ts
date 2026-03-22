@@ -52,16 +52,27 @@ async function hashPassword(password: string): Promise<string> {
   return `pbkdf2:${PBKDF2_ITERATIONS}:${saltHex}:${hashHex}`;
 }
 
+// Constant-time string comparison to prevent timing side-channel attacks
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 async function verifyPassword(password: string, stored: string): Promise<boolean> {
   // Support legacy SHA-256 hashes (64 hex chars, no prefix)
   if (!stored.startsWith('pbkdf2:')) {
     const legacyBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
     const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
-    return legacyHash === stored;
+    return timingSafeEqual(legacyHash, stored);
   }
 
   const [, iterStr, saltHex, hashHex] = stored.split(':');
-  const iterations = parseInt(iterStr);
+  const iterations = parseInt(iterStr, 10);
+  if (!Number.isFinite(iterations) || iterations < 10_000) return false;
   const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(h => parseInt(h, 16)));
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'],
@@ -71,7 +82,7 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
     key, 256,
   );
   const computedHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return computedHex === hashHex;
+  return timingSafeEqual(computedHex, hashHex);
 }
 
 export { hashPassword, verifyPassword };

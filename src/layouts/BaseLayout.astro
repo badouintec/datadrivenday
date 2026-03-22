@@ -84,9 +84,32 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
               >{item.label}</a>
             ))}
           </nav>
+
+          <button
+            class="mobile-nav-toggle"
+            type="button"
+            aria-label="Abrir menú"
+            aria-expanded="false"
+            aria-controls="mobile-nav-panel"
+          >
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </button>
         </div>
       </div>
     </header>
+
+    <div id="mobile-nav-panel" class="mobile-nav-panel" aria-hidden="true">
+      <nav class="mobile-nav-links" aria-label="Principal">
+        {navigation.map((item) => (
+          <a
+            href={item.href}
+            class={item.href === '/admin' ? 'nav-cta' : undefined}
+          >{item.label}</a>
+        ))}
+      </nav>
+    </div>
 
     <main id="main-content" tabindex="-1">
       <slot />
@@ -120,6 +143,40 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
     </footer>
 
     <script>
+      // ── MOBILE NAV TOGGLE ──────────────────────────────────────
+      const mobileToggle = document.querySelector('.mobile-nav-toggle') as HTMLButtonElement | null;
+      const mobilePanel = document.getElementById('mobile-nav-panel');
+
+      if (mobileToggle && mobilePanel) {
+        mobileToggle.addEventListener('click', () => {
+          const expanded = mobileToggle.getAttribute('aria-expanded') === 'true';
+          mobileToggle.setAttribute('aria-expanded', String(!expanded));
+          mobilePanel.classList.toggle('is-open', !expanded);
+          mobilePanel.setAttribute('aria-hidden', String(expanded));
+          mobileToggle.setAttribute('aria-label', expanded ? 'Abrir menú' : 'Cerrar menú');
+        });
+
+        // Close on outside click or navigation
+        document.addEventListener('click', (e) => {
+          if (!mobilePanel.contains(e.target as Node) && !mobileToggle.contains(e.target as Node)) {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobilePanel.classList.remove('is-open');
+            mobilePanel.setAttribute('aria-hidden', 'true');
+            mobileToggle.setAttribute('aria-label', 'Abrir menú');
+          }
+        });
+
+        // Close on nav link click
+        mobilePanel.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobilePanel.classList.remove('is-open');
+            mobilePanel.setAttribute('aria-hidden', 'true');
+            mobileToggle.setAttribute('aria-label', 'Abrir menú');
+          });
+        });
+      }
+
       // ── SCROLL PROGRESS ──────────────────────────────────────
       const progressBar = document.getElementById('scroll-progress');
       if (progressBar) {
