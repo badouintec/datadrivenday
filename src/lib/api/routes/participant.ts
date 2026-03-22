@@ -6,16 +6,22 @@ import {
   handleParticipantLogout,
   handleParticipantMe,
   handleParticipantSignup,
+  handleResendVerification,
+  handleVerifyEmail,
   normalizeOptionalUrl,
   requireParticipantAuth,
+  requireVerifiedParticipantAuth,
 } from '../participant-auth';
 import {
   getOpenTeams,
   getParticipantTeamById,
   getParticipantTeams,
   insertParticipantTeam,
+  insertPresentationComment,
   joinParticipantTeam,
+  listDatallerParticipants,
   listParticipants,
+  listPresentationComments,
   serializeParticipant,
   updateParticipantAdminFlags,
   updateParticipantDatallerRegistration,
@@ -23,17 +29,31 @@ import {
 } from '../../server/db/participants';
 import { buildParticipantRecognitionPdf } from '../../server/documents/participant-recognition';
 import { getPublicRecursos } from '../../server/db/recursos';
+import { getPresentation, getPresentations, getSlides } from '../../server/db/slides';
 
 type Env = { Bindings: Partial<AppBindings>; Variables: AppVariables };
 
 export const participantRoutes = new Hono<Env>();
 
+async function getParticipantWorkspacePresentation(db: D1Database) {
+  const preferredPresentationId = 'pres-dataller-2026';
+  const preferredPresentation = await getPresentation(db, preferredPresentationId);
+
+  if (preferredPresentation && preferredPresentation.estado !== 'archivada') {
+    return preferredPresentation;
+  }
+
+  return (await getPresentations(db)).find((presentation) => presentation.estado !== 'archivada') ?? null;
+}
+
 participantRoutes.post('/signup', handleParticipantSignup);
 participantRoutes.post('/login', handleParticipantLogin);
 participantRoutes.post('/logout', handleParticipantLogout);
 participantRoutes.get('/me', requireParticipantAuth(), handleParticipantMe);
+participantRoutes.get('/verify-email', handleVerifyEmail);
+participantRoutes.post('/resend-verification', requireParticipantAuth(), handleResendVerification);
 
-participantRoutes.get('/recognition', requireParticipantAuth(), async (c) => {
+participantRoutes.get('/recognition', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
@@ -74,10 +94,17 @@ participantRoutes.get('/dashboard', requireParticipantAuth(), async (c) => {
     getOpenTeams(c.env.DB!, participant.id),
   ]);
 
-  return c.json({ ok: true, participant, recursos, myTeams, openTeams });
+  return c.json({
+    ok: true,
+    participant,
+    recursos,
+    myTeams,
+    openTeams,
+    verificationEmailAvailable: Boolean(c.env.RESEND_API_KEY),
+  });
 });
 
-participantRoutes.patch('/dataller', requireParticipantAuth(), async (c) => {
+participantRoutes.patch('/dataller', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
@@ -101,7 +128,95 @@ participantRoutes.patch('/dataller', requireParticipantAuth(), async (c) => {
   return c.json({ ok: true, participant: serializeParticipant(updated) });
 });
 
-participantRoutes.patch('/profile', requireParticipantAuth(), async (c) => {
+participantRoutes.get('/dataller/workspace', requireVerifiedParticipantAuth(), async (c) => {
+  const participant = c.get('participant');
+  if (!participant) {
+    return c.json({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  if (!participant.datallerRegistered) {
+    return c.json({ ok: false, error: 'dataller_required' }, 403);
+  }
+
+  const presentation = await getParticipantWorkspacePresentation(c.env.DB!);
+
+  if (!presentation) {
+    return c.json({ ok: true, presentation: null, comments: [], members: [] });
+  }
+
+  const [slides, comments, members] = await Promise.all([
+    getSlides(c.env.DB!, presentation.id),
+    listPresentationComments(c.env.DB!, presentation.id),
+    listDatallerParticipants(c.env.DB!, participant.id),
+  ]);
+
+  return c.json({
+    ok: true,
+    presentation: {
+      id: presentation.id,
+      nombre: presentation.nombre,
+      descripcion: presentation.descripcion,
+      estado: presentation.estado,
+      slides: slides
+        .filter((slide) => slide.isActive)
+        .map((slide) => ({
+          id: slide.id,
+          numero: slide.numero,
+          tag: slide.tag,
+          titulo: slide.titulo,
+          subtitulo: slide.subtitulo,
+          cuerpo: slide.cuerpo,
+          conceptosClave: slide.conceptosClave,
+          referencias: slide.referencias,
+          accentColor: slide.accentColor,
+        })),
+    },
+    comments,
+    members,
+  });
+});
+
+participantRoutes.post('/dataller/comments', requireVerifiedParticipantAuth(), async (c) => {
+  const participant = c.get('participant');
+  if (!participant) {
+    return c.json({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  if (!participant.datallerRegistered) {
+    return c.json({ ok: false, error: 'dataller_required' }, 403);
+  }
+
+  const body = await c.req.json<{ presentacionId?: string; body?: string }>().catch(() => null);
+  const commentBody = body?.body?.trim();
+  const presentacionId = body?.presentacionId?.trim();
+
+  if (!presentacionId || !commentBody) {
+    return c.json({ ok: false, error: 'missing_fields' }, 400);
+  }
+
+  if (commentBody.length < 3 || commentBody.length > 800) {
+    return c.json({ ok: false, error: 'invalid_length' }, 400);
+  }
+
+  const presentation = await getParticipantWorkspacePresentation(c.env.DB!);
+  if (!presentation || presentation.id !== presentacionId) {
+    return c.json({ ok: false, error: 'presentation_not_found' }, 404);
+  }
+
+  const comment = await insertPresentationComment(c.env.DB!, {
+    participantId: participant.id,
+    presentacionId,
+    body: commentBody,
+  });
+
+  if (!comment) {
+    return c.json({ ok: false, error: 'comment_not_created' }, 500);
+  }
+
+  return c.json({ ok: true, comment }, 201);
+});
+
+participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
@@ -145,7 +260,7 @@ participantRoutes.patch('/profile', requireParticipantAuth(), async (c) => {
   return c.json({ ok: true, participant: serializeParticipant(updated) });
 });
 
-participantRoutes.get('/teams', requireParticipantAuth(), async (c) => {
+participantRoutes.get('/teams', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
@@ -158,7 +273,7 @@ participantRoutes.get('/teams', requireParticipantAuth(), async (c) => {
   return c.json({ ok: true, myTeams, openTeams });
 });
 
-participantRoutes.post('/teams', requireParticipantAuth(), async (c) => {
+participantRoutes.post('/teams', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
@@ -179,7 +294,7 @@ participantRoutes.post('/teams', requireParticipantAuth(), async (c) => {
   return c.json({ ok: true, id: teamId }, 201);
 });
 
-participantRoutes.post('/teams/:id/join', requireParticipantAuth(), async (c) => {
+participantRoutes.post('/teams/:id/join', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   const teamId = c.req.param('id');
   if (!participant || !teamId) {

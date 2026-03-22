@@ -78,13 +78,20 @@ export async function insertRecurso(
   return id;
 }
 
+const ALLOWED_RECURSO_FIELDS = new Set<string>([
+  'titulo', 'fuente', 'anio', 'url', 'tipo', 'categoria',
+  'descripcion', 'is_featured', 'is_active', 'orden',
+]);
+
 export async function updateRecurso(
   db: D1Database,
   id: string,
   patch: Partial<Omit<RecursoRow, 'id' | 'created_at' | 'updated_at'>>
 ) {
-  const fields = Object.keys(patch).map(k => `${k} = ?`).join(', ');
-  const values = Object.values(patch);
+  const safe = Object.entries(patch).filter(([k]) => ALLOWED_RECURSO_FIELDS.has(k));
+  if (!safe.length) return;
+  const fields = safe.map(([k]) => `${k} = ?`).join(', ');
+  const values = safe.map(([, v]) => v);
   await db
     .prepare(`UPDATE recursos SET ${fields} WHERE id = ?`)
     .bind(...values, id)

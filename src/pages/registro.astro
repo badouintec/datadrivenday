@@ -1,7 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { datallerResources, filteredResources, researchResourceGroups } from '../data/site';
 
 export const prerender = true;
+
+const staticDashboardData = {
+  datallerResources,
+  educationalGroups: researchResourceGroups,
+  platformLibrary: filteredResources.slice(0, 8),
+};
 ---
 
 <BaseLayout
@@ -9,18 +16,9 @@ export const prerender = true;
   description="Crea tu cuenta en Data Driven Day y entra a tu tablero personal."
 >
   <section class="section registro-shell">
-    <div class="page-shell registro-page">
-      <header class="registro-hero">
-        <p class="section-label">Registro</p>
-        <h1 class="registro-h1">Crea tu cuenta en Data Driven Day</h1>
-        <p class="registro-intro">
-          Regístrate, inicia sesión y entra a tu tablero para acceder a talleres, materiales,
-          equipos, perfil y reconocimiento.
-        </p>
-      </header>
-
+    <div id="registroPage" class="page-shell registro-page registro-page--auth-only">
       <div class="registro-grid">
-        <div class="registro-auth-column">
+        <div id="authColumn" class="registro-auth-column">
           <div id="authShell" class="registro-auth-card">
             <div class="registro-auth-tabs">
               <button class="registro-tab is-active" type="button" data-auth-tab="signup">Crear cuenta</button>
@@ -70,107 +68,235 @@ export const prerender = true;
             </form>
           </div>
 
-          <div id="accountShell" class="registro-account-card" hidden>
-            <p class="registro-account-kicker">Sesión activa</p>
-            <h2 id="accountName" class="registro-account-title">Participante</h2>
-            <p id="accountEmail" class="registro-account-copy"></p>
-            <div id="accountFlags" class="registro-account-flags"></div>
-            <div class="registro-auth-actions">
-              <button id="logoutBtn" class="button-secondary" type="button">Cerrar sesión</button>
+          <div id="verifyShell" class="registro-account-card" hidden>
+            <p class="registro-account-kicker">Verifica tu correo</p>
+            <h2 class="registro-account-title">Revisa tu bandeja de entrada</h2>
+            <p id="verifyEmail" class="registro-account-copy"></p>
+            <p class="registro-account-copy registro-account-copy--subtle">
+              Te enviamos un link de verificación. Da click en el link y listo.
+            </p>
+            <div id="verifyStatus" class="registro-status" hidden></div>
+            <div class="registro-auth-actions registro-auth-actions--tight">
+              <button id="resendBtn" class="button-secondary" type="button">Reenviar correo</button>
+              <a id="verifyDirectLink" class="button-secondary" href="#" hidden>Abrir link de verificación</a>
             </div>
           </div>
         </div>
 
-        <div class="registro-dashboard-column">
-          <section class="participant-shell">
-            <header class="participant-topbar">
-              <div>
-                <p class="participant-topbar-label">Tablero</p>
-                <h2 id="dashboardTitle" class="participant-topbar-title">Tu sesión de Data Driven Day</h2>
+        <div id="dashboardColumn" class="registro-dashboard-column" hidden>
+          <section class="participant-admin-shell">
+            <aside class="participant-admin-sidebar">
+              <div class="participant-admin-brand">
+                <span class="participant-admin-brand-kicker">Data Driven Day</span>
+                <strong class="participant-admin-brand-title">Panel participante</strong>
               </div>
-              <div id="dashboardBadge" class="participant-topbar-badge">Sin sesión</div>
-            </header>
 
-            <div class="participant-content-grid">
-              <section class="participant-panel participant-panel--wide">
-                <p class="participant-panel-label">Materiales</p>
-                <h3 class="participant-panel-title">Talleres y recursos</h3>
-                <p id="resourceSummary" class="participant-panel-copy">
-                  Inicia sesión para cargar tus materiales y recursos activos.
-                </p>
-                <div id="resourceList" class="participant-doc-list">
-                  <div class="participant-doc-item">
-                    <strong>Accede con tu cuenta para ver tus recursos</strong>
-                  </div>
-                </div>
-              </section>
+              <div class="participant-admin-user-card">
+                <p id="sidebarFirstName" class="participant-admin-user-name">Participante</p>
+                <p id="sidebarEmail" class="participant-admin-user-email">correo@ejemplo.com</p>
+                <div id="sidebarFlags" class="participant-admin-flags"></div>
+              </div>
 
-              <section class="participant-panel">
-                <p class="participant-panel-label">Dataller</p>
-                <h3 class="participant-panel-title">Activa tu participación</h3>
-                <p id="datallerSummary" class="participant-panel-copy">
-                  Inicia sesión para indicar que participas en el Dataller.
-                </p>
-                <div class="participant-lockbox participant-lockbox--compact">
-                  <span id="datallerState" class="participant-lock-state">Sin sesión</span>
-                  <p id="datallerCopy">Cuando actives Dataller, el admin podrá verte en ese grupo y liberar tu certificado.</p>
-                  <div class="participant-inline-actions">
-                    <button id="datallerToggleBtn" class="button-secondary" type="button" disabled>Activar Dataller</button>
-                  </div>
-                </div>
-                <div id="datallerStatus" class="registro-status" hidden></div>
-              </section>
+              <nav class="participant-admin-nav" aria-label="Navegacion del tablero participante">
+                <button class="participant-admin-nav-link is-active" type="button" data-scroll-target="overviewSection">Resumen</button>
+                <button class="participant-admin-nav-link" type="button" data-scroll-target="datallerSection">Dataller</button>
+                <button class="participant-admin-nav-link" type="button" data-scroll-target="resourcesSection">Recursos</button>
+                <button class="participant-admin-nav-link" type="button" data-scroll-target="communitySection">Comunidad</button>
+                <button class="participant-admin-nav-link" type="button" data-scroll-target="profileSection">Perfil</button>
+              </nav>
 
-              <section class="participant-panel">
-                <p class="participant-panel-label">Equipos</p>
-                <h3 class="participant-panel-title">Colabora con otros participantes</h3>
-                <form id="teamForm" class="participant-form-grid">
-                  <input class="registro-input" type="text" name="name" placeholder="Nombre del equipo" />
-                  <input class="registro-input" type="text" name="focusArea" placeholder="Tema o interés" />
-                  <textarea class="registro-input participant-textarea" name="description" placeholder="Descripción breve"></textarea>
-                  <button class="button-secondary" type="submit">Crear equipo</button>
-                </form>
-                <div id="teamStatus" class="registro-status" hidden></div>
-                <div class="participant-team-block">
-                  <span class="participant-doc-tag">Mis equipos</span>
-                  <div id="myTeamList" class="participant-mini-list">
-                    <div class="participant-mini-row"><span>Sin sesión</span><span>--</span></div>
-                  </div>
-                </div>
-                <div class="participant-team-block">
-                  <span class="participant-doc-tag">Equipos abiertos</span>
-                  <div id="openTeamList" class="participant-mini-list">
-                    <div class="participant-mini-row"><span>Sin sesión</span><span>--</span></div>
-                  </div>
-                </div>
-              </section>
+              <div class="participant-admin-sidebar-footer">
+                <button id="logoutBtn" class="button-secondary participant-admin-logout" type="button">Cerrar sesión</button>
+              </div>
+            </aside>
 
-              <section class="participant-panel">
-                <p class="participant-panel-label">Reconocimiento</p>
-                <h3 class="participant-panel-title">Tu estado</h3>
-                <div id="recognitionBox" class="participant-lockbox">
-                  <span id="recognitionState" class="participant-lock-state">Sin sesión</span>
-                  <p id="recognitionCopy">Inicia sesión para ver el estado de tu reconocimiento.</p>
-                  <div id="recognitionActions" class="participant-inline-actions participant-recognition-actions" hidden>
-                    <a id="recognitionDownload" class="button-secondary" href="/api/participant/recognition" target="_blank" rel="noreferrer">Descargar PDF</a>
-                    <span id="recognitionMeta" class="participant-doc-tag"></span>
-                  </div>
+            <div class="participant-admin-main">
+              <header class="participant-admin-topbar">
+                <div>
+                  <p class="participant-admin-kicker">Tablero participante</p>
+                  <h2 id="dashboardTitle" class="participant-admin-title">Tu sesión de Data Driven Day</h2>
                 </div>
-              </section>
+                <div class="participant-admin-badge-row">
+                  <span id="dashboardBadge" class="participant-admin-badge">Sin sesión</span>
+                  <span id="recognitionBadge" class="participant-admin-badge participant-admin-badge--muted">Reconocimiento pendiente</span>
+                </div>
+              </header>
 
-              <section class="participant-panel participant-panel--wide">
-                <p class="participant-panel-label">Perfil</p>
-                <h3 class="participant-panel-title">Completa tu perfil</h3>
-                <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
-                  <input class="registro-input" type="text" name="occupation" placeholder="Qué estudias o a qué te dedicas" />
-                  <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
-                  <input class="registro-input" type="url" name="projectUrl" placeholder="Enlace a tu proyecto" />
-                  <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto" />
-                  <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Descripción corta"></textarea>
-                  <button class="button-secondary" type="submit">Guardar perfil</button>
-                </form>
-                <div id="profileStatus" class="registro-status" hidden></div>
-              </section>
+              <main class="participant-admin-content">
+                <section id="overviewSection" class="participant-admin-section">
+                  <div class="participant-admin-section-head">
+                    <p class="participant-admin-section-kicker">Resumen</p>
+                    <h3 class="participant-admin-section-title">Estado de tu cuenta</h3>
+                  </div>
+
+                  <div class="participant-stats-grid">
+                    <article class="participant-stat-card">
+                      <span class="participant-stat-label">Dataller</span>
+                      <strong id="statDataller" class="participant-stat-value">Sin sesión</strong>
+                      <span id="statDatallerMeta" class="participant-stat-meta">Activa tu participación</span>
+                    </article>
+                    <article class="participant-stat-card">
+                      <span class="participant-stat-label">Presentación</span>
+                      <strong id="statSlides" class="participant-stat-value">0</strong>
+                      <span id="statSlidesMeta" class="participant-stat-meta">Slides visibles</span>
+                    </article>
+                    <article class="participant-stat-card">
+                      <span class="participant-stat-label">Comunidad</span>
+                      <strong id="statMembers" class="participant-stat-value">0</strong>
+                      <span id="statMembersMeta" class="participant-stat-meta">Personas en Dataller</span>
+                    </article>
+                    <article class="participant-stat-card">
+                      <span class="participant-stat-label">Comentarios</span>
+                      <strong id="statComments" class="participant-stat-value">0</strong>
+                      <span id="statCommentsMeta" class="participant-stat-meta">Notas compartidas</span>
+                    </article>
+                  </div>
+
+                  <div class="participant-overview-grid">
+                    <article class="participant-panel participant-panel--recognition">
+                      <p class="participant-panel-label">Reconocimiento</p>
+                      <h3 class="participant-panel-title">Tu autorización</h3>
+                      <div class="participant-lockbox">
+                        <span id="recognitionState" class="participant-lock-state">Sin sesión</span>
+                        <p id="recognitionCopy">Inicia sesión para ver el estado de tu reconocimiento.</p>
+                        <div id="recognitionActions" class="participant-inline-actions participant-recognition-actions" hidden>
+                          <a id="recognitionDownload" class="button-secondary" href="/api/participant/recognition" target="_blank" rel="noreferrer">Descargar PDF</a>
+                          <span id="recognitionMeta" class="participant-doc-tag"></span>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Biblioteca</p>
+                      <h3 class="participant-panel-title">Recursos activos en plataforma</h3>
+                      <p id="platformSummary" class="participant-panel-copy">Inicia sesión para cargar tus recursos activos.</p>
+                      <div id="platformResourceList" class="participant-doc-list">
+                        <div class="participant-doc-item"><strong>Accede con tu cuenta para ver tus recursos</strong></div>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+
+                <section id="datallerSection" class="participant-admin-section">
+                  <div class="participant-admin-section-head">
+                    <p class="participant-admin-section-kicker">Dataller</p>
+                    <h3 class="participant-admin-section-title">Presentación activa y comentarios</h3>
+                  </div>
+
+                  <div class="participant-workspace-grid">
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Acceso</p>
+                      <h3 class="participant-panel-title">Activa tu participación</h3>
+                      <p id="datallerSummary" class="participant-panel-copy">Inicia sesión para indicar que participas en el Dataller.</p>
+                      <div class="participant-lockbox participant-lockbox--compact">
+                        <span id="datallerState" class="participant-lock-state">Sin sesión</span>
+                        <p id="datallerCopy">Cuando actives Dataller, podrás ver la presentación, comentar y entrar a la comunidad.</p>
+                        <div class="participant-inline-actions">
+                          <button id="datallerToggleBtn" class="button-secondary" type="button" disabled>Activar Dataller</button>
+                        </div>
+                      </div>
+                      <div id="datallerStatus" class="registro-status" hidden></div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--presentation">
+                      <div class="participant-presentation-head">
+                        <div>
+                          <p class="participant-panel-label">Presentación</p>
+                          <h3 id="presentationTitle" class="participant-panel-title">Activa Dataller para abrir la presentación</h3>
+                        </div>
+                        <span id="slideCounter" class="participant-doc-tag">0 / 0</span>
+                      </div>
+                      <p id="presentationDescription" class="participant-panel-copy">La vista de presentación se habilita cuando activas tu lugar en el Dataller.</p>
+                      <div id="presentationViewer" class="participant-slide-viewer participant-slide-viewer--locked">
+                        <span id="slideTag" class="participant-doc-tag">Dataller</span>
+                        <h4 id="slideTitle" class="participant-slide-title">Sin acceso todavía</h4>
+                        <p id="slideSubtitle" class="participant-slide-subtitle">Activa Dataller para ver el contenido del taller.</p>
+                        <div id="slideBody" class="participant-slide-body">Aquí aparecerá el contenido de la presentación activa.</div>
+                        <div id="slideConcepts" class="participant-concept-list"></div>
+                      </div>
+                      <div class="participant-presentation-actions">
+                        <button id="slidePrevBtn" class="button-secondary" type="button" disabled>Anterior</button>
+                        <button id="slideNextBtn" class="button-secondary" type="button" disabled>Siguiente</button>
+                      </div>
+                    </article>
+                  </div>
+
+                  <article class="participant-panel participant-panel--wide participant-panel--comments">
+                    <div class="participant-comments-head">
+                      <div>
+                        <p class="participant-panel-label">Comentarios</p>
+                        <h3 class="participant-panel-title">Comparte observaciones sobre la presentación</h3>
+                      </div>
+                      <span id="commentsCountLabel" class="participant-doc-tag">0 comentarios</span>
+                    </div>
+                    <form id="commentForm" class="participant-comment-form">
+                      <textarea id="commentBody" class="registro-input participant-textarea participant-textarea--comment" placeholder="Escribe un comentario útil para el resto del Dataller" maxlength="800" disabled></textarea>
+                      <div class="participant-comment-actions">
+                        <button id="commentSubmitBtn" class="button-secondary" type="submit" disabled>Publicar comentario</button>
+                      </div>
+                    </form>
+                    <div id="commentStatus" class="registro-status" hidden></div>
+                    <div id="commentList" class="participant-comment-list">
+                      <div class="participant-comment-empty">Activa Dataller para ver y dejar comentarios.</div>
+                    </div>
+                  </article>
+                </section>
+
+                <section id="resourcesSection" class="participant-admin-section">
+                  <div class="participant-admin-section-head">
+                    <p class="participant-admin-section-kicker">Recursos</p>
+                    <h3 class="participant-admin-section-title">Materiales del taller y biblioteca extendida</h3>
+                  </div>
+
+                  <div class="participant-resource-grid">
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Dataller</p>
+                      <h3 class="participant-panel-title">Recursos del taller</h3>
+                      <p id="datallerResourcesCopy" class="participant-panel-copy">Activa Dataller para ver todos los recursos del taller.</p>
+                      <div id="datallerResourceList" class="participant-link-list"></div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--wide">
+                      <p class="participant-panel-label">Biblioteca educativa</p>
+                      <h3 class="participant-panel-title">Más recursos dentro de la plataforma</h3>
+                      <div id="educationalResourceGroups" class="participant-resource-groups"></div>
+                    </article>
+                  </div>
+                </section>
+
+                <section id="communitySection" class="participant-admin-section">
+                  <div class="participant-admin-section-head">
+                    <p class="participant-admin-section-kicker">Comunidad</p>
+                    <h3 class="participant-admin-section-title">Quiénes más están en el Dataller</h3>
+                  </div>
+
+                  <article class="participant-panel participant-panel--wide">
+                    <p class="participant-panel-copy">Solo mostramos primer nombre para mantener la lista útil y ligera.</p>
+                    <div id="communityList" class="participant-member-grid">
+                      <div class="participant-member-empty">Activa Dataller para ver la comunidad.</div>
+                    </div>
+                  </article>
+                </section>
+
+                <section id="profileSection" class="participant-admin-section">
+                  <div class="participant-admin-section-head">
+                    <p class="participant-admin-section-kicker">Perfil</p>
+                    <h3 class="participant-admin-section-title">Actualiza tu perfil</h3>
+                  </div>
+
+                  <article class="participant-panel participant-panel--wide">
+                    <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
+                      <input class="registro-input" type="text" name="occupation" placeholder="Qué estudias o a qué te dedicas" />
+                      <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
+                      <input class="registro-input" type="url" name="projectUrl" placeholder="Enlace a tu proyecto" />
+                      <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto" />
+                      <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Descripción corta"></textarea>
+                      <button class="button-secondary" type="submit">Guardar perfil</button>
+                    </form>
+                    <div id="profileStatus" class="registro-status" hidden></div>
+                  </article>
+                </section>
+              </main>
             </div>
           </section>
         </div>
@@ -178,47 +304,109 @@ export const prerender = true;
     </div>
   </section>
 
+  <script id="participantStaticData" type="application/json" set:html={JSON.stringify(staticDashboardData)} />
+
   <script>
 // @ts-nocheck
+    const staticData = JSON.parse(document.getElementById('participantStaticData')?.textContent || '{}');
     const guestResources = [
-      { titulo: 'Tus materiales aparecerán aquí cuando inicies sesión.' },
-      { titulo: 'Tu tablero centraliza recursos, equipos y perfil.' },
+      { titulo: 'Tus recursos activos aparecerán aquí cuando inicies sesión.' },
+      { titulo: 'El tablero concentra Dataller, comunidad y biblioteca educativa.' },
     ];
 
+    const registroPage = document.getElementById('registroPage');
+    const authColumn = document.getElementById('authColumn');
+    const dashboardColumn = document.getElementById('dashboardColumn');
     const tabs = document.querySelectorAll('[data-auth-tab]');
     const panes = document.querySelectorAll('[data-auth-pane]');
     const authShell = document.getElementById('authShell');
-    const accountShell = document.getElementById('accountShell');
+    const verifyShell = document.getElementById('verifyShell');
     const signupForm = document.getElementById('signupForm');
     const loginForm = document.getElementById('loginForm');
     const signupStatus = document.getElementById('signupStatus');
     const loginStatus = document.getElementById('loginStatus');
-    const datallerStatus = document.getElementById('datallerStatus');
-    const teamStatus = document.getElementById('teamStatus');
-    const profileStatus = document.getElementById('profileStatus');
-    const accountName = document.getElementById('accountName');
-    const accountEmail = document.getElementById('accountEmail');
-    const accountFlags = document.getElementById('accountFlags');
+    const resendBtn = document.getElementById('resendBtn');
+    const verifyDirectLink = document.getElementById('verifyDirectLink');
+    const verifyStatus = document.getElementById('verifyStatus');
+    const verifyEmail = document.getElementById('verifyEmail');
+    const sidebarFirstName = document.getElementById('sidebarFirstName');
+    const sidebarEmail = document.getElementById('sidebarEmail');
+    const sidebarFlags = document.getElementById('sidebarFlags');
+    const logoutBtn = document.getElementById('logoutBtn');
     const dashboardTitle = document.getElementById('dashboardTitle');
     const dashboardBadge = document.getElementById('dashboardBadge');
+    const recognitionBadge = document.getElementById('recognitionBadge');
+    const statDataller = document.getElementById('statDataller');
+    const statDatallerMeta = document.getElementById('statDatallerMeta');
+    const statSlides = document.getElementById('statSlides');
+    const statSlidesMeta = document.getElementById('statSlidesMeta');
+    const statMembers = document.getElementById('statMembers');
+    const statMembersMeta = document.getElementById('statMembersMeta');
+    const statComments = document.getElementById('statComments');
+    const statCommentsMeta = document.getElementById('statCommentsMeta');
+    const platformSummary = document.getElementById('platformSummary');
+    const platformResourceList = document.getElementById('platformResourceList');
     const datallerSummary = document.getElementById('datallerSummary');
     const datallerState = document.getElementById('datallerState');
     const datallerCopy = document.getElementById('datallerCopy');
     const datallerToggleBtn = document.getElementById('datallerToggleBtn');
-    const resourceSummary = document.getElementById('resourceSummary');
-    const resourceList = document.getElementById('resourceList');
-    const myTeamList = document.getElementById('myTeamList');
-    const openTeamList = document.getElementById('openTeamList');
+    const datallerStatus = document.getElementById('datallerStatus');
+    const presentationTitle = document.getElementById('presentationTitle');
+    const presentationDescription = document.getElementById('presentationDescription');
+    const presentationViewer = document.getElementById('presentationViewer');
+    const slideTag = document.getElementById('slideTag');
+    const slideTitle = document.getElementById('slideTitle');
+    const slideSubtitle = document.getElementById('slideSubtitle');
+    const slideBody = document.getElementById('slideBody');
+    const slideConcepts = document.getElementById('slideConcepts');
+    const slideCounter = document.getElementById('slideCounter');
+    const slidePrevBtn = document.getElementById('slidePrevBtn');
+    const slideNextBtn = document.getElementById('slideNextBtn');
+    const commentsCountLabel = document.getElementById('commentsCountLabel');
+    const commentForm = document.getElementById('commentForm');
+    const commentBody = document.getElementById('commentBody');
+    const commentSubmitBtn = document.getElementById('commentSubmitBtn');
+    const commentStatus = document.getElementById('commentStatus');
+    const commentList = document.getElementById('commentList');
+    const datallerResourcesCopy = document.getElementById('datallerResourcesCopy');
+    const datallerResourceList = document.getElementById('datallerResourceList');
+    const educationalResourceGroups = document.getElementById('educationalResourceGroups');
+    const communityList = document.getElementById('communityList');
     const recognitionState = document.getElementById('recognitionState');
     const recognitionCopy = document.getElementById('recognitionCopy');
     const recognitionActions = document.getElementById('recognitionActions');
     const recognitionDownload = document.getElementById('recognitionDownload');
     const recognitionMeta = document.getElementById('recognitionMeta');
     const profileForm = document.getElementById('profileForm');
-    const teamForm = document.getElementById('teamForm');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const profileStatus = document.getElementById('profileStatus');
+    const navButtons = document.querySelectorAll('[data-scroll-target]');
 
-    const state = { participant: null };
+    const state = {
+      participant: null,
+      platformResources: [],
+      presentation: null,
+      comments: [],
+      members: [],
+      slideIndex: 0,
+      verificationEmailAvailable: true,
+      verificationEmailSent: true,
+      verificationDirectUrl: null,
+      verificationError: null,
+    };
+
+    function setVerificationDirectUrl(url) {
+      state.verificationDirectUrl = url || null;
+      verifyDirectLink.hidden = !state.verificationDirectUrl;
+      verifyDirectLink.href = state.verificationDirectUrl || '#';
+    }
+
+    function setPageMode(mode) {
+      const isDashboard = mode === 'dashboard';
+      authColumn.hidden = isDashboard;
+      dashboardColumn.hidden = !isDashboard;
+      registroPage.classList.toggle('registro-page--auth-only', !isDashboard);
+      registroPage.classList.toggle('registro-page--dashboard', isDashboard);
+    }
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -227,6 +415,10 @@ export const prerender = true;
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+    }
+
+    function nl2br(value) {
+      return escapeHtml(value).replaceAll('\n', '<br>');
     }
 
     function setStatus(element, message, kind = 'info') {
@@ -242,79 +434,74 @@ export const prerender = true;
       element.className = `registro-status registro-status--${kind}`;
     }
 
-    function renderResources(resources = []) {
+    function formatDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      return new Intl.DateTimeFormat('es-MX', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    }
+
+    function renderSidebar(participant) {
+      const firstName = participant?.fullName?.split(' ')?.[0] || 'Participante';
+      sidebarFirstName.textContent = firstName;
+      sidebarEmail.textContent = participant?.email || 'correo@ejemplo.com';
+      sidebarFlags.innerHTML = participant
+        ? [
+            participant.datallerRegistered ? 'Dataller activo' : 'Dataller inactivo',
+            participant.workshopCompleted ? 'Validado' : 'Pendiente',
+            participant.profileEnabled ? 'Perfil listo' : 'Perfil bloqueado',
+          ].map((label) => `<span class="participant-admin-flag">${label}</span>`).join('')
+        : '';
+    }
+
+    function renderPlatformResources(resources = []) {
       const items = resources.length ? resources : guestResources;
-      resourceList.innerHTML = items.map((item) => `
-        <div class="participant-doc-item">
-          <strong>${escapeHtml(item.titulo)}</strong>
-        </div>
+      platformResourceList.innerHTML = items.map((item) => {
+        if (item.url) {
+          return `
+            <a class="participant-doc-item participant-doc-item--link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
+              <strong>${escapeHtml(item.titulo)}</strong>
+              <span>${escapeHtml(item.categoria || item.fuente || 'Recurso')}</span>
+            </a>
+          `;
+        }
+        return `<div class="participant-doc-item"><strong>${escapeHtml(item.titulo)}</strong></div>`;
+      }).join('');
+    }
+
+    function renderEducationalResources() {
+      educationalResourceGroups.innerHTML = (staticData.educationalGroups || []).map((group) => `
+        <article class="participant-resource-group-card">
+          <h4>${escapeHtml(group.title)}</h4>
+          <div class="participant-link-list">
+            ${group.links.map((link) => `
+              <a class="participant-link-item" href="${escapeHtml(link.href)}" target="_blank" rel="noreferrer">
+                <strong>${escapeHtml(link.label)}</strong>
+                <span>Referencia externa</span>
+              </a>
+            `).join('')}
+          </div>
+        </article>
       `).join('');
     }
 
-    function renderTeams(myTeams = [], openTeams = [], loggedIn = false) {
-      if (!loggedIn) {
-        myTeamList.innerHTML = '<div class="participant-mini-row"><span>Sin sesión</span><span>--</span></div>';
-        openTeamList.innerHTML = '<div class="participant-mini-row"><span>Sin sesión</span><span>--</span></div>';
-        return;
-      }
+    function renderDatallerResources(enabled) {
+      datallerResourcesCopy.textContent = enabled
+        ? 'Aquí tienes la biblioteca base del Dataller para trabajar durante la sesión.'
+        : 'Activa Dataller para ver todos los recursos del taller.';
 
-      myTeamList.innerHTML = myTeams.length
-        ? myTeams.map((team) => `
-            <div class="participant-mini-row participant-mini-row--stacked">
-              <div>
-                <strong>${escapeHtml(team.name)}</strong>
-                <p>${escapeHtml(team.focus_area || team.description || 'Equipo')}</p>
-              </div>
-              <span>${team.member_count} personas</span>
-            </div>
+      datallerResourceList.innerHTML = enabled
+        ? (staticData.datallerResources || []).map((resource) => `
+            <a class="participant-link-item" href="${escapeHtml(resource.href)}" target="_blank" rel="noreferrer">
+              <strong>${escapeHtml(resource.label)}</strong>
+              <span>Recurso del Dataller</span>
+            </a>
           `).join('')
-        : '<div class="participant-mini-row"><span>No tienes equipos todavía</span><span>0</span></div>';
-
-      openTeamList.innerHTML = openTeams.length
-        ? openTeams.map((team) => `
-            <div class="participant-mini-row participant-mini-row--stacked participant-mini-row--action">
-              <div>
-                <strong>${escapeHtml(team.name)}</strong>
-                <p>${escapeHtml(team.focus_area || team.description || 'Equipo abierto')}</p>
-              </div>
-              <div class="participant-inline-actions">
-                <span>${team.member_count} personas</span>
-                <button class="button-secondary participant-join-btn" type="button" data-team-join="${escapeHtml(team.id)}">Unirme</button>
-              </div>
-            </div>
-          `).join('')
-        : '<div class="participant-mini-row"><span>No hay equipos abiertos</span><span>--</span></div>';
-    }
-
-    function renderDataller(participant) {
-      if (!participant) {
-        datallerSummary.textContent = 'Inicia sesión para indicar que participas en el Dataller.';
-        datallerState.textContent = 'Sin sesión';
-        datallerCopy.textContent = 'Cuando actives Dataller, el admin podrá verte en ese grupo y liberar tu certificado.';
-        datallerToggleBtn.disabled = true;
-        datallerToggleBtn.textContent = 'Activar Dataller';
-        setStatus(datallerStatus, 'Inicia sesión para activar tu participación en Dataller.', 'info');
-        return;
-      }
-
-      datallerToggleBtn.disabled = false;
-
-      if (participant.datallerRegistered) {
-        datallerSummary.textContent = 'Ya apareces como participante del Dataller.';
-        datallerState.textContent = participant.workshopCompleted ? 'Validado' : 'Activo';
-        datallerCopy.textContent = participant.recognitionEnabled
-          ? 'Tu certificado ya fue autorizado por admin.'
-          : 'Tu participación está visible para admin. Cuando te validen, podrán liberar tu certificado.';
-        datallerToggleBtn.textContent = 'Salir de Dataller';
-        setStatus(datallerStatus, participant.recognitionEnabled ? 'Tu certificado está autorizado.' : 'Tu registro de Dataller está activo.', participant.recognitionEnabled ? 'success' : 'info');
-        return;
-      }
-
-      datallerSummary.textContent = 'Aún no activas tu participación en el Dataller.';
-      datallerState.textContent = 'Inactivo';
-      datallerCopy.textContent = 'Actívalo para que el admin pueda verte en el listado de Dataller y gestionar tu certificado.';
-      datallerToggleBtn.textContent = 'Activar Dataller';
-      setStatus(datallerStatus, 'Activa Dataller si participarás en ese taller.', 'warn');
+        : '<div class="participant-doc-item"><strong>Dataller bloqueado</strong><span>Activa tu participación para abrir esta sección.</span></div>';
     }
 
     function renderRecognition(participant) {
@@ -324,29 +511,34 @@ export const prerender = true;
       if (!participant) {
         recognitionState.textContent = 'Sin sesión';
         recognitionCopy.textContent = 'Inicia sesión para ver el estado de tu reconocimiento.';
+        recognitionBadge.textContent = 'Reconocimiento pendiente';
         return;
       }
 
       if (!participant.datallerRegistered) {
         recognitionState.textContent = 'Dataller requerido';
-        recognitionCopy.textContent = 'Activa primero tu participación en el Dataller para que admin pueda autorizar tu certificado.';
+        recognitionCopy.textContent = 'Activa Dataller para que el admin pueda autorizar tu certificado.';
+        recognitionBadge.textContent = 'Dataller requerido';
         return;
       }
 
       if (!participant.workshopCompleted) {
         recognitionState.textContent = 'Pendiente';
         recognitionCopy.textContent = 'Tu participación aún no ha sido validada.';
+        recognitionBadge.textContent = 'Validación pendiente';
         return;
       }
 
       if (!participant.recognitionEnabled) {
         recognitionState.textContent = 'Validado';
-        recognitionCopy.textContent = 'Tu reconocimiento aún no está liberado.';
+        recognitionCopy.textContent = 'Ya estás validado. Falta que admin libere tu certificado.';
+        recognitionBadge.textContent = 'Esperando liberación';
         return;
       }
 
       recognitionState.textContent = 'Disponible';
       recognitionCopy.textContent = 'Tu reconocimiento está listo para descargar.';
+      recognitionBadge.textContent = 'Reconocimiento listo';
       recognitionActions.hidden = false;
       recognitionDownload.href = '/api/participant/recognition';
       recognitionMeta.textContent = `Folio: ${participant.recognitionFolio || 'pendiente'}`;
@@ -354,8 +546,7 @@ export const prerender = true;
 
     function applyProfileState(participant) {
       const enabled = Boolean(participant && (participant.profileEnabled || participant.workshopCompleted));
-      const fields = profileForm.querySelectorAll('input, textarea, button');
-      fields.forEach((field) => {
+      profileForm.querySelectorAll('input, textarea, button').forEach((field) => {
         field.disabled = !enabled;
       });
 
@@ -374,30 +565,190 @@ export const prerender = true;
       }
     }
 
-    function renderAccount(participant) {
-      accountName.textContent = participant.fullName;
-      accountEmail.textContent = participant.email;
-      accountFlags.innerHTML = [
-        participant.datallerRegistered ? 'En Dataller' : 'Sin Dataller',
-        participant.workshopCompleted ? 'Validado' : 'Pendiente',
-        participant.profileEnabled ? 'Perfil habilitado' : 'Perfil bloqueado',
-        participant.recognitionEnabled ? 'Reconocimiento activo' : 'Reconocimiento pendiente',
-      ].map((label) => `<span class="participant-status-chip participant-status-chip--muted">${label}</span>`).join('');
+    function renderOverview(participant) {
+      dashboardTitle.textContent = participant
+        ? `Hola, ${participant.fullName.split(' ')[0]}`
+        : 'Tu sesión de Data Driven Day';
+      dashboardBadge.textContent = participant ? 'Sesión activa' : 'Sin sesión';
+
+      statDataller.textContent = participant?.datallerRegistered ? 'Activo' : 'Inactivo';
+      statDatallerMeta.textContent = participant?.workshopCompleted
+        ? 'Participación validada'
+        : participant?.datallerRegistered
+          ? 'Esperando validación'
+          : 'Activa tu participación';
+
+      statSlides.textContent = String(state.presentation?.slides?.length ?? 0);
+      statSlidesMeta.textContent = state.presentation ? 'Slides visibles en el panel' : 'Sin presentación activa';
+
+      statMembers.textContent = String(state.members.length);
+      statMembersMeta.textContent = participant?.datallerRegistered
+        ? 'Primer nombre de quienes están en Dataller'
+        : 'Activa Dataller para ver comunidad';
+
+      statComments.textContent = String(state.comments.length);
+      statCommentsMeta.textContent = state.comments.length ? 'Comentarios publicados' : 'Sin comentarios todavía';
+
+      platformSummary.textContent = state.platformResources.length
+        ? `${state.platformResources.length} recursos activos disponibles en plataforma.`
+        : 'No hay recursos activos todavía.';
     }
 
-    function renderLoggedOut() {
-      state.participant = null;
-      authShell.hidden = false;
-      accountShell.hidden = true;
-      dashboardTitle.textContent = 'Tu sesión de Data Driven Day';
-      dashboardBadge.textContent = 'Sin sesión';
-      renderDataller(null);
-      resourceSummary.textContent = 'Inicia sesión para cargar tus materiales y recursos activos.';
-      renderResources();
-      renderTeams([], [], false);
-      renderRecognition(null);
-      applyProfileState(null);
-      setStatus(teamStatus, 'Inicia sesión para gestionar equipos.', 'info');
+    function renderDatallerState(participant) {
+      if (!participant) {
+        datallerSummary.textContent = 'Inicia sesión para indicar que participas en el Dataller.';
+        datallerState.textContent = 'Sin sesión';
+        datallerCopy.textContent = 'Cuando actives Dataller, podrás ver la presentación, comentar y entrar a la comunidad.';
+        datallerToggleBtn.disabled = true;
+        datallerToggleBtn.textContent = 'Activar Dataller';
+        setStatus(datallerStatus, 'Inicia sesión para activar tu participación.', 'info');
+        return;
+      }
+
+      datallerToggleBtn.disabled = false;
+
+      if (participant.datallerRegistered) {
+        datallerSummary.textContent = 'Tu lugar en el Dataller está activo.';
+        datallerState.textContent = participant.workshopCompleted ? 'Validado' : 'Activo';
+        datallerCopy.textContent = participant.recognitionEnabled
+          ? 'Ya puedes ver presentación, comentar y descargar tu reconocimiento cuando lo necesites.'
+          : 'Ya puedes ver presentación, comentar y seguir a la comunidad del Dataller.';
+        datallerToggleBtn.textContent = 'Salir de Dataller';
+        setStatus(datallerStatus, 'Acceso Dataller activo.', participant.workshopCompleted ? 'success' : 'info');
+        return;
+      }
+
+      datallerSummary.textContent = 'Aún no activas tu participación en el Dataller.';
+      datallerState.textContent = 'Inactivo';
+      datallerCopy.textContent = 'Actívalo para abrir la presentación, ver recursos del taller y entrar a la comunidad.';
+      datallerToggleBtn.textContent = 'Activar Dataller';
+      setStatus(datallerStatus, 'Activa Dataller si vas a participar en el taller.', 'warn');
+    }
+
+    function renderPresentationLocked(message) {
+      state.slideIndex = 0;
+      presentationViewer.classList.add('participant-slide-viewer--locked');
+      presentationTitle.textContent = 'Activa Dataller para abrir la presentación';
+      presentationDescription.textContent = message;
+      slideTag.textContent = 'Dataller';
+      slideTitle.textContent = 'Sin acceso todavía';
+      slideSubtitle.textContent = 'La presentación aparece cuando activas tu participación.';
+      slideBody.innerHTML = 'Aquí aparecerá el contenido de la presentación activa.';
+      slideConcepts.innerHTML = '';
+      slideCounter.textContent = '0 / 0';
+      slidePrevBtn.disabled = true;
+      slideNextBtn.disabled = true;
+      commentBody.disabled = true;
+      commentSubmitBtn.disabled = true;
+      commentList.innerHTML = '<div class="participant-comment-empty">Activa Dataller para ver y dejar comentarios.</div>';
+      commentsCountLabel.textContent = '0 comentarios';
+      communityList.innerHTML = '<div class="participant-member-empty">Activa Dataller para ver la comunidad.</div>';
+      statSlides.textContent = '0';
+      statMembers.textContent = '0';
+      statComments.textContent = '0';
+    }
+
+    function renderSlide() {
+      const slides = state.presentation?.slides || [];
+      if (!slides.length) {
+        presentationViewer.classList.add('participant-slide-viewer--locked');
+        presentationTitle.textContent = state.presentation?.nombre || 'Sin presentación activa';
+        presentationDescription.textContent = state.presentation?.descripcion || 'No hay slides activos en esta presentación.';
+        slideTag.textContent = 'Dataller';
+        slideTitle.textContent = 'Sin slides activos';
+        slideSubtitle.textContent = 'Cuando haya contenido publicado aparecerá aquí.';
+        slideBody.innerHTML = 'No hay slides activos por el momento.';
+        slideConcepts.innerHTML = '';
+        slideCounter.textContent = '0 / 0';
+        slidePrevBtn.disabled = true;
+        slideNextBtn.disabled = true;
+        return;
+      }
+
+      presentationViewer.classList.remove('participant-slide-viewer--locked');
+      const safeIndex = Math.max(0, Math.min(state.slideIndex, slides.length - 1));
+      state.slideIndex = safeIndex;
+      const slide = slides[safeIndex];
+
+      presentationTitle.textContent = state.presentation.nombre;
+      presentationDescription.textContent = state.presentation.descripcion || 'Presentación activa del Dataller.';
+      slideTag.textContent = slide.tag || `Slide ${safeIndex + 1}`;
+      slideTitle.textContent = slide.titulo;
+      slideSubtitle.textContent = slide.subtitulo || '';
+      slideBody.innerHTML = nl2br(slide.cuerpo || '');
+      slideConcepts.innerHTML = (slide.conceptosClave || []).map((concept) => `<span class="participant-concept-chip">${escapeHtml(concept)}</span>`).join('');
+      slideCounter.textContent = `${safeIndex + 1} / ${slides.length}`;
+      slidePrevBtn.disabled = safeIndex === 0;
+      slideNextBtn.disabled = safeIndex === slides.length - 1;
+    }
+
+    function renderComments() {
+      commentsCountLabel.textContent = `${state.comments.length} comentario${state.comments.length === 1 ? '' : 's'}`;
+
+      if (!state.comments.length) {
+        commentList.innerHTML = '<div class="participant-comment-empty">Todavía no hay comentarios en esta presentación.</div>';
+        return;
+      }
+
+      commentList.innerHTML = state.comments.map((comment) => `
+        <article class="participant-comment-card">
+          <div class="participant-comment-meta">
+            <strong>${escapeHtml(comment.authorFirstName)}</strong>
+            <span>${escapeHtml(formatDate(comment.createdAt))}</span>
+          </div>
+          <p>${nl2br(comment.body)}</p>
+        </article>
+      `).join('');
+    }
+
+    function renderMembers() {
+      if (!state.members.length) {
+        communityList.innerHTML = '<div class="participant-member-empty">Todavía no hay más participantes visibles en el Dataller.</div>';
+        return;
+      }
+
+      communityList.innerHTML = state.members.map((member) => `
+        <div class="participant-member-chip">
+          <strong>${escapeHtml(member.firstName)}</strong>
+          <span>${escapeHtml(formatDate(member.joinedAt))}</span>
+        </div>
+      `).join('');
+    }
+
+    async function loadDatallerWorkspace() {
+      if (!state.participant?.datallerRegistered) {
+        state.presentation = null;
+        state.comments = [];
+        state.members = [];
+        renderPresentationLocked('La vista de presentación se habilita cuando activas tu lugar en el Dataller.');
+        renderDatallerResources(false);
+        renderOverview(state.participant);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/participant/dataller/workspace');
+        const data = await response.json();
+
+        if (!response.ok) {
+          renderPresentationLocked('No pude cargar el workspace del Dataller.');
+          return;
+        }
+
+        state.presentation = data.presentation;
+        state.comments = data.comments || [];
+        state.members = data.members || [];
+        state.slideIndex = 0;
+        commentBody.disabled = false;
+        commentSubmitBtn.disabled = false;
+        renderDatallerResources(true);
+        renderSlide();
+        renderComments();
+        renderMembers();
+        renderOverview(state.participant);
+      } catch {
+        renderPresentationLocked('Error de red al cargar el workspace del Dataller.');
+      }
     }
 
     async function loadDashboard() {
@@ -408,20 +759,99 @@ export const prerender = true;
 
       const data = await response.json();
       state.participant = data.participant;
-      authShell.hidden = true;
-      accountShell.hidden = false;
-      renderAccount(data.participant);
-      dashboardTitle.textContent = `Hola, ${data.participant.fullName.split(' ')[0]}`;
-      dashboardBadge.textContent = 'Sesión activa';
-      resourceSummary.textContent = data.recursos?.length
-        ? `${data.recursos.length} recursos activos disponibles.`
-        : 'No hay recursos activos todavía.';
-      renderResources(data.recursos || []);
-      renderDataller(data.participant);
-      renderTeams(data.myTeams || [], data.openTeams || [], true);
+      state.platformResources = data.recursos || [];
+      state.verificationEmailAvailable = data.verificationEmailAvailable !== false;
+      state.verificationError = data.verificationError || null;
+      setVerificationDirectUrl(data.verificationDirectUrl || null);
+
+      if (!data.participant.emailVerified) {
+        showVerifyUI(data.participant, {
+          available: state.verificationEmailAvailable,
+          sent: true,
+          directUrl: state.verificationDirectUrl,
+          error: state.verificationError,
+        });
+        return;
+      }
+
+      setPageMode('dashboard');
+      renderSidebar(data.participant);
+      renderPlatformResources(state.platformResources);
       renderRecognition(data.participant);
+      renderDatallerState(data.participant);
       applyProfileState(data.participant);
-      setStatus(teamStatus, '', 'info');
+      renderEducationalResources();
+      await loadDatallerWorkspace();
+    }
+
+    function renderLoggedOut() {
+      state.participant = null;
+      state.platformResources = [];
+      state.presentation = null;
+      state.comments = [];
+      state.members = [];
+      state.verificationEmailAvailable = true;
+      state.verificationEmailSent = true;
+      state.verificationError = null;
+      setVerificationDirectUrl(null);
+      setPageMode('auth');
+      authShell.hidden = false;
+      verifyShell.hidden = true;
+      resendBtn.hidden = false;
+      resendBtn.disabled = false;
+      renderSidebar(null);
+      renderPlatformResources();
+      renderRecognition(null);
+      renderDatallerState(null);
+      renderDatallerResources(false);
+      renderPresentationLocked('La vista de presentación se habilita cuando activas tu lugar en el Dataller.');
+      renderEducationalResources();
+      applyProfileState(null);
+      dashboardTitle.textContent = 'Tu sesión de Data Driven Day';
+      dashboardBadge.textContent = 'Sin sesión';
+      recognitionBadge.textContent = 'Reconocimiento pendiente';
+    }
+
+    function showVerifyUI(participant, options = {}) {
+      state.participant = participant;
+      state.verificationEmailAvailable = options.available ?? state.verificationEmailAvailable;
+      state.verificationEmailSent = options.sent ?? true;
+      state.verificationError = options.error ?? null;
+      setVerificationDirectUrl(options.directUrl ?? null);
+      setPageMode('auth');
+      authShell.hidden = true;
+      verifyShell.hidden = false;
+      resendBtn.hidden = false;
+      resendBtn.disabled = !state.verificationEmailAvailable;
+
+      if (!state.verificationEmailAvailable) {
+        verifyEmail.textContent = `Tu cuenta quedó creada con ${participant.email}, pero el envío de correo no está disponible ahora mismo.`;
+        setStatus(
+          verifyStatus,
+          state.verificationDirectUrl
+            ? 'Este entorno local no puede mandar correo ahora mismo. Usa el link directo para verificar la cuenta.'
+            : 'No fue posible enviar el correo de verificación. Intenta más tarde o solicita soporte.',
+          state.verificationDirectUrl ? 'warn' : 'error',
+        );
+        return;
+      }
+
+      if (!state.verificationEmailSent) {
+        verifyEmail.textContent = `Tu cuenta quedó creada con ${participant.email}, pero no pude entregar el primer correo de verificación.`;
+        const usesDirectLink = Boolean(state.verificationDirectUrl);
+        const message = usesDirectLink
+          ? 'Resend bloqueó el envío en este entorno. Usa el link directo para verificar la cuenta.'
+          : state.verificationError === 'domain_not_verified'
+            ? 'El dominio remitente todavía no está verificado en Resend.'
+            : state.verificationError === 'testing_recipient_restricted'
+              ? 'La cuenta de Resend está en modo de prueba y no puede enviar a ese destinatario.'
+              : 'Usa "Reenviar correo" para intentar otra vez.';
+        setStatus(verifyStatus, message, usesDirectLink ? 'warn' : 'error');
+        return;
+      }
+
+      verifyEmail.textContent = `Enviamos un link de verificación a ${participant.email}`;
+      setStatus(verifyStatus, '', 'info');
     }
 
     async function restoreSession() {
@@ -445,21 +875,27 @@ export const prerender = true;
       });
     });
 
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        navButtons.forEach((item) => item.classList.remove('is-active'));
+        button.classList.add('is-active');
+        document.getElementById(button.dataset.scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
     signupForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       setStatus(signupStatus, 'Creando cuenta...', 'info');
-
-      const payload = {
-        fullName: signupForm.fullName.value.trim(),
-        email: signupForm.email.value.trim(),
-        password: signupForm.password.value,
-      };
 
       try {
         const response = await fetch('/api/participant/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            fullName: signupForm.fullName.value.trim(),
+            email: signupForm.email.value.trim(),
+            password: signupForm.password.value,
+          }),
         });
         const data = await response.json();
 
@@ -475,8 +911,17 @@ export const prerender = true;
         }
 
         signupForm.reset();
-        setStatus(signupStatus, 'Cuenta creada. Cargando tu tablero...', 'success');
-        await loadDashboard();
+        state.verificationEmailAvailable = data.verificationEmailAvailable !== false;
+        state.verificationEmailSent = data.verificationEmailSent !== false;
+        state.verificationError = data.verificationError || null;
+        setVerificationDirectUrl(data.verificationDirectUrl || null);
+        setStatus(signupStatus, '', 'info');
+        showVerifyUI(data.participant, {
+          available: state.verificationEmailAvailable,
+          sent: state.verificationEmailSent,
+          directUrl: state.verificationDirectUrl,
+          error: state.verificationError,
+        });
       } catch {
         setStatus(signupStatus, 'Error de red al crear la cuenta.', 'error');
       }
@@ -522,6 +967,68 @@ export const prerender = true;
       renderLoggedOut();
     });
 
+    // Handle ?verify= query param (user clicked link from email)
+    const verifyParam = new URLSearchParams(location.search).get('verify');
+    if (verifyParam === 'ok') {
+      setStatus(verifyStatus, 'Correo verificado. Cargando tu tablero...', 'success');
+      history.replaceState(null, '', '/registro');
+      restoreSession();
+    } else if (verifyParam === 'expired') {
+      setStatus(loginStatus, 'El link expiró. Inicia sesión para reenviar el correo de verificación.', 'error');
+      history.replaceState(null, '', '/registro');
+    } else if (verifyParam === 'unavailable') {
+      setStatus(loginStatus, 'La verificación no está disponible en este momento. Intenta más tarde.', 'error');
+      history.replaceState(null, '', '/registro');
+    } else if (verifyParam === 'invalid') {
+      setStatus(loginStatus, 'Link inválido. Inicia sesión para reenviar el correo de verificación.', 'error');
+      history.replaceState(null, '', '/registro');
+    }
+
+    resendBtn.addEventListener('click', async () => {
+      setStatus(verifyStatus, 'Reenviando...', 'info');
+      resendBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/participant/resend-verification', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.already) {
+          setStatus(verifyStatus, 'Tu correo ya está verificado.', 'success');
+          await loadDashboard();
+          return;
+        }
+
+        if (!response.ok) {
+          setVerificationDirectUrl(data.verificationDirectUrl || null);
+          const message = data.error === 'email_not_configured'
+            ? 'El correo de verificación no está disponible en este momento.'
+            : data.verificationError === 'domain_not_verified'
+              ? 'El dominio remitente todavía no está verificado en Resend.'
+              : data.verificationError === 'testing_recipient_restricted'
+                ? 'La cuenta de Resend está en modo de prueba y no puede enviar a ese destinatario.'
+                : 'No se pudo reenviar. Intenta en un momento.';
+          setStatus(verifyStatus, message, 'error');
+          return;
+        }
+
+        state.verificationError = data.verificationError || null;
+        setVerificationDirectUrl(data.verificationDirectUrl || null);
+        setStatus(
+          verifyStatus,
+          data.delivered === false && state.verificationDirectUrl
+            ? 'No se pudo mandar el correo desde este entorno, pero ya tienes un link directo de verificación.'
+            : 'Correo reenviado. Revisa tu bandeja.',
+          data.delivered === false ? 'warn' : 'success',
+        );
+      } catch {
+        setStatus(verifyStatus, 'Error de red al reenviar.', 'error');
+      } finally {
+        setTimeout(() => {
+          resendBtn.disabled = false;
+        }, 30000);
+      }
+    });
+
     datallerToggleBtn.addEventListener('click', async () => {
       if (!state.participant) {
         setStatus(datallerStatus, 'Necesitas iniciar sesión primero.', 'warn');
@@ -545,64 +1052,68 @@ export const prerender = true;
         }
 
         state.participant = data.participant;
-        renderAccount(data.participant);
-        renderDataller(data.participant);
+        renderSidebar(data.participant);
+        renderDatallerState(data.participant);
         renderRecognition(data.participant);
+        applyProfileState(data.participant);
+        await loadDatallerWorkspace();
       } catch {
         setStatus(datallerStatus, 'Error de red al actualizar Dataller.', 'error');
       }
     });
 
-    teamForm.addEventListener('submit', async (event) => {
+    slidePrevBtn.addEventListener('click', () => {
+      state.slideIndex = Math.max(0, state.slideIndex - 1);
+      renderSlide();
+    });
+
+    slideNextBtn.addEventListener('click', () => {
+      const maxIndex = Math.max(0, (state.presentation?.slides?.length || 1) - 1);
+      state.slideIndex = Math.min(maxIndex, state.slideIndex + 1);
+      renderSlide();
+    });
+
+    commentForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (!state.participant) {
-        setStatus(teamStatus, 'Necesitas iniciar sesión para crear un equipo.', 'warn');
+      if (!state.participant?.datallerRegistered || !state.presentation?.id) {
+        setStatus(commentStatus, 'Activa Dataller antes de comentar.', 'warn');
         return;
       }
 
-      setStatus(teamStatus, 'Creando equipo...', 'info');
+      const body = commentBody.value.trim();
+      if (body.length < 3) {
+        setStatus(commentStatus, 'Escribe un comentario con más contexto.', 'warn');
+        return;
+      }
+
+      setStatus(commentStatus, 'Publicando comentario...', 'info');
+      commentSubmitBtn.disabled = true;
+
       try {
-        const response = await fetch('/api/participant/teams', {
+        const response = await fetch('/api/participant/dataller/comments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: teamForm.name.value.trim(),
-            focusArea: teamForm.focusArea.value.trim(),
-            description: teamForm.description.value.trim(),
-          }),
+          body: JSON.stringify({ presentacionId: state.presentation.id, body }),
         });
         const data = await response.json();
 
         if (!response.ok) {
-          setStatus(teamStatus, data.error === 'missing_name' ? 'Ponle nombre al equipo.' : 'No pude crear el equipo.', 'error');
+          const message = data.error === 'invalid_length'
+            ? 'El comentario debe tener entre 3 y 800 caracteres.'
+            : 'No pude guardar tu comentario.';
+          setStatus(commentStatus, message, 'error');
           return;
         }
 
-        teamForm.reset();
-        setStatus(teamStatus, 'Equipo creado.', 'success');
-        await loadDashboard();
+        commentBody.value = '';
+        state.comments = [data.comment, ...state.comments];
+        renderComments();
+        renderOverview(state.participant);
+        setStatus(commentStatus, 'Comentario publicado.', 'success');
       } catch {
-        setStatus(teamStatus, 'Error de red al crear el equipo.', 'error');
-      }
-    });
-
-    openTeamList.addEventListener('click', async (event) => {
-      const button = event.target.closest('[data-team-join]');
-      if (!button || !state.participant) return;
-
-      setStatus(teamStatus, 'Uniéndote al equipo...', 'info');
-      try {
-        const response = await fetch(`/api/participant/teams/${button.dataset.teamJoin}/join`, {
-          method: 'POST',
-        });
-        if (!response.ok) {
-          setStatus(teamStatus, 'No pude unirte a ese equipo.', 'error');
-          return;
-        }
-        setStatus(teamStatus, 'Te uniste al equipo.', 'success');
-        await loadDashboard();
-      } catch {
-        setStatus(teamStatus, 'Error de red al unirte al equipo.', 'error');
+        setStatus(commentStatus, 'Error de red al publicar el comentario.', 'error');
+      } finally {
+        commentSubmitBtn.disabled = false;
       }
     });
 
@@ -641,9 +1152,11 @@ export const prerender = true;
         }
 
         state.participant = data.participant;
-        renderAccount(data.participant);
+        renderSidebar(data.participant);
         renderRecognition(data.participant);
+        renderDatallerState(data.participant);
         applyProfileState(data.participant);
+        renderOverview(data.participant);
         setStatus(profileStatus, 'Perfil guardado.', 'success');
       } catch {
         setStatus(profileStatus, 'Error de red al guardar el perfil.', 'error');
@@ -660,30 +1173,23 @@ export const prerender = true;
     }
     .registro-page {
       display: grid;
-      gap: 2rem;
     }
-    .registro-hero {
-      max-width: 760px;
-    }
-    .registro-h1 {
-      margin: 0 0 0.9rem;
-      font-family: var(--display);
-      font-size: clamp(2.2rem, 5vw, 4rem);
-      line-height: 0.96;
-      letter-spacing: -0.04em;
-    }
-    .registro-intro {
-      margin: 0;
-      color: var(--color-text-muted);
-      font-size: 1rem;
-      line-height: 1.8;
-      max-width: 58ch;
+    .registro-page--auth-only {
+      min-height: calc(100vh - 10rem);
+      align-items: center;
     }
     .registro-grid {
       display: grid;
-      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+      grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
       gap: 1.5rem;
       align-items: start;
+    }
+    .registro-page--auth-only .registro-grid {
+      grid-template-columns: minmax(340px, 430px);
+      justify-content: center;
+    }
+    .registro-page--dashboard .registro-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
     .registro-auth-column {
       display: grid;
@@ -693,9 +1199,9 @@ export const prerender = true;
     }
     .registro-auth-card,
     .registro-account-card,
-    .participant-shell {
+    .participant-admin-shell {
       border: 1px solid var(--color-border);
-      background: linear-gradient(180deg, rgba(22,27,34,0.98), rgba(13,17,23,0.98));
+      background: linear-gradient(180deg, rgba(22, 27, 34, 0.98), rgba(13, 17, 23, 0.98));
       border-radius: 1rem;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
     }
@@ -709,7 +1215,7 @@ export const prerender = true;
       gap: 0.25rem;
       padding: 0.25rem;
       border-radius: 999px;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--color-border-soft);
       margin-bottom: 1rem;
     }
@@ -733,12 +1239,13 @@ export const prerender = true;
     .registro-auth-pane.is-active {
       display: block;
     }
-    .registro-form-grid {
+    .registro-form-grid,
+    .participant-form-grid {
       display: grid;
       gap: 0.85rem;
     }
-    .registro-form-grid--login {
-      max-width: none;
+    .registro-form-grid--spaced {
+      margin-top: 1rem;
     }
     .registro-field {
       display: grid;
@@ -749,9 +1256,12 @@ export const prerender = true;
     }
     .registro-field-label,
     .registro-account-kicker,
-    .participant-topbar-label,
     .participant-panel-label,
-    .participant-doc-tag {
+    .participant-doc-tag,
+    .participant-admin-kicker,
+    .participant-admin-brand-kicker,
+    .participant-admin-section-kicker,
+    .participant-stat-label {
       font-family: var(--mono);
       font-size: 0.64rem;
       letter-spacing: 0.1em;
@@ -762,7 +1272,7 @@ export const prerender = true;
       width: 100%;
       border: 1px solid var(--color-border-soft);
       border-radius: 0.75rem;
-      background: rgba(12,18,30,0.78);
+      background: rgba(12, 18, 30, 0.78);
       color: var(--color-text-primary);
       padding: 0.85rem 0.95rem;
       font: inherit;
@@ -770,8 +1280,14 @@ export const prerender = true;
     }
     .registro-input:focus {
       outline: none;
-      border-color: rgba(96,165,250,0.55);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.16);
+      border-color: rgba(96, 165, 250, 0.55);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+    }
+    .registro-input--code {
+      text-align: center;
+      font-size: 1.45rem;
+      letter-spacing: 0.5rem;
+      font-weight: 700;
     }
     .registro-auth-actions {
       display: flex;
@@ -779,26 +1295,29 @@ export const prerender = true;
       flex-wrap: wrap;
       margin-top: 1rem;
     }
+    .registro-auth-actions--tight {
+      gap: 0.5rem;
+    }
     .registro-status {
       margin-top: 0.9rem;
       padding: 0.75rem 0.9rem;
       border-radius: 0.75rem;
       border: 1px solid var(--color-border-soft);
       color: var(--color-text-secondary);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       line-height: 1.5;
     }
     .registro-status--success {
-      border-color: rgba(52,211,153,0.4);
-      color: rgb(167,243,208);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: rgb(167, 243, 208);
     }
     .registro-status--warn {
-      border-color: rgba(251,191,36,0.35);
-      color: rgb(253,230,138);
+      border-color: rgba(251, 191, 36, 0.35);
+      color: rgb(253, 230, 138);
     }
     .registro-status--error {
-      border-color: rgba(248,113,113,0.4);
-      color: rgb(254,202,202);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: rgb(254, 202, 202);
     }
     .registro-account-title {
       margin: 0.35rem 0 0.2rem;
@@ -808,159 +1327,361 @@ export const prerender = true;
       margin: 0;
       color: var(--color-text-muted);
     }
-    .registro-account-flags {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.9rem;
+    .registro-account-copy--subtle {
+      margin-top: 0.25rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
     }
-    .participant-shell {
+    .participant-admin-shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: calc(100vh - 10rem);
       overflow: hidden;
     }
-    .participant-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .participant-admin-sidebar {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
       gap: 1rem;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--color-border);
+      padding: 1.25rem;
+      border-right: 1px solid var(--color-border);
+      background: rgba(7, 11, 18, 0.92);
     }
-    .participant-topbar-title {
-      margin: 0.15rem 0 0;
-      font-size: 1.25rem;
+    .participant-admin-brand {
+      display: grid;
+      gap: 0.3rem;
     }
-    .participant-topbar-badge,
-    .participant-status-chip {
+    .participant-admin-brand-title,
+    .participant-admin-title {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.05;
+    }
+    .participant-admin-user-card {
+      display: grid;
+      gap: 0.45rem;
+      padding: 1rem;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 0.9rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .participant-admin-user-name {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .participant-admin-user-email {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.92rem;
+      word-break: break-word;
+    }
+    .participant-admin-flags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.3rem;
+    }
+    .participant-admin-flag,
+    .participant-admin-badge,
+    .participant-doc-tag,
+    .participant-lock-state,
+    .participant-concept-chip {
       display: inline-flex;
       align-items: center;
       width: fit-content;
       padding: 0.35rem 0.65rem;
       border-radius: 999px;
-      font-family: var(--mono);
-      font-size: 0.64rem;
       border: 1px solid var(--color-border-soft);
-      color: var(--color-text-muted);
+      font-size: 0.68rem;
+      color: var(--color-text-secondary);
+      background: rgba(255, 255, 255, 0.04);
     }
-    .participant-status-chip--muted {
-      border-color: var(--color-border-soft);
-      color: var(--color-text-muted);
-    }
-    .participant-content-grid {
+    .participant-admin-nav {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-      padding: 1.25rem;
+      gap: 0.35rem;
+      align-content: start;
     }
-    .participant-panel {
-      display: grid;
-      gap: 0.8rem;
-      min-width: 0;
-      padding: 1rem;
-      border: 1px solid var(--color-border);
-      border-radius: 0.9rem;
-      background: rgba(255,255,255,0.02);
-    }
-    .participant-panel--wide {
-      grid-column: 1 / -1;
-    }
-    .participant-panel-title {
-      margin: 0;
-      font-size: 1.05rem;
-    }
-    .participant-panel-copy {
-      margin: 0;
+    .participant-admin-nav-link {
+      border: 1px solid transparent;
+      background: transparent;
       color: var(--color-text-muted);
-      line-height: 1.7;
+      text-align: left;
+      padding: 0.85rem 0.95rem;
+      border-radius: 0.85rem;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
     }
-    .participant-doc-list,
-    .participant-mini-list {
-      display: grid;
-      gap: 1px;
-      background: var(--color-border);
-      border: 1px solid var(--color-border);
+    .participant-admin-nav-link:hover,
+    .participant-admin-nav-link.is-active {
+      background: rgba(59, 130, 246, 0.16);
+      border-color: rgba(96, 165, 250, 0.3);
+      color: #fff;
     }
-    .participant-doc-item,
-    .participant-mini-row {
+    .participant-admin-sidebar-footer {
       display: flex;
+      align-items: end;
+    }
+    .participant-admin-logout {
+      width: 100%;
+      justify-content: center;
+    }
+    .participant-admin-main {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+    .participant-admin-topbar {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      align-items: center;
-      padding: 0.9rem 1rem;
-      background: var(--color-bg);
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.02);
     }
-    .participant-mini-row--stacked {
-      align-items: flex-start;
+    .participant-admin-badge-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
-    .participant-mini-row--stacked p {
-      margin: 0.35rem 0 0;
+    .participant-admin-badge--muted {
+      color: var(--color-text-muted);
+    }
+    .participant-admin-content {
+      display: grid;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+    .participant-admin-section {
+      display: grid;
+      gap: 1rem;
+    }
+    .participant-admin-section-head {
+      display: grid;
+      gap: 0.25rem;
+    }
+    .participant-admin-section-title,
+    .participant-panel-title {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+    .participant-stats-grid,
+    .participant-overview-grid,
+    .participant-workspace-grid,
+    .participant-resource-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .participant-stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .participant-overview-grid,
+    .participant-workspace-grid,
+    .participant-resource-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .participant-stat-card,
+    .participant-panel,
+    .participant-resource-group-card {
+      display: grid;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      min-width: 0;
+    }
+    .participant-stat-value,
+    .participant-slide-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .participant-stat-meta,
+    .participant-panel-copy,
+    .participant-slide-subtitle,
+    .participant-member-chip span,
+    .participant-link-item span,
+    .participant-doc-item span,
+    .participant-comment-meta span,
+    .participant-comment-empty,
+    .participant-member-empty {
       color: var(--color-text-muted);
       line-height: 1.6;
     }
-    .participant-inline-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+    .participant-panel--wide,
+    .participant-panel--comments {
+      grid-column: 1 / -1;
     }
-    .participant-form-grid {
+    .participant-panel--presentation,
+    .participant-panel--recognition {
+      min-height: 100%;
+    }
+    .participant-lockbox {
+      display: grid;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 1px dashed rgba(96, 165, 250, 0.35);
+      border-radius: 0.9rem;
+      background: rgba(9, 14, 24, 0.62);
+    }
+    .participant-lockbox--compact {
+      gap: 0.55rem;
+    }
+    .participant-inline-actions,
+    .participant-presentation-actions,
+    .participant-comment-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .participant-doc-list,
+    .participant-link-list,
+    .participant-resource-groups,
+    .participant-concept-list,
+    .participant-comment-list,
+    .participant-member-grid {
       display: grid;
       gap: 0.75rem;
     }
-    .participant-form-grid--profile {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .participant-doc-item,
+    .participant-link-item,
+    .participant-comment-card,
+    .participant-member-chip {
+      display: grid;
+      gap: 0.25rem;
+      padding: 0.85rem 0.95rem;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 0.85rem;
+      background: rgba(12, 18, 30, 0.56);
+    }
+    .participant-doc-item--link,
+    .participant-link-item {
+      color: inherit;
+      text-decoration: none;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+    .participant-doc-item--link:hover,
+    .participant-link-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(96, 165, 250, 0.32);
+      background: rgba(19, 27, 42, 0.74);
+    }
+    .participant-presentation-head,
+    .participant-comments-head,
+    .participant-comment-meta {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .participant-slide-viewer {
+      display: grid;
+      gap: 0.85rem;
+      min-height: 320px;
+      padding: 1rem;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 0.95rem;
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 40%),
+        rgba(8, 12, 20, 0.82);
+    }
+    .participant-slide-viewer--locked {
+      opacity: 0.82;
+    }
+    .participant-slide-subtitle {
+      margin: 0;
+      font-size: 0.96rem;
+    }
+    .participant-slide-body {
+      color: var(--color-text-secondary);
+      line-height: 1.75;
+      font-size: 0.98rem;
+    }
+    .participant-concept-list {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    .participant-comment-form {
+      display: grid;
+      gap: 0.75rem;
     }
     .participant-textarea {
-      min-height: 110px;
+      min-height: 120px;
       resize: vertical;
     }
     .participant-textarea--wide {
       grid-column: 1 / -1;
     }
-    .participant-team-block {
-      display: grid;
-      gap: 0.45rem;
+    .participant-textarea--comment {
+      min-height: 110px;
     }
-    .participant-lockbox {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.8rem;
-      padding: 1rem;
-      border-radius: 0.8rem;
-      background: rgba(13,17,23,0.72);
-      border: 1px dashed var(--color-border-soft);
-      color: var(--color-text-muted);
+    .participant-member-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
-    .participant-lockbox--compact {
-      min-height: 100%;
+    .participant-form-grid--profile {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .participant-lockbox p {
-      margin: 0;
-      line-height: 1.6;
+    .button-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .participant-lock-state {
-      font-family: var(--mono);
-      font-size: 0.66rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--color-accent-warn);
+    @media (max-width: 1180px) {
+      .participant-admin-shell {
+        grid-template-columns: 1fr;
+      }
+      .participant-admin-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border);
+      }
     }
-    @media (max-width: 1080px) {
-      .registro-grid {
+    @media (max-width: 920px) {
+      .participant-stats-grid,
+      .participant-overview-grid,
+      .participant-workspace-grid,
+      .participant-resource-grid,
+      .participant-form-grid--profile {
+        grid-template-columns: 1fr;
+      }
+      .participant-admin-topbar,
+      .participant-presentation-head,
+      .participant-comments-head,
+      .participant-comment-meta {
+        flex-direction: column;
+        align-items: start;
+      }
+      .participant-admin-badge-row {
+        justify-content: flex-start;
+      }
+    }
+    @media (max-width: 720px) {
+      .registro-grid,
+      .registro-page--auth-only .registro-grid,
+      .registro-page--dashboard .registro-grid {
         grid-template-columns: 1fr;
       }
       .registro-auth-column {
         position: static;
       }
-    }
-    @media (max-width: 780px) {
-      .participant-content-grid,
-      .participant-form-grid--profile {
-        grid-template-columns: 1fr;
+      .participant-admin-content,
+      .participant-admin-topbar,
+      .participant-admin-sidebar {
+        padding: 1rem;
       }
-      .participant-topbar {
-        align-items: flex-start;
-        flex-direction: column;
+      .participant-member-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 520px) {
+      .participant-admin-nav {
+        grid-template-columns: 1fr 1fr;
+      }
+      .participant-admin-nav-link {
+        text-align: center;
+      }
+      .participant-member-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>

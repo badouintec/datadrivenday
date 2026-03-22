@@ -107,7 +107,10 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
       blogTags.forEach((tag, i) => {
         const pill = document.createElement('div');
         pill.className = 'tag-pill';
-        pill.innerHTML = `<span class="tag-pill-text">${tag}</span>`;
+        const span = document.createElement('span');
+        span.className = 'tag-pill-text';
+        span.textContent = tag;
+        pill.appendChild(span);
         const rm = document.createElement('button');
         rm.type = 'button';
         rm.className = 'tag-pill-remove';
@@ -173,6 +176,18 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
     });
 
     // Minimal markdown preview
+    function sanitizeHref(url) {
+      try {
+        const parsed = new URL(url, location.origin);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+      } catch {}
+      return '#';
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function renderMd(md) {
       return md
         .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code>${code.replace(/</g, '&lt;')}</code></pre>`)
@@ -182,7 +197,7 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
         .replace(/`(.+?)`/g, '<code>$1</code>')
-        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/\[(.+?)\]\((.+?)\)/g, (_, text, href) => `<a href="${escapeHtml(sanitizeHref(href))}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`)
         .replace(/^- (.+)$/gm, '<li>$1</li>')
         .replace(/\n\n/g, '</p><p>')
         .replace(/^/, '<p>')

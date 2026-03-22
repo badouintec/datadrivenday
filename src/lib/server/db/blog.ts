@@ -90,6 +90,11 @@ export async function insertBlogPost(
   return { id, slug };
 }
 
+const ALLOWED_BLOG_FIELDS = new Set<string>([
+  'titulo', 'subtitulo', 'cuerpo_md', 'extracto', 'imagen_url', 'autor',
+  'tags_json', 'estado', 'slug',
+]);
+
 export async function updateBlogPost(
   db: D1Database,
   id: string,
@@ -101,8 +106,10 @@ export async function updateBlogPost(
     delete patch.tags;
   }
 
-  const fields = Object.keys(patch).map(k => `${k} = ?`).join(', ');
-  const values = Object.values(patch);
+  const safe = Object.entries(patch).filter(([k]) => ALLOWED_BLOG_FIELDS.has(k));
+  if (!safe.length) return;
+  const fields = safe.map(([k]) => `${k} = ?`).join(', ');
+  const values = safe.map(([, v]) => v);
 
   await db
     .prepare(`UPDATE blog_posts SET ${fields} WHERE id = ?`)

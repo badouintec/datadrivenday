@@ -34,13 +34,47 @@ export function can(user: AdminUser, permission: string): boolean {
   return PERMISSIONS[user.rol]?.includes(permission) ?? false;
 }
 
-// ── SHA-256 ───────────────────────────────────────────────────────────────────
-async function sha256(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+// ── Password hashing (PBKDF2 + salt) ─────────────────────────────────────────
+const PBKDF2_ITERATIONS = 100_000;
+const SALT_BYTES = 16;
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'],
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    key, 256,
+  );
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `pbkdf2:${PBKDF2_ITERATIONS}:${saltHex}:${hashHex}`;
 }
+
+async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  // Support legacy SHA-256 hashes (64 hex chars, no prefix)
+  if (!stored.startsWith('pbkdf2:')) {
+    const legacyBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return legacyHash === stored;
+  }
+
+  const [, iterStr, saltHex, hashHex] = stored.split(':');
+  const iterations = parseInt(iterStr);
+  const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(h => parseInt(h, 16)));
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'],
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    key, 256,
+  );
+  const computedHex = Array.from(new Uint8Array(derived)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return computedHex === hashHex;
+}
+
+export { hashPassword, verifyPassword };
 
 // ── Verificar credenciales contra D1 ──────────────────────────────────────────
 export async function verifyCredentials(
@@ -48,24 +82,31 @@ export async function verifyCredentials(
   username: string,
   password: string
 ): Promise<AdminUser | null> {
-  const hash = await sha256(password);
-
   const row = await db
     .prepare(
-      `SELECT id, username, rol, nombre FROM admin_users
-       WHERE username = ? AND pass_hash = ?`
+      `SELECT id, username, rol, nombre, pass_hash FROM admin_users
+       WHERE username = ?`
     )
-    .bind(username.toLowerCase().trim(), hash)
-    .first<{ id: string; username: string; rol: AdminRol; nombre: string | null }>();
+    .bind(username.toLowerCase().trim())
+    .first<{ id: string; username: string; rol: AdminRol; nombre: string | null; pass_hash: string }>();
 
   if (!row) return null;
+
+  const valid = await verifyPassword(password, row.pass_hash);
+  if (!valid) return null;
+
+  // Migrate legacy SHA-256 hash to PBKDF2 on successful login
+  if (!row.pass_hash.startsWith('pbkdf2:')) {
+    const newHash = await hashPassword(password);
+    await db.prepare('UPDATE admin_users SET pass_hash = ? WHERE id = ?').bind(newHash, row.id).run();
+  }
 
   await db
     .prepare('UPDATE admin_users SET last_login = datetime("now") WHERE id = ?')
     .bind(row.id)
     .run();
 
-  return row;
+  return { id: row.id, username: row.username, rol: row.rol, nombre: row.nombre };
 }
 
 // ── Crear sesión en KV ────────────────────────────────────────────────────────

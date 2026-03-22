@@ -5,6 +5,7 @@ export interface ParticipantRow {
   email: string;
   password_hash: string;
   full_name: string;
+  email_verified: number;
   dataller_registered: number;
   occupation: string | null;
   organization: string | null;
@@ -38,11 +39,52 @@ export interface ParticipantTeamSummary extends ParticipantTeamRow {
   role: string | null;
 }
 
+export interface DatallerMemberSummary {
+  id: string;
+  firstName: string;
+  joinedAt: string;
+}
+
+interface PresentationCommentRow {
+  id: string;
+  participant_id: string;
+  presentacion_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  author_name: string;
+}
+
+export interface PresentationCommentSummary {
+  id: string;
+  participantId: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  authorFirstName: string;
+}
+
+function getFirstName(fullName: string) {
+  return fullName.trim().split(/\s+/)[0] ?? 'Participante';
+}
+
+function serializePresentationComment(row: PresentationCommentRow): PresentationCommentSummary {
+  return {
+    id: row.id,
+    participantId: row.participant_id,
+    body: row.body,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    authorFirstName: getFirstName(row.author_name),
+  };
+}
+
 export function serializeParticipant(row: ParticipantRow): ParticipantUser {
   return {
     id: row.id,
     email: row.email,
     fullName: row.full_name,
+    emailVerified: Boolean(row.email_verified),
     datallerRegistered: Boolean(row.dataller_registered),
     occupation: row.occupation,
     organization: row.organization,
@@ -114,6 +156,14 @@ export async function insertParticipant(
     .run();
 
   return getParticipantById(db, id);
+}
+
+export async function markEmailVerified(db: D1Database, id: string) {
+  const now = new Date().toISOString();
+  await db
+    .prepare('UPDATE participants SET email_verified = 1, updated_at = ? WHERE id = ?')
+    .bind(now, id)
+    .run();
 }
 
 export async function updateParticipantLastLogin(db: D1Database, id: string) {
@@ -305,4 +355,74 @@ export async function getParticipantTeamById(db: D1Database, teamId: string) {
     .prepare('SELECT * FROM participant_teams WHERE id = ?')
     .bind(teamId)
     .first<ParticipantTeamRow>();
+}
+
+export async function listDatallerParticipants(db: D1Database, excludeParticipantId?: string) {
+  let query = `SELECT id, full_name, updated_at
+    FROM participants
+    WHERE dataller_registered = 1`;
+  const params: string[] = [];
+
+  if (excludeParticipantId) {
+    query += ' AND id != ?';
+    params.push(excludeParticipantId);
+  }
+
+  query += ' ORDER BY updated_at DESC, full_name ASC';
+
+  const stmt = params.length
+    ? db.prepare(query).bind(...params)
+    : db.prepare(query);
+
+  const result = await stmt.all<{ id: string; full_name: string; updated_at: string }>();
+  return result.results.map((row) => ({
+    id: row.id,
+    firstName: getFirstName(row.full_name),
+    joinedAt: row.updated_at,
+  })) satisfies DatallerMemberSummary[];
+}
+
+export async function listPresentationComments(db: D1Database, presentacionId: string, limit = 80) {
+  const result = await db
+    .prepare(
+      `SELECT c.*, p.full_name AS author_name
+       FROM participant_presentation_comments c
+       INNER JOIN participants p ON p.id = c.participant_id
+       WHERE c.presentacion_id = ?
+       ORDER BY c.created_at DESC
+       LIMIT ?`
+    )
+    .bind(presentacionId, limit)
+    .all<PresentationCommentRow>();
+
+  return result.results.map(serializePresentationComment);
+}
+
+export async function insertPresentationComment(
+  db: D1Database,
+  data: { participantId: string; presentacionId: string; body: string }
+) {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  await db
+    .prepare(
+      `INSERT INTO participant_presentation_comments (
+        id, participant_id, presentacion_id, body, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?)`
+    )
+    .bind(id, data.participantId, data.presentacionId, data.body.trim(), now, now)
+    .run();
+
+  const inserted = await db
+    .prepare(
+      `SELECT c.*, p.full_name AS author_name
+       FROM participant_presentation_comments c
+       INNER JOIN participants p ON p.id = c.participant_id
+       WHERE c.id = ?`
+    )
+    .bind(id)
+    .first<PresentationCommentRow>();
+
+  return inserted ? serializePresentationComment(inserted) : null;
 }

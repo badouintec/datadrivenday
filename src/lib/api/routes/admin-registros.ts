@@ -83,7 +83,7 @@ registrosRoutes.get('/export', requireAuth('registros:export'), async (c) => {
 });
 
 // Marcar asistencia
-registrosRoutes.patch('/:id/asistio', async (c) => {
+registrosRoutes.patch('/:id/asistio', requireAuth('registros:export'), async (c) => {
   const { asistio } = await c.req.json<{ asistio: boolean }>();
 
   await c.env.DB!

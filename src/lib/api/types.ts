@@ -11,6 +11,7 @@ export interface ParticipantUser {
   id: string;
   email: string;
   fullName: string;
+  emailVerified: boolean;
   datallerRegistered: boolean;
   occupation: string | null;
   organization: string | null;
@@ -31,6 +32,7 @@ export interface AppBindings {
   DB: D1Database;
   MEDIA: R2Bucket;
   APP_SESSION: KVNamespace;
+  RESEND_API_KEY?: string;
   PUBLIC_SITE_URL?: string;
   PUBLIC_SANITY_PROJECT_ID?: string;
   PUBLIC_SANITY_DATASET?: string;

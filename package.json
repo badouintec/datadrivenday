@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "dev:reset": "sh -c 'ports=4321,4322,4323,5173,5174,5175,8787; pids=$(lsof -tiTCP:$ports -sTCP:LISTEN 2>/dev/null | tr \"\\n\" \" \" ); if [ -n \"$pids\" ]; then kill $pids 2>/dev/null || true; sleep 1; pids=$(lsof -tiTCP:$ports -sTCP:LISTEN 2>/dev/null | tr \"\\n\" \" \" ); if [ -n \"$pids\" ]; then kill -9 $pids 2>/dev/null || true; fi; fi; exec astro dev \"$@\"' --",
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "preview:worker": "npm run build && wrangler dev --config dist/server/wrangler.json",
+    "preview:worker": "npm run build && cp -f .dev.vars dist/server/.dev.vars 2>/dev/null; wrangler dev --config dist/server/wrangler.json",
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
     "cf-typegen": "wrangler types",
     "db:migrate:local": "wrangler d1 migrations apply datadrivenday --local",

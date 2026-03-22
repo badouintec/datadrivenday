@@ -79,13 +79,19 @@ export async function insertPresentation(
   return id;
 }
 
+const ALLOWED_PRESENTATION_FIELDS = new Set<string>([
+  'nombre', 'slug', 'token', 'descripcion', 'estado', 'pagina_url',
+]);
+
 export async function updatePresentation(
   db: D1Database,
   id: string,
   patch: Partial<Omit<PresentationRow, 'id' | 'created_at' | 'updated_at'>>
 ) {
-  const fields = Object.keys(patch).map(k => `${k} = ?`).join(', ');
-  const values = Object.values(patch);
+  const safe = Object.entries(patch).filter(([k]) => ALLOWED_PRESENTATION_FIELDS.has(k));
+  if (!safe.length) return;
+  const fields = safe.map(([k]) => `${k} = ?`).join(', ');
+  const values = safe.map(([, v]) => v);
   await db
     .prepare(`UPDATE presentations SET ${fields} WHERE id = ?`)
     .bind(...values, id)
@@ -146,13 +152,21 @@ export async function insertSlide(
   return id;
 }
 
+const ALLOWED_SLIDE_FIELDS = new Set<string>([
+  'presentacion', 'numero', 'tag', 'titulo', 'subtitulo', 'cuerpo', 'notas',
+  'duracion', 'particle_state', 'accent_color', 'chord_json', 'particle_speed',
+  'command_words_json', 'referencias_json', 'codigo_demo', 'conceptos_json', 'is_active',
+]);
+
 export async function updateSlide(
   db: D1Database,
   id: string,
   patch: Partial<Omit<SlideRow, 'id' | 'created_at' | 'updated_at'>>
 ) {
-  const fields = Object.keys(patch).map(k => `${k} = ?`).join(', ');
-  const values = Object.values(patch);
+  const safe = Object.entries(patch).filter(([k]) => ALLOWED_SLIDE_FIELDS.has(k));
+  if (!safe.length) return;
+  const fields = safe.map(([k]) => `${k} = ?`).join(', ');
+  const values = safe.map(([, v]) => v);
   await db
     .prepare(`UPDATE presentation_slides SET ${fields} WHERE id = ?`)
     .bind(...values, id)
