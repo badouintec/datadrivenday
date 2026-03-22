@@ -1,6 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { datallerResources, filteredResources, researchResourceGroups } from '../data/site';
+import {
+  benchmarkProjects,
+  datallerResources,
+  datallerStack,
+  filteredResources,
+  researchResourceGroups,
+  strategicStats,
+  techComparison,
+  thematicAxes,
+} from '../data/site';
 
 export const prerender = true;
 
@@ -8,6 +17,11 @@ const staticDashboardData = {
   datallerResources,
   educationalGroups: researchResourceGroups,
   platformLibrary: filteredResources.slice(0, 8),
+  benchmarkProjects,
+  datallerStack,
+  strategicStats,
+  techComparison,
+  thematicAxes,
 };
 ---
 
@@ -282,8 +296,40 @@ const staticDashboardData = {
 
                     <article class="participant-panel participant-panel--wide">
                       <p class="participant-panel-label">Biblioteca educativa</p>
-                      <h3 class="participant-panel-title">Más recursos dentro de la plataforma</h3>
+                      <h3 class="participant-panel-title">Mapa curado desde el tema 2026</h3>
                       <div id="educationalResourceGroups" class="participant-resource-groups"></div>
+                    </article>
+                  </div>
+
+                  <div class="participant-resource-grid participant-resource-grid--story">
+                    <article class="participant-panel participant-panel--wide">
+                      <p class="participant-panel-label">Panorama 2026</p>
+                      <h3 class="participant-panel-title">Señales para entender el marco del evento</h3>
+                      <div id="strategicSignalGrid" class="participant-signal-grid"></div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--wide">
+                      <p class="participant-panel-label">Ejes</p>
+                      <h3 class="participant-panel-title">Temas que sostienen la conversación del Data Driven Day</h3>
+                      <div id="themeAxisList" class="participant-axis-grid"></div>
+                    </article>
+
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Arquitectura emergente</p>
+                      <h3 class="participant-panel-title">Stack 2026 recomendado</h3>
+                      <div id="currentStackList" class="participant-stack-list"></div>
+                    </article>
+
+                    <article class="participant-panel">
+                      <p class="participant-panel-label">Riesgo técnico</p>
+                      <h3 class="participant-panel-title">Patrones que ya vienen de salida</h3>
+                      <div id="legacyStackList" class="participant-stack-list"></div>
+                    </article>
+
+                    <article class="participant-panel participant-panel--wide">
+                      <p class="participant-panel-label">Benchmarks</p>
+                      <h3 class="participant-panel-title">Proyectos y referencias para pensar casos reales</h3>
+                      <div id="benchmarkProjectList" class="participant-benchmark-grid"></div>
                     </article>
                   </div>
                 </section>
@@ -404,6 +450,11 @@ const staticDashboardData = {
     const datallerResourcesCopy = document.getElementById('datallerResourcesCopy');
     const datallerResourceList = document.getElementById('datallerResourceList');
     const educationalResourceGroups = document.getElementById('educationalResourceGroups');
+    const strategicSignalGrid = document.getElementById('strategicSignalGrid');
+    const themeAxisList = document.getElementById('themeAxisList');
+    const currentStackList = document.getElementById('currentStackList');
+    const legacyStackList = document.getElementById('legacyStackList');
+    const benchmarkProjectList = document.getElementById('benchmarkProjectList');
     const communityList = document.getElementById('communityList');
     const recognitionState = document.getElementById('recognitionState');
     const recognitionCopy = document.getElementById('recognitionCopy');
@@ -525,6 +576,44 @@ const staticDashboardData = {
             `).join('')}
           </div>
         </article>
+      `).join('');
+
+      strategicSignalGrid.innerHTML = (staticData.strategicStats || []).map((item) => `
+        <article class="participant-signal-card">
+          <strong>${escapeHtml(item.value)}</strong>
+          <span>${escapeHtml(item.label)}</span>
+        </article>
+      `).join('');
+
+      themeAxisList.innerHTML = (staticData.thematicAxes || []).map((axis) => `
+        <article class="participant-axis-card participant-axis-card--${escapeHtml(axis.status)}">
+          <div class="participant-axis-head">
+            <strong>${escapeHtml(axis.label)}</strong>
+            <span class="participant-doc-tag">${escapeHtml(axis.keyData)}</span>
+          </div>
+          <p>${escapeHtml(axis.detail)}</p>
+        </article>
+      `).join('');
+
+      currentStackList.innerHTML = (staticData.techComparison?.current || []).map((item) => `
+        <div class="participant-stack-item">
+          <strong>${escapeHtml(item.label)}</strong>
+          <span>${escapeHtml(item.category)}</span>
+        </div>
+      `).join('');
+
+      legacyStackList.innerHTML = (staticData.techComparison?.legacy || []).map((item) => `
+        <div class="participant-stack-item participant-stack-item--legacy">
+          <strong>${escapeHtml(item.label)}</strong>
+          <span>${escapeHtml(item.category)}</span>
+        </div>
+      `).join('');
+
+      benchmarkProjectList.innerHTML = (staticData.benchmarkProjects || []).map((project) => `
+        <a class="participant-link-item" href="${escapeHtml(project.href)}" target="_blank" rel="noreferrer">
+          <strong>${escapeHtml(project.title)}</strong>
+          <span>${escapeHtml(project.summary)}</span>
+        </a>
       `).join('');
     }
 
@@ -672,34 +761,37 @@ const staticDashboardData = {
 
       if (!participant) {
         onboardingTitle.textContent = 'Únete al Dataller para abrir el libro interactivo';
-        onboardingSummary.textContent = 'Activa tu lugar para leer la presentación, dejar comentarios y seguir el avance del evento desde un solo tablero.';
+        onboardingSummary.textContent = 'Activa tu lugar para leer la presentación, dejar comentarios y moverte por la curaduría 2026 de soberanía de datos, salud, trazabilidad y resiliencia.';
         journeyBadge.textContent = 'Paso 1';
         onboardingSteps.innerHTML = [
           'Activa tu participación',
           'Lee la presentación como libro online',
           'Comenta y recibe novedades',
+          'Explora la biblioteca 2026 curada desde tema2026.md',
         ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
         renderNotifications(participant);
       } else if (!participant.datallerRegistered) {
         onboardingTitle.textContent = 'Tu siguiente paso es sumarte al Dataller';
-        onboardingSummary.textContent = 'En cuanto lo actives, se abre la presentación interactiva, comentarios y la biblioteca base del evento.';
+        onboardingSummary.textContent = 'En cuanto lo actives, se abre la presentación interactiva, comentarios y una biblioteca expandida con señales, ejes y benchmarks del tema 2026.';
         journeyBadge.textContent = 'Paso 1';
         onboardingSteps.innerHTML = [
           'Activar Dataller',
           'Abrir materiales interactivos',
           'Completar perfil para reconocimiento',
+          'Revisar panorama 2026 y stack recomendado',
         ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
         renderNotifications(participant);
       } else {
         onboardingTitle.textContent = 'Tu libro interactivo del Dataller ya está abierto';
         onboardingSummary.textContent = state.presentation?.slides?.length
-          ? 'Navega la presentación, deja observaciones y usa las notificaciones para no perder el siguiente paso importante.'
+          ? 'Navega la presentación, deja observaciones y cruza las ideas con el mapa 2026 de recursos, benchmarks y arquitectura emergente.'
           : 'Tu acceso ya está activo. En cuanto el equipo publique slides, aparecerán aquí como un libro online interactivo.';
         journeyBadge.textContent = participant.workshopCompleted ? 'En curso' : 'Activo';
         onboardingSteps.innerHTML = [
           `${state.presentation?.slides?.length ?? 0} slides visibles`,
           `${state.comments.length} comentario${state.comments.length === 1 ? '' : 's'}`,
           `${state.members.length} persona${state.members.length === 1 ? '' : 's'} en comunidad`,
+          `${(staticData.thematicAxes || []).length} ejes 2026 curados`,
         ].map((item) => `<span class="participant-concept-chip">${escapeHtml(item)}</span>`).join('');
         renderNotifications(participant);
       }
@@ -1752,6 +1844,69 @@ const staticDashboardData = {
       padding-top: 0.35rem;
       border-top: 1px solid var(--color-border-soft);
     }
+    .participant-resource-grid--story {
+      margin-top: 0.25rem;
+    }
+    .participant-signal-grid,
+    .participant-axis-grid,
+    .participant-benchmark-grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+    .participant-signal-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .participant-axis-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .participant-signal-card,
+    .participant-axis-card,
+    .participant-stack-item {
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.95rem 1rem;
+      border: 1px solid var(--color-border-soft);
+      border-radius: 0.95rem;
+      background: rgba(12, 18, 30, 0.56);
+    }
+    .participant-signal-card strong {
+      font-size: 1.45rem;
+      line-height: 1;
+    }
+    .participant-signal-card span,
+    .participant-axis-card p,
+    .participant-stack-item span {
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+    .participant-axis-head {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .participant-axis-card--urgent {
+      border-color: rgba(248, 113, 113, 0.42);
+      background: linear-gradient(180deg, rgba(60, 17, 22, 0.38), rgba(12, 18, 30, 0.56));
+    }
+    .participant-axis-card--warning {
+      border-color: rgba(251, 191, 36, 0.34);
+      background: linear-gradient(180deg, rgba(65, 44, 10, 0.28), rgba(12, 18, 30, 0.56));
+    }
+    .participant-axis-card--active {
+      border-color: rgba(52, 211, 153, 0.34);
+      background: linear-gradient(180deg, rgba(12, 62, 43, 0.24), rgba(12, 18, 30, 0.56));
+    }
+    .participant-stack-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .participant-stack-item--legacy {
+      opacity: 0.8;
+      border-style: dashed;
+    }
+    .participant-benchmark-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .participant-slide-body {
       color: var(--color-text-secondary);
       line-height: 1.75;
@@ -1799,6 +1954,9 @@ const staticDashboardData = {
       .participant-overview-grid,
       .participant-workspace-grid,
       .participant-resource-grid,
+      .participant-signal-grid,
+      .participant-axis-grid,
+      .participant-benchmark-grid,
       .participant-form-grid--profile {
         grid-template-columns: 1fr;
       }
