@@ -38,6 +38,7 @@ const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
           name="user"
           class="field-input"
           required
+          maxlength="80"
           autocomplete="username"
           autocapitalize="none"
           spellcheck="false"
@@ -52,6 +53,7 @@ const redirect = Astro.url.searchParams.get('redirect') ?? '/admin';
           name="password"
           class="field-input"
           required
+          maxlength="128"
           autocomplete="current-password"
         />
       </div>

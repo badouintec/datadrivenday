@@ -246,6 +246,22 @@ participantRoutes.patch('/profile', requireVerifiedParticipantAuth(), async (c) 
     return c.json({ ok: false, error: 'invalid_full_name' }, 400);
   }
 
+  if (fullName && fullName.length > 120) {
+    return c.json({ ok: false, error: 'invalid_full_name' }, 400);
+  }
+
+  if (body.occupation && body.occupation.trim().length > 120) {
+    return c.json({ ok: false, error: 'invalid_field' }, 400);
+  }
+
+  if (body.organization && body.organization.trim().length > 120) {
+    return c.json({ ok: false, error: 'invalid_field' }, 400);
+  }
+
+  if (body.bio && body.bio.trim().length > 500) {
+    return c.json({ ok: false, error: 'invalid_field' }, 400);
+  }
+
   if (body.projectUrl?.trim() && !projectUrl) {
     return c.json({ ok: false, error: 'invalid_project_url' }, 400);
   }

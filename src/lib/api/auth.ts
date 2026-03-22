@@ -193,9 +193,17 @@ export async function handleLogin(c: Context<{ Bindings: Partial<AppBindings>; V
     return c.json({ ok: false, error: 'server_misconfigured' }, 500);
   }
 
+  const loginIp = getClientIp(c.req);
+  const adminLoginFails = await getRateLimitCount(c.env.APP_SESSION!, `admin-login-fail:${loginIp}`, 900);
+  if (adminLoginFails >= 5) {
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 100));
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+
   const user = await verifyCredentials(c.env.DB, body.user, body.password);
 
   if (!user) {
+    await incrementRateLimitCount(c.env.APP_SESSION!, `admin-login-fail:${loginIp}`, 900);
     // Timing-safe delay
     await new Promise(r => setTimeout(r, 200 + Math.random() * 100));
     return c.json({ ok: false, error: 'invalid_credentials' }, 401);

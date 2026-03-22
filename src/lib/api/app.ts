@@ -156,6 +156,11 @@ app.use(
 app.use('*', async (c, next) => {
   c.set('requestId', crypto.randomUUID());
   await next();
+  // Security headers on every response
+  c.res.headers.set('X-Content-Type-Options', 'nosniff');
+  c.res.headers.set('X-Frame-Options', 'DENY');
+  c.res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 });
 
 app.onError((err, c) => {
