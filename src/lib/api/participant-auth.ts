@@ -5,7 +5,7 @@ import type {
   ParticipantSignupPayload,
   ParticipantUser,
 } from './types';
-import { hashPassword, verifyPassword } from './auth';
+import { hashPassword, verifyPassword, getClientIp, getRateLimitCount, incrementRateLimitCount } from './auth';
 import {
   getParticipantByEmail,
   getParticipantById,
@@ -288,7 +288,22 @@ export async function handleParticipantSignup(c: ParticipantContext) {
     return c.json({ ok: false, error: 'invalid_age' }, 400);
   }
 
+  if (!c.env.APP_SESSION) {
+    return c.json({ ok: false, error: 'server_misconfigured' }, 500);
+  }
+
+  const signupIp = getClientIp(c.req);
+  const signupFails = await getRateLimitCount(c.env.APP_SESSION, `signup:${signupIp}`, 3600);
+  if (signupFails >= 5) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+  await incrementRateLimitCount(c.env.APP_SESSION, `signup:${signupIp}`, 3600);
+
   if ((body.password ?? '').length < 8) {
+    return c.json({ ok: false, error: 'weak_password' }, 400);
+  }
+
+  if (body.password.length > 128) {
     return c.json({ ok: false, error: 'weak_password' }, 400);
   }
 
@@ -357,8 +372,15 @@ export async function handleParticipantLogin(c: ParticipantContext) {
     return c.json({ ok: false, error: 'server_misconfigured' }, 500);
   }
 
+  const loginIp = getClientIp(c.req);
+  const loginFails = await getRateLimitCount(c.env.APP_SESSION, `login-fail:${loginIp}`, 900);
+  if (loginFails >= 10) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+
   const participant = await verifyParticipantCredentials(c.env.DB, body.email, body.password);
   if (!participant) {
+    await incrementRateLimitCount(c.env.APP_SESSION, `login-fail:${loginIp}`, 900);
     await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 100));
     return c.json({ ok: false, error: 'invalid_credentials' }, 401);
   }
@@ -433,6 +455,12 @@ export async function handleResendVerification(c: ParticipantContext) {
   if (!c.env.APP_SESSION) {
     return c.json({ ok: false, error: 'email_not_configured' }, 500);
   }
+
+  const resendFails = await getRateLimitCount(c.env.APP_SESSION, `resend:${participant.email}`, 3600);
+  if (resendFails >= 5) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+  await incrementRateLimitCount(c.env.APP_SESSION, `resend:${participant.email}`, 3600);
 
   const delivery = await prepareVerificationDelivery(c, participant);
 

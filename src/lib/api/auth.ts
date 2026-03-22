@@ -261,3 +261,36 @@ export async function handleMe(c: Context<{ Bindings: Partial<AppBindings>; Vari
   }
   return c.json({ ok: true, user });
 }
+
+// ── Rate limiting utilities ───────────────────────────────────────────────────
+// Uses APP_SESSION KV for per-key attempt counters with time-window expiry.
+// Keys are namespaced with "rl:" to avoid collision with session keys.
+
+export function getClientIp(req: { header: (name: string) => string | undefined }): string {
+  return req.header('CF-Connecting-IP')?.trim()
+    ?? req.header('X-Forwarded-For')?.split(',')[0]?.trim()
+    ?? 'unknown';
+}
+
+export async function getRateLimitCount(
+  kv: KVNamespace,
+  rateLimitKey: string,
+  windowSecs: number,
+): Promise<number> {
+  const window = Math.floor(Date.now() / (windowSecs * 1000));
+  const raw = await kv.get(`rl:${rateLimitKey}:${window}`);
+  return raw ? parseInt(raw, 10) : 0;
+}
+
+export async function incrementRateLimitCount(
+  kv: KVNamespace,
+  rateLimitKey: string,
+  windowSecs: number,
+): Promise<void> {
+  const window = Math.floor(Date.now() / (windowSecs * 1000));
+  const kvKey = `rl:${rateLimitKey}:${window}`;
+  const raw = await kv.get(kvKey);
+  await kv.put(kvKey, String((raw ? parseInt(raw, 10) : 0) + 1), {
+    expirationTtl: windowSecs + 60,
+  });
+}

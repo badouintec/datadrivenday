@@ -44,7 +44,7 @@ const staticDashboardData = {
               <div class="registro-form-grid">
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Nombre completo</span>
-                  <input class="registro-input" type="text" name="fullName" placeholder="Tu nombre" required />
+                  <input class="registro-input" type="text" name="fullName" placeholder="Tu nombre" required maxlength="120" />
                 </label>
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Correo</span>
@@ -52,7 +52,7 @@ const staticDashboardData = {
                 </label>
                 <label class="registro-field registro-field--full">
                   <span class="registro-field-label">Contraseña</span>
-                  <input class="registro-input" type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" required />
+                  <input class="registro-input" type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128" required />
                 </label>
               </div>
 
@@ -1071,11 +1071,6 @@ const staticDashboardData = {
 
     async function restoreSession() {
       try {
-        const response = await fetch('/api/participant/me');
-        if (!response.ok) {
-          renderLoggedOut();
-          return;
-        }
         await loadDashboard();
       } catch {
         renderLoggedOut();
@@ -1118,9 +1113,10 @@ const staticDashboardData = {
         if (!response.ok) {
           const messages = {
             missing_fields: 'Faltan campos obligatorios.',
-            weak_password: 'La contraseña debe tener al menos 8 caracteres.',
+            weak_password: 'La contraseña debe tener entre 8 y 128 caracteres.',
             email_taken: 'Ese correo ya tiene cuenta.',
             invalid_email: 'Escribe un correo valido.',
+            too_many_attempts: 'Demasiados intentos. Espera 1 hora e intenta de nuevo.',
           };
           setStatus(signupStatus, messages[data.error] || 'No pude crear la cuenta.', 'error');
           return;
@@ -1163,7 +1159,9 @@ const staticDashboardData = {
             ? 'Correo o contraseña incorrectos.'
             : data.error === 'invalid_email'
               ? 'Escribe un correo valido.'
-              : 'No pude abrir la sesión.';
+              : data.error === 'too_many_attempts'
+                ? 'Demasiados intentos fallidos. Espera 15 minutos.'
+                : 'No pude abrir la sesión.';
           setStatus(loginStatus, message, 'error');
           return;
         }

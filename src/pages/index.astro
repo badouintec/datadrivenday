@@ -374,16 +374,22 @@ const { settings: eventSettings } = await getEventSettings();
     s: document.getElementById('cd-secs')
   };
   const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
+  let countdownInterval: ReturnType<typeof setInterval>;
   const tick = () => {
     const diff = TARGET - Date.now();
-    if (diff <= 0) { Object.values(els).forEach(e => { if (e) e.textContent = '00'; }); return; }
+    if (diff <= 0) {
+      clearInterval(countdownInterval);
+      const block = document.querySelector('.countdown-block');
+      if (block) block.innerHTML = '<p class="countdown-label" style="color:var(--color-accent-go)">El Dataller ya ocurri&oacute; &mdash; gracias a todos los participantes</p>';
+      return;
+    }
     if (els.d) els.d.textContent = String(Math.floor(diff / 86400000));
     if (els.h) els.h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
     if (els.m) els.m.textContent = pad(Math.floor((diff % 3600000) / 60000));
     if (els.s) els.s.textContent = pad(Math.floor((diff % 60000) / 1000));
   };
   tick();
-  setInterval(tick, 1000);
+  countdownInterval = setInterval(tick, 1000);
 
   // ── TEMPERATURE FETCH ───────────────────────────────────
   const tempEl = document.getElementById('temp-value');
