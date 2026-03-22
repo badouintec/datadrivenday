@@ -467,15 +467,19 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-lg);
-  display: grid;
-  gap: var(--space-xl);
-  align-content: start;
+  min-height: 0;
 }
 
 /* ── SECTIONS ─────────────────────────────────────────────────── */
 .participant-admin-section {
+  display: none;
+  gap: var(--space-md);
+}
+
+.participant-admin-section.is-active {
   display: grid;
   gap: var(--space-md);
+  align-content: start;
 }
 
 .participant-admin-section-head {

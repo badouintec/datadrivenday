@@ -82,7 +82,7 @@ const recognitionDownload = document.getElementById('recognitionDownload');
 const recognitionMeta = document.getElementById('recognitionMeta');
 const profileForm = document.getElementById('profileForm');
 const profileStatus = document.getElementById('profileStatus');
-const navButtons = document.querySelectorAll('[data-scroll-target]');
+const navButtons = document.querySelectorAll('[data-panel]');
 
 const state = {
   participant: null,
@@ -148,9 +148,11 @@ function formatDate(value) {
   }).format(date);
 }
 
-function scrollToSection(sectionId) {
-  navButtons.forEach((item) => item.classList.toggle('is-active', item.dataset.scrollTarget === sectionId));
-  document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function showPanel(sectionId) {
+  navButtons.forEach((item) => item.classList.toggle('is-active', item.dataset.panel === sectionId));
+  document.querySelectorAll('.participant-admin-section').forEach((s) => {
+    s.classList.toggle('is-active', s.id === sectionId);
+  });
 }
 
 function renderSidebar(participant) {
@@ -616,6 +618,7 @@ async function loadDashboard() {
   }
 
   setPageMode('dashboard');
+  showPanel('overviewSection');
   renderSidebar(data.participant);
   renderPlatformResources(state.platformResources);
   renderRecognition(data.participant);
@@ -719,13 +722,11 @@ tabs.forEach((tab) => {
 });
 
 navButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    scrollToSection(button.dataset.scrollTarget);
-  });
+  button.addEventListener('click', () => showPanel(button.dataset.panel));
 });
 
-jumpToDatallerBtn.addEventListener('click', () => scrollToSection('datallerSection'));
-jumpToProfileBtn.addEventListener('click', () => scrollToSection('profileSection'));
+jumpToDatallerBtn.addEventListener('click', () => showPanel('datallerSection'));
+jumpToProfileBtn.addEventListener('click', () => showPanel('profileSection'));
 
 signupForm.addEventListener('submit', async (event) => {
   event.preventDefault();
