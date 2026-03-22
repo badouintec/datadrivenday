@@ -152,7 +152,7 @@ const staticDashboardData = {
                         </div>
                         <span id="journeyBadge" class="participant-doc-tag">Paso 1</span>
                       </div>
-                      <p id="onboardingSummary" class="participant-panel-copy">Activa tu lugar para ver la presentación como lectura interactiva, comentar y seguir las novedades del evento.</p>
+                      <p id="onboardingSummary" class="participant-panel-copy"></p>
                       <div id="onboardingSteps" class="participant-concept-list"></div>
                       <div class="participant-inline-actions">
                         <button id="jumpToDatallerBtn" class="button" type="button">Ir al Dataller</button>
@@ -184,10 +184,8 @@ const staticDashboardData = {
                     <article class="participant-panel">
                       <p class="participant-panel-label">Biblioteca</p>
                       <h3 class="participant-panel-title">Recursos activos en plataforma</h3>
-                      <p id="platformSummary" class="participant-panel-copy">Inicia sesión para cargar tus recursos activos.</p>
-                      <div id="platformResourceList" class="participant-doc-list">
-                        <div class="participant-doc-item"><strong>Accede con tu cuenta para ver tus recursos</strong></div>
-                      </div>
+                      <p id="platformSummary" class="participant-panel-copy" hidden></p>
+                      <div id="platformResourceList" class="participant-doc-list"></div>
                     </article>
                   </div>
 
@@ -225,10 +223,10 @@ const staticDashboardData = {
                     <article class="participant-panel">
                       <p class="participant-panel-label">Acceso</p>
                       <h3 class="participant-panel-title">Activa tu participación</h3>
-                      <p id="datallerSummary" class="participant-panel-copy">Inicia sesión para indicar que participas en el Dataller.</p>
+                      <p id="datallerSummary" class="participant-panel-copy" hidden></p>
                       <div class="participant-lockbox participant-lockbox--compact">
                         <span id="datallerState" class="participant-lock-state">Sin sesión</span>
-                        <p id="datallerCopy">Cuando actives Dataller, podrás ver la presentación, comentar y entrar a la comunidad.</p>
+                        <p id="datallerCopy" class="participant-panel-copy"></p>
                         <div class="participant-inline-actions">
                           <button id="datallerToggleBtn" class="button-secondary" type="button" disabled>Activar Dataller</button>
                         </div>
@@ -244,7 +242,7 @@ const staticDashboardData = {
                         </div>
                         <span id="slideCounter" class="participant-doc-tag">0 / 0</span>
                       </div>
-                      <p id="presentationDescription" class="participant-panel-copy">La vista de presentación se habilita cuando activas tu lugar en el Dataller.</p>
+                      <p id="presentationDescription" class="participant-panel-copy" hidden></p>
                       <div id="presentationViewer" class="participant-slide-viewer participant-slide-viewer--locked">
                         <span id="slideTag" class="participant-doc-tag">Dataller</span>
                         <h4 id="slideTitle" class="participant-slide-title">Sin acceso todavía</h4>
@@ -290,7 +288,7 @@ const staticDashboardData = {
                     <article class="participant-panel">
                       <p class="participant-panel-label">Dataller</p>
                       <h3 class="participant-panel-title">Recursos del taller</h3>
-                      <p id="datallerResourcesCopy" class="participant-panel-copy">Activa Dataller para ver todos los recursos del taller.</p>
+                      <p id="datallerResourcesCopy" class="participant-panel-copy" hidden></p>
                       <div id="datallerResourceList" class="participant-link-list"></div>
                     </article>
 
@@ -341,7 +339,6 @@ const staticDashboardData = {
                   </div>
 
                   <article class="participant-panel participant-panel--wide">
-                    <p class="participant-panel-copy">Solo mostramos primer nombre para mantener la lista útil y ligera.</p>
                     <div id="communityList" class="participant-member-grid">
                       <div class="participant-member-empty">Activa Dataller para ver la comunidad.</div>
                     </div>
@@ -354,19 +351,18 @@ const staticDashboardData = {
                     <h3 class="participant-admin-section-title">Actualiza tu perfil</h3>
                   </div>
 
-                  <article class="participant-panel participant-panel--wide">
-                    <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
-                      <input class="registro-input" type="text" name="fullName" placeholder="Nombre como debe aparecer en tu reconocimiento" />
-                      <input class="registro-input" type="text" name="occupation" placeholder="Qué estudias o a qué te dedicas" />
-                      <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
-                      <input class="registro-input" type="url" name="projectUrl" placeholder="Enlace a tu proyecto" />
-                      <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto" />
-                      <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Descripción corta"></textarea>
-                      <button class="button-secondary" type="submit">Guardar perfil</button>
-                    </form>
-                    <p id="recognitionNameHint" class="participant-panel-copy participant-panel-copy--hint">Ese nombre será el que usemos en tu reconocimiento cuando esté liberado.</p>
-                    <div id="profileStatus" class="registro-status" hidden></div>
-                  </article>
+                    <article class="participant-panel participant-panel--wide">
+                      <form id="profileForm" class="participant-form-grid participant-form-grid--profile">
+                        <input class="registro-input" type="text" name="fullName" placeholder="Nombre en reconocimiento" />
+                        <input class="registro-input" type="text" name="occupation" placeholder="Ocupación" />
+                        <input class="registro-input" type="text" name="organization" placeholder="Escuela o trabajo" />
+                        <input class="registro-input" type="url" name="projectUrl" placeholder="URL de proyecto" />
+                        <input class="registro-input" type="url" name="avatarUrl" placeholder="URL de foto" />
+                        <textarea class="registro-input participant-textarea participant-textarea--wide" name="bio" placeholder="Bio corta"></textarea>
+                        <button class="button-secondary" type="submit">Guardar</button>
+                      </form>
+                      <div id="profileStatus" class="registro-status" hidden></div>
+                    </article>
                 </section>
               </main>
             </div>
@@ -462,7 +458,6 @@ const staticDashboardData = {
     const recognitionDownload = document.getElementById('recognitionDownload');
     const recognitionMeta = document.getElementById('recognitionMeta');
     const profileForm = document.getElementById('profileForm');
-    const recognitionNameHint = document.getElementById('recognitionNameHint');
     const profileStatus = document.getElementById('profileStatus');
     const navButtons = document.querySelectorAll('[data-scroll-target]');
 
@@ -684,9 +679,6 @@ const staticDashboardData = {
       profileForm.projectUrl.value = participant?.projectUrl || '';
       profileForm.avatarUrl.value = participant?.avatarUrl || '';
       profileForm.bio.value = participant?.bio || '';
-      recognitionNameHint.textContent = participant
-        ? `El reconocimiento saldrá a nombre de: ${participant.fullName}`
-        : 'Ese nombre será el que usemos en tu reconocimiento cuando esté liberado.';
 
       if (!participant) {
         setStatus(profileStatus, 'Inicia sesión para editar tu perfil.', 'info');
@@ -821,9 +813,8 @@ const staticDashboardData = {
 
     function renderDatallerState(participant) {
       if (!participant) {
-        datallerSummary.textContent = 'Inicia sesión para indicar que participas en el Dataller.';
         datallerState.textContent = 'Sin sesión';
-        datallerCopy.textContent = 'Cuando actives Dataller, podrás ver la presentación, comentar y entrar a la comunidad.';
+        datallerCopy.textContent = 'Activa Dataller para ver la presentación y entrar a la comunidad.';
         datallerToggleBtn.disabled = true;
         datallerToggleBtn.textContent = 'Activar Dataller';
         setStatus(datallerStatus, 'Inicia sesión para activar tu participación.', 'info');
@@ -833,7 +824,6 @@ const staticDashboardData = {
       datallerToggleBtn.disabled = false;
 
       if (participant.datallerRegistered) {
-        datallerSummary.textContent = 'Tu lugar en el Dataller está activo.';
         datallerState.textContent = participant.workshopCompleted ? 'Validado' : 'Activo';
         datallerCopy.textContent = participant.recognitionEnabled
           ? 'Ya puedes ver presentación, comentar y descargar tu reconocimiento cuando lo necesites.'
@@ -843,7 +833,6 @@ const staticDashboardData = {
         return;
       }
 
-      datallerSummary.textContent = 'Aún no activas tu participación en el Dataller.';
       datallerState.textContent = 'Inactivo';
       datallerCopy.textContent = 'Actívalo para abrir la presentación, ver recursos del taller y entrar a la comunidad.';
       datallerToggleBtn.textContent = 'Activar Dataller';
@@ -1430,8 +1419,7 @@ const staticDashboardData = {
       top: 6rem;
     }
     .registro-auth-card,
-    .registro-account-card,
-    .participant-admin-shell {
+    .registro-account-card {
       border: 1px solid var(--color-border);
       background: linear-gradient(180deg, rgba(22, 27, 34, 0.98), rgba(13, 17, 23, 0.98));
       border-radius: 1rem;
@@ -1564,54 +1552,64 @@ const staticDashboardData = {
       font-size: 0.9rem;
       opacity: 0.7;
     }
+    /* ── PARTICIPANT SHELL — mirrors admin-shell ──────────────── */
     .participant-admin-shell {
       display: grid;
-      grid-template-columns: 280px minmax(0, 1fr);
-      min-height: calc(100vh - 10rem);
+      grid-template-columns: 230px 1fr;
+      height: calc(100vh - 4.5rem);
       overflow: hidden;
+      background: var(--color-bg);
     }
     .participant-admin-sidebar {
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      gap: 1rem;
-      padding: 1.25rem;
       border-right: 1px solid var(--color-border);
-      background: rgba(7, 11, 18, 0.92);
+      background: var(--color-surface);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     .participant-admin-brand {
-      display: grid;
-      gap: 0.3rem;
+      padding: 1.15rem var(--space-md);
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
     }
-    .participant-admin-brand-title,
-    .participant-admin-title {
+    .participant-admin-brand-kicker {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .participant-admin-brand-title {
       margin: 0;
-      font-size: 1.5rem;
-      line-height: 1.05;
+      font-family: var(--display);
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
     }
     .participant-admin-user-card {
-      display: grid;
-      gap: 0.45rem;
-      padding: 1rem;
-      border: 1px solid var(--color-border-soft);
-      border-radius: 0.9rem;
-      background: rgba(255, 255, 255, 0.03);
+      padding: 0.9rem var(--space-md);
+      border-bottom: 1px solid var(--color-border);
     }
     .participant-admin-user-name {
       margin: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
     }
     .participant-admin-user-email {
       margin: 0;
       color: var(--color-text-muted);
-      font-size: 0.92rem;
+      font-size: 0.74rem;
       word-break: break-word;
     }
     .participant-admin-flags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-top: 0.3rem;
+      gap: 0.3rem;
+      margin-top: 0.4rem;
     }
     .participant-admin-flag,
     .participant-admin-badge,
@@ -1621,115 +1619,192 @@ const staticDashboardData = {
       display: inline-flex;
       align-items: center;
       width: fit-content;
-      padding: 0.35rem 0.65rem;
-      border-radius: 999px;
+      padding: 2px 8px;
+      border-radius: 4px;
       border: 1px solid var(--color-border-soft);
-      font-size: 0.68rem;
-      color: var(--color-text-secondary);
-      background: rgba(255, 255, 255, 0.04);
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
     }
     .participant-admin-nav {
-      display: grid;
-      gap: 0.35rem;
-      align-content: start;
+      flex: 1;
+      padding: var(--space-sm) 0;
+      display: flex;
+      flex-direction: column;
     }
     .participant-admin-nav-link {
-      border: 1px solid transparent;
-      background: transparent;
+      display: flex;
+      align-items: center;
+      padding: 9px var(--space-md);
+      font-size: 0.84rem;
+      font-weight: 500;
       color: var(--color-text-muted);
+      background: transparent;
+      border: none;
+      border-left: 2px solid transparent;
       text-align: left;
-      padding: 0.85rem 0.95rem;
-      border-radius: 0.85rem;
       cursor: pointer;
-      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+      transition: color 150ms, border-color 150ms, background 150ms;
     }
     .participant-admin-nav-link:hover,
     .participant-admin-nav-link.is-active {
-      background: rgba(59, 130, 246, 0.16);
-      border-color: rgba(96, 165, 250, 0.3);
-      color: #fff;
+      color: var(--color-accent-sky);
+      border-left-color: var(--color-accent-blue);
+      background: color-mix(in srgb, var(--color-accent-blue) 8%, transparent);
     }
     .participant-admin-sidebar-footer {
-      display: flex;
-      align-items: end;
+      margin-top: auto;
+      padding: var(--space-sm) var(--space-md);
+      border-top: 1px solid var(--color-border);
     }
     .participant-admin-logout {
       width: 100%;
-      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--color-border-soft);
+      color: var(--color-text-muted);
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 5px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 150ms;
+    }
+    .participant-admin-logout:hover {
+      border-color: var(--color-accent-heat);
+      color: var(--color-accent-heat);
     }
     .participant-admin-main {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     .participant-admin-topbar {
+      height: 56px;
+      border-bottom: 1px solid var(--color-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--color-border);
-      background: rgba(255, 255, 255, 0.02);
+      padding: 0 var(--space-lg);
+      background: var(--color-surface);
+      flex-shrink: 0;
+    }
+    .participant-admin-kicker {
+      display: none;
+    }
+    .participant-admin-title {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      letter-spacing: -0.01em;
+      margin: 0;
     }
     .participant-admin-badge-row {
       display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 0.5rem;
+      align-items: center;
     }
     .participant-admin-badge--muted {
       color: var(--color-text-muted);
     }
     .participant-admin-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-lg);
       display: grid;
-      gap: 1.5rem;
-      padding: 1.5rem;
+      gap: var(--space-xl);
+      align-content: start;
     }
     .participant-admin-section {
       display: grid;
-      gap: 1rem;
+      gap: var(--space-md);
     }
     .participant-admin-section-head {
-      display: grid;
-      gap: 0.25rem;
-    }
-    .participant-admin-section-title,
-    .participant-panel-title {
-      margin: 0;
-      font-size: 1.15rem;
-    }
-    .participant-stats-grid,
-    .participant-overview-grid,
-    .participant-workspace-grid,
-    .participant-resource-grid {
-      display: grid;
-      gap: 1rem;
-    }
-    .participant-stats-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .participant-overview-grid,
-    .participant-workspace-grid,
-    .participant-resource-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .participant-stat-card,
-    .participant-panel,
-    .participant-resource-group-card {
-      display: grid;
+      display: flex;
+      align-items: baseline;
       gap: 0.75rem;
-      padding: 1rem;
-      border: 1px solid var(--color-border);
-      border-radius: 1rem;
-      background: rgba(255, 255, 255, 0.03);
-      min-width: 0;
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--color-border);
     }
-    .participant-stat-value,
-    .participant-slide-title {
-      font-size: 1.35rem;
+    .participant-admin-section-kicker {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .participant-admin-section-title {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 0.95rem;
       font-weight: 700;
     }
-    .participant-stat-meta,
+    /* ── STAT CARDS — exact admin pattern ──────────────────────── */
+    .participant-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--color-border);
+      border: 1px solid var(--color-border);
+    }
+    .participant-stat-card {
+      background: var(--color-surface);
+      padding: 1.5rem var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .participant-stat-label {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+    .participant-stat-value {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      line-height: 1;
+    }
+    .participant-stat-meta {
+      font-size: 0.78rem;
+      color: var(--color-text-muted);
+    }
+    /* ── GRID LAYOUTS ───────────────────────────────────────────── */
+    .participant-overview-grid,
+    .participant-workspace-grid,
+    .participant-resource-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+    /* ── PANELS — flat admin-style cards ────────────────────────── */
+    .participant-panel,
+    .participant-resource-group-card {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      padding: 1.25rem var(--space-md);
+      border-radius: 4px;
+      display: grid;
+      gap: 0.65rem;
+      min-width: 0;
+    }
+    .participant-panel-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent-sky);
+    }
+    .participant-panel-title {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
     .participant-panel-copy,
     .participant-slide-subtitle,
     .participant-member-chip span,
@@ -1739,20 +1814,21 @@ const staticDashboardData = {
     .participant-comment-empty,
     .participant-member-empty {
       color: var(--color-text-muted);
-      line-height: 1.6;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+    .participant-slide-title {
+      font-size: 1.05rem;
+      font-weight: 700;
     }
     .participant-panel--wide,
     .participant-panel--comments {
       grid-column: 1 / -1;
     }
-    .participant-panel--hero {
-      background:
-        radial-gradient(circle at top right, rgba(96, 165, 250, 0.16), transparent 36%),
-        linear-gradient(135deg, rgba(9, 14, 24, 0.92), rgba(18, 30, 50, 0.84));
-    }
+    .participant-panel--hero,
     .participant-panel--presentation,
     .participant-panel--recognition {
-      min-height: 100%;
+      /* no special backgrounds — keep flat like admin */
     }
     .participant-hero-head {
       display: flex;
@@ -1762,14 +1838,14 @@ const staticDashboardData = {
     }
     .participant-lockbox {
       display: grid;
-      gap: 0.75rem;
-      padding: 1rem;
-      border: 1px dashed rgba(96, 165, 250, 0.35);
-      border-radius: 0.9rem;
-      background: rgba(9, 14, 24, 0.62);
+      gap: 0.55rem;
+      padding: 0.85rem var(--space-md);
+      border: 1px solid var(--color-border-soft);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
     }
     .participant-lockbox--compact {
-      gap: 0.55rem;
+      gap: 0.4rem;
     }
     .participant-inline-actions,
     .participant-presentation-actions,
@@ -1795,11 +1871,11 @@ const staticDashboardData = {
     .participant-comment-card,
     .participant-member-chip {
       display: grid;
-      gap: 0.25rem;
-      padding: 0.85rem 0.95rem;
-      border: 1px solid var(--color-border-soft);
-      border-radius: 0.85rem;
-      background: rgba(12, 18, 30, 0.56);
+      gap: 0.2rem;
+      padding: 0.75rem var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-bg);
     }
     .participant-doc-item--link,
     .participant-link-item {
@@ -1825,12 +1901,10 @@ const staticDashboardData = {
       display: grid;
       gap: 0.85rem;
       min-height: 320px;
-      padding: 1rem;
-      border: 1px solid var(--color-border-soft);
-      border-radius: 0.95rem;
-      background:
-        radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 40%),
-        rgba(8, 12, 20, 0.82);
+      padding: 1.25rem var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-bg);
     }
     .participant-slide-viewer--locked {
       opacity: 0.82;
@@ -1943,10 +2017,29 @@ const staticDashboardData = {
     @media (max-width: 1180px) {
       .participant-admin-shell {
         grid-template-columns: 1fr;
+        height: auto;
       }
       .participant-admin-sidebar {
         border-right: 0;
         border-bottom: 1px solid var(--color-border);
+        flex-direction: row;
+        flex-wrap: wrap;
+        overflow-y: visible;
+      }
+      .participant-admin-brand,
+      .participant-admin-user-card {
+        border-bottom: none;
+        border-right: 1px solid var(--color-border);
+      }
+      .participant-admin-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: var(--space-sm) 0;
+      }
+      .participant-admin-sidebar-footer {
+        border-top: none;
+        border-left: 1px solid var(--color-border);
+        margin-top: 0;
       }
     }
     @media (max-width: 920px) {
