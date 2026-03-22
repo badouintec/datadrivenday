@@ -60,9 +60,7 @@ function fitHeadline(name: string, limit = 28) {
 
 function base64ToBytes(b64: string): Uint8Array {
   const raw = atob(b64);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes;
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
 export async function buildParticipantRecognitionPdf(participant: ParticipantUser) {
@@ -278,7 +276,9 @@ export async function buildParticipantRecognitionPdf(participant: ParticipantUse
   });
 
   // ── Generate ──────────────────────────────────────────────────────────────
+  // useObjectStreams: false disables deflate compression on the PDF structure,
+  // cutting CPU time significantly (critical for Cloudflare Workers free plan).
   const filename = `reconocimiento-${makeFileSlug(participant.fullName)}.pdf`;
-  const bytes = await pdf.save();
+  const bytes = await pdf.save({ useObjectStreams: false });
   return { bytes, filename };
 }
