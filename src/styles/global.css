@@ -236,6 +236,25 @@ h2 {
 .button-secondary:hover {
   border-color: var(--color-accent-sky); color: var(--color-text-primary);
 }
+.button-secondary.is-loading,
+.button.is-loading {
+  opacity: 0.7; cursor: wait; pointer-events: none;
+}
+.button-secondary.is-loading::before,
+.button.is-loading::before {
+  content: '';
+  display: inline-block;
+  width: 0.85em; height: 0.85em;
+  margin-right: 0.5em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
 
 /* HERO */
 .hero {

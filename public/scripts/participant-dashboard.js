@@ -326,7 +326,7 @@ function renderRecognition(participant) {
     e.preventDefault();
     if (recognitionDownload.classList.contains('is-loading')) return;
     recognitionDownload.classList.add('is-loading');
-    recognitionDownload.textContent = 'Generando...';
+    recognitionDownload.textContent = 'Generando PDF...';
     try {
       await window.generateRecognitionPdf(participant);
     } catch (err) {
