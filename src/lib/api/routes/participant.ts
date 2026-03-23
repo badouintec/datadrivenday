@@ -80,13 +80,33 @@ participantRoutes.get('/recognition', requireVerifiedParticipantAuth(), async (c
   const r2Key = `reconocimientos/${participant.id}.pdf`;
   const object = await c.env.MEDIA?.get(r2Key);
 
-  if (!object) {
-    return c.json({ ok: false, error: 'recognition_not_ready' }, 404);
+  // Happy path: PDF already cached in R2
+  if (object) {
+    const filename = (object.customMetadata?.filename) || `reconocimiento-${participant.id}.pdf`;
+    return new Response(object.body as ReadableStream, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'private, no-store, max-age=0',
+      },
+    });
   }
 
-  const filename = (object.customMetadata?.filename) || `reconocimiento-${participant.id}.pdf`;
+  // Fallback: generate on-the-fly (e.g. pre-gen failed or participant was authorized before the feature existed)
+  const { bytes, filename } = await buildParticipantRecognitionPdf(participant);
 
-  return new Response(object.body as ReadableStream, {
+  // Opportunistically cache in R2 for future requests (fire-and-forget)
+  if (c.env.MEDIA) {
+    c.executionCtx?.waitUntil(
+      c.env.MEDIA.put(r2Key, Uint8Array.from(bytes).buffer, {
+        httpMetadata: { contentType: 'application/pdf' },
+        customMetadata: { filename },
+      }).catch(() => {})
+    );
+  }
+
+  return new Response(Uint8Array.from(bytes), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
