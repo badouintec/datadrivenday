@@ -327,14 +327,23 @@ function renderRecognition(participant) {
     if (recognitionDownload.classList.contains('is-loading')) return;
     recognitionDownload.classList.add('is-loading');
     recognitionDownload.textContent = 'Generando PDF...';
+    const resetBtn = () => {
+      recognitionDownload.classList.remove('is-loading');
+      recognitionDownload.textContent = 'Descargar PDF';
+    };
+    // Safety net: always reset the button after 30 seconds
+    const safetyTimer = setTimeout(resetBtn, 30000);
     try {
+      if (typeof window.generateRecognitionPdf !== 'function') {
+        throw new Error('Generador no disponible. Recarga la pagina e intenta de nuevo.');
+      }
       await window.generateRecognitionPdf(participant);
     } catch (err) {
       console.error('PDF generation failed:', err);
-      recognitionCopy.textContent = 'Error al generar el PDF. Intenta de nuevo.';
+      if (recognitionCopy) recognitionCopy.textContent = 'Error al generar el PDF. Intenta de nuevo.';
     } finally {
-      recognitionDownload.classList.remove('is-loading');
-      recognitionDownload.textContent = 'Descargar PDF';
+      clearTimeout(safetyTimer);
+      resetBtn();
     }
   };
   recognitionMeta.textContent = `Folio: ${participant.recognitionFolio || 'pendiente'}`;
