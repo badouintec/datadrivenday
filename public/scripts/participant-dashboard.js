@@ -83,6 +83,11 @@ const recognitionMeta = document.getElementById('recognitionMeta');
 const profileForm = document.getElementById('profileForm');
 const profileStatus = document.getElementById('profileStatus');
 const navButtons = document.querySelectorAll('[data-panel]');
+const sidebarAvatar = document.getElementById('sidebarAvatar');
+const topbarKicker = document.getElementById('topbarKicker');
+const mobileNavToggle = document.getElementById('mobileNavToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const adminShell = document.querySelector('.participant-admin-shell');
 
 const state = {
   participant: null,
@@ -148,23 +153,50 @@ function formatDate(value) {
   }).format(date);
 }
 
+const PANEL_META = {
+  overviewSection:  { kicker: 'Tablero participante', title: 'Tu sesión de Data Driven Day' },
+  datallerSection:  { kicker: 'Dataller', title: 'Presentación activa y comentarios' },
+  resourcesSection: { kicker: 'Recursos', title: 'Materiales y biblioteca educativa' },
+  communitySection: { kicker: 'Comunidad', title: 'Quiénes más están en el Dataller' },
+  profileSection:   { kicker: 'Mi perfil', title: 'Cuenta y preferencias' },
+};
+
 function showPanel(sectionId) {
   navButtons.forEach((item) => item.classList.toggle('is-active', item.dataset.panel === sectionId));
   document.querySelectorAll('.participant-admin-section').forEach((s) => {
     s.classList.toggle('is-active', s.id === sectionId);
   });
+  const meta = PANEL_META[sectionId];
+  if (meta) {
+    if (dashboardTitle) dashboardTitle.textContent = meta.title;
+    if (topbarKicker) topbarKicker.textContent = meta.kicker;
+  }
+  adminShell?.classList.remove('sidebar-open');
+  mobileNavToggle?.setAttribute('aria-expanded', 'false');
 }
 
 function renderSidebar(participant) {
   const firstName = participant?.fullName?.split(' ')?.[0] || 'Participante';
   sidebarFirstName.textContent = firstName;
   sidebarEmail.textContent = participant?.email || 'correo@ejemplo.com';
+  if (sidebarAvatar) {
+    sidebarAvatar.textContent = firstName.charAt(0).toUpperCase();
+  }
   sidebarFlags.innerHTML = participant
     ? [
-        participant.datallerRegistered ? 'Dataller activo' : 'Dataller inactivo',
-        participant.workshopCompleted ? 'Validado' : 'Pendiente',
-        participant.profileEnabled ? 'Perfil listo' : 'Perfil bloqueado',
-      ].map((label) => `<span class="participant-admin-flag">${label}</span>`).join('')
+        {
+          label: participant.datallerRegistered ? 'Dataller activo' : 'Dataller inactivo',
+          cls: participant.datallerRegistered ? 'participant-admin-flag--active' : '',
+        },
+        {
+          label: participant.workshopCompleted ? 'Validado' : 'Pendiente',
+          cls: participant.workshopCompleted ? 'participant-admin-flag--active' : 'participant-admin-flag--pending',
+        },
+        {
+          label: participant.profileEnabled ? 'Perfil listo' : 'Perfil incompleto',
+          cls: participant.profileEnabled ? 'participant-admin-flag--active' : '',
+        },
+      ].map(({ label, cls }) => `<span class="participant-admin-flag ${cls}">${label}</span>`).join('')
     : '';
 }
 
@@ -727,6 +759,16 @@ navButtons.forEach((button) => {
 
 jumpToDatallerBtn.addEventListener('click', () => showPanel('datallerSection'));
 jumpToProfileBtn.addEventListener('click', () => showPanel('profileSection'));
+
+mobileNavToggle?.addEventListener('click', () => {
+  const isOpen = adminShell?.classList.toggle('sidebar-open');
+  mobileNavToggle.setAttribute('aria-expanded', String(!!isOpen));
+});
+
+sidebarOverlay?.addEventListener('click', () => {
+  adminShell?.classList.remove('sidebar-open');
+  mobileNavToggle?.setAttribute('aria-expanded', 'false');
+});
 
 signupForm.addEventListener('submit', async (event) => {
   event.preventDefault();

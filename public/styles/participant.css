@@ -348,6 +348,35 @@
   margin-top: 0.4rem;
 }
 
+/* ── USER AVATAR ──────────────────────────────────────────────── */
+.participant-admin-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.45rem;
+}
+
+.participant-admin-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent-blue) 0%, #a5b4fc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  user-select: none;
+  letter-spacing: 0;
+}
+
+.participant-admin-user-info {
+  min-width: 0;
+}
+
 /* ── BADGES / CHIPS / TAGS ────────────────────────────────────── */
 .participant-admin-flag,
 .participant-admin-badge,
@@ -377,6 +406,7 @@
 .participant-admin-nav-link {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
   padding: 9px var(--space-md);
   font-size: 0.84rem;
   font-weight: 500;
@@ -395,6 +425,19 @@
   border-left-color: var(--color-accent-blue);
   background: rgba(59, 130, 246, 0.08);
   background: color-mix(in srgb, var(--color-accent-blue) 8%, transparent);
+}
+
+.participant-nav-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity 150ms;
+}
+
+.participant-admin-nav-link:hover .participant-nav-icon,
+.participant-admin-nav-link.is-active .participant-nav-icon {
+  opacity: 1;
 }
 
 .participant-admin-sidebar-footer {
@@ -441,7 +484,12 @@
 }
 
 .participant-admin-kicker {
-  display: none;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 1px;
 }
 
 .participant-admin-title {
@@ -451,6 +499,33 @@
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
   margin: 0;
+}
+
+.participant-admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.participant-admin-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 150ms, color 150ms;
+}
+
+.participant-admin-mobile-toggle:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
 }
 
 .participant-admin-badge-row {
@@ -463,6 +538,26 @@
   color: var(--color-text-muted);
 }
 
+.participant-admin-badge--active,
+.participant-admin-flag--active {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.42);
+  color: var(--color-accent-go);
+}
+
+.participant-admin-badge--pending,
+.participant-admin-flag--pending {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.36);
+  color: var(--color-accent-warn);
+}
+
+.participant-admin-badge--alert {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.32);
+  color: var(--color-accent-heat);
+}
+
 .participant-admin-content {
   flex: 1;
   overflow-y: auto;
@@ -471,6 +566,11 @@
 }
 
 /* ── SECTIONS ─────────────────────────────────────────────────── */
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .participant-admin-section {
   display: none;
   gap: var(--space-md);
@@ -482,10 +582,16 @@
   align-content: start;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .participant-admin-section.is-active {
+    animation: panelFadeIn 0.22s cubic-bezier(.16, .84, .44, 1) both;
+  }
+}
+
 .participant-admin-section-head {
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 1rem;
   padding-bottom: var(--space-sm);
   border-bottom: 1px solid var(--color-border);
 }
@@ -512,6 +618,8 @@
   gap: 1px;
   background: var(--color-border);
   border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .participant-stat-card {
@@ -520,7 +628,18 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  border-top: 2px solid var(--stat-color, var(--color-border));
+  transition: background 0.2s;
 }
+
+.participant-stat-card:hover {
+  background: var(--color-surface-2);
+}
+
+.participant-stat-card--blue { --stat-color: var(--color-accent-blue); }
+.participant-stat-card--go   { --stat-color: var(--color-accent-go); }
+.participant-stat-card--sky  { --stat-color: var(--color-accent-sky); }
+.participant-stat-card--warn { --stat-color: var(--color-accent-warn); }
 
 .participant-stat-value {
   font-family: var(--mono);
@@ -550,10 +669,35 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   padding: 1.25rem var(--space-md);
-  border-radius: 4px;
+  border-radius: 6px;
   display: grid;
   gap: 0.65rem;
   min-width: 0;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.participant-panel:hover,
+.participant-resource-group-card:hover {
+  border-color: var(--color-border-soft);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+
+/* Hero panel accent */
+.participant-panel--hero {
+  background: linear-gradient(155deg, rgba(59, 130, 246, 0.07) 0%, var(--color-surface) 55%);
+  border-color: rgba(59, 130, 246, 0.22);
+}
+.participant-panel--hero:hover {
+  border-color: rgba(59, 130, 246, 0.42);
+}
+
+/* Recognition panel */
+.participant-panel--recognition {
+  background: linear-gradient(155deg, rgba(52, 211, 153, 0.05) 0%, var(--color-surface) 55%);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+.participant-panel--recognition:hover {
+  border-color: rgba(52, 211, 153, 0.4);
 }
 
 .participant-panel-label {
@@ -611,6 +755,32 @@
 
 .participant-lockbox--compact {
   gap: 0.4rem;
+}
+
+.participant-lockbox--success {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.04);
+}
+
+.participant-lockbox--pending {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.03);
+}
+
+/* ── SIDEBAR OVERLAY (mobile) ─────────────────────────────────── */
+.participant-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 199;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+.participant-admin-shell.sidebar-open .participant-sidebar-overlay {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .participant-inline-actions,
@@ -823,33 +993,51 @@
 @media (max-width: 1180px) {
   .participant-admin-shell {
     grid-template-columns: 1fr;
-    height: auto;
+    height: calc(100vh - 68px);
+    position: relative;
+  }
+
+  .participant-admin-mobile-toggle {
+    display: flex;
   }
 
   .participant-admin-sidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-border);
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow-y: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.16, .84, .44, 1);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 0;
+    overflow-y: auto;
+  }
+
+  .participant-admin-shell.sidebar-open .participant-admin-sidebar {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
   }
 
   .participant-admin-brand,
   .participant-admin-user-card {
-    border-bottom: none;
-    border-right: 1px solid var(--color-border);
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .participant-admin-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
     padding: var(--space-sm) 0;
   }
 
   .participant-admin-sidebar-footer {
-    border-top: none;
-    border-left: 1px solid var(--color-border);
-    margin-top: 0;
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+    margin-top: auto;
   }
 }
 
@@ -890,8 +1078,7 @@
   }
 
   .participant-admin-content,
-  .participant-admin-topbar,
-  .participant-admin-sidebar {
+  .participant-admin-topbar {
     padding: 1rem;
   }
 
