@@ -472,7 +472,10 @@ const staticDashboardData = {
 
   <script id="participantStaticData" type="application/json" set:html={JSON.stringify(staticDashboardData)} />
 
-  <script is:inline src="/scripts/recognition-pdf.js"></script>
+  <script>
+    import { generateRecognitionPdf } from '../lib/client/recognition-pdf';
+    (window as any).generateRecognitionPdf = generateRecognitionPdf;
+  </script>
   <script is:inline src="/scripts/participant-dashboard.js"></script>
 
 </BaseLayout>
