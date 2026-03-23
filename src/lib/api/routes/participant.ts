@@ -30,7 +30,6 @@ import {
   updateParticipantDatallerRegistration,
   updateParticipantProfile,
 } from '../../server/db/participants';
-import { buildParticipantRecognitionPdf } from '../../server/documents/participant-recognition';
 import { getPublicRecursos } from '../../server/db/recursos';
 import { getPresentation, getPresentations, getSlides } from '../../server/db/slides';
 
@@ -59,61 +58,23 @@ participantRoutes.post('/forgot-password', handleForgotPassword);
 participantRoutes.post('/reset-password', handleResetPassword);
 participantRoutes.delete('/account', requireParticipantAuth(), handleDeleteAccount);
 
+// PDF is now generated client-side in /scripts/recognition-pdf.js.
+// This endpoint is kept only as a validation check (e.g. for future API consumers).
 participantRoutes.get('/recognition', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');
   if (!participant) {
     return c.json({ ok: false, error: 'unauthorized' }, 401);
   }
-
   if (!participant.datallerRegistered) {
     return c.json({ ok: false, error: 'dataller_required' }, 403);
   }
-
   if (!participant.workshopCompleted) {
     return c.json({ ok: false, error: 'workshop_pending' }, 403);
   }
-
   if (!participant.recognitionEnabled) {
     return c.json({ ok: false, error: 'recognition_locked' }, 403);
   }
-
-  const r2Key = `reconocimientos/${participant.id}.pdf`;
-  const object = await c.env.MEDIA?.get(r2Key);
-
-  // Happy path: PDF already cached in R2
-  if (object) {
-    const filename = (object.customMetadata?.filename) || `reconocimiento-${participant.id}.pdf`;
-    return new Response(object.body as ReadableStream, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Cache-Control': 'private, no-store, max-age=0',
-      },
-    });
-  }
-
-  // Fallback: generate on-the-fly (e.g. pre-gen failed or participant was authorized before the feature existed)
-  const { bytes, filename } = await buildParticipantRecognitionPdf(participant);
-
-  // Opportunistically cache in R2 for future requests (fire-and-forget)
-  if (c.env.MEDIA) {
-    c.executionCtx?.waitUntil(
-      c.env.MEDIA.put(r2Key, Uint8Array.from(bytes).buffer, {
-        httpMetadata: { contentType: 'application/pdf' },
-        customMetadata: { filename },
-      }).catch(() => {})
-    );
-  }
-
-  return new Response(Uint8Array.from(bytes), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-      'Cache-Control': 'private, no-store, max-age=0',
-    },
-  });
+  return c.json({ ok: true });
 });
 
 participantRoutes.get('/dashboard', requireParticipantAuth(), async (c) => {
@@ -440,27 +401,5 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
     return c.json({ ok: false, error: 'not_found' }, 404);
   }
 
-  const participant = serializeParticipant(updated);
-
-  // Pre-generate recognition PDF and store in R2 when enabled
-  if (body.recognitionEnabled && c.env.MEDIA) {
-    try {
-      const { bytes, filename } = await buildParticipantRecognitionPdf(participant);
-      const r2Key = `reconocimientos/${participantId}.pdf`;
-      await c.env.MEDIA.put(r2Key, Uint8Array.from(bytes).buffer, {
-        httpMetadata: { contentType: 'application/pdf' },
-        customMetadata: { filename },
-      });
-    } catch (err) {
-      console.error('Failed to pre-generate recognition PDF:', err);
-    }
-  }
-
-  // Remove PDF from R2 when recognition is disabled
-  if (body.recognitionEnabled === false && c.env.MEDIA) {
-    const r2Key = `reconocimientos/${participantId}.pdf`;
-    await c.env.MEDIA.delete(r2Key).catch(() => {});
-  }
-
-  return c.json({ ok: true, participant });
+  return c.json({ ok: true, participant: serializeParticipant(updated) });
 });

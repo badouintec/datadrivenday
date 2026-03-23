@@ -320,7 +320,23 @@ function renderRecognition(participant) {
   recognitionCopy.textContent = 'Tu reconocimiento está listo para descargar.';
   recognitionBadge.textContent = 'Reconocimiento listo';
   recognitionActions.hidden = false;
-  recognitionDownload.href = '/api/participant/recognition';
+  recognitionDownload.removeAttribute('href');
+  recognitionDownload.style.cursor = 'pointer';
+  recognitionDownload.onclick = async function (e) {
+    e.preventDefault();
+    if (recognitionDownload.classList.contains('is-loading')) return;
+    recognitionDownload.classList.add('is-loading');
+    recognitionDownload.textContent = 'Generando...';
+    try {
+      await window.generateRecognitionPdf(participant);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      recognitionCopy.textContent = 'Error al generar el PDF. Intenta de nuevo.';
+    } finally {
+      recognitionDownload.classList.remove('is-loading');
+      recognitionDownload.textContent = 'Descargar PDF';
+    }
+  };
   recognitionMeta.textContent = `Folio: ${participant.recognitionFolio || 'pendiente'}`;
 }
 
