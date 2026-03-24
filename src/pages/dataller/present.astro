@@ -545,6 +545,110 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .voice-flash.show { opacity: 1; }
 
+    .debug-panel {
+      position: fixed;
+      top: 54px;
+      right: 1rem;
+      z-index: 160;
+      width: min(360px, calc(100vw - 2rem));
+      padding: 0.8rem 0.9rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .debug-panel.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .debug-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+    }
+    .debug-title {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent, #34d399);
+    }
+    .debug-pill {
+      padding: 0.2rem 0.5rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .debug-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.45rem 0.6rem;
+      margin-bottom: 0.7rem;
+    }
+    .debug-item {
+      min-width: 0;
+    }
+    .debug-label {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-family: var(--mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .debug-value {
+      display: block;
+      min-height: 1.3em;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      line-height: 1.4;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .debug-value.is-error {
+      color: #f87171;
+    }
+    .debug-value.is-good {
+      color: #34d399;
+    }
+    .debug-transcript {
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .debug-transcript-text {
+      margin-top: 0.3rem;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: rgba(230,237,243,0.88);
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 720px) {
+      .debug-panel {
+        top: auto;
+        right: 0.75rem;
+        bottom: 5.25rem;
+        width: calc(100vw - 1.5rem);
+      }
+      .debug-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .atencion-overlay {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; align-items: center; justify-content: center;
@@ -597,6 +701,9 @@ const isAdmin = /ddd_session=/.test(cookie);
         <span class="timer-divider">/</span>
         <span class="timer-total" id="timerTotal">0:00</span>
       </div>
+      {isAdmin && (
+        <button class="topbar-btn" id="btnDebugHud" type="button">D Debug</button>
+      )}
       <button class="topbar-btn" id="btnVoice" type="button"><span class="voice-dot"></span>V Voz</button>
       <button class="topbar-btn" id="btnSubtitles" type="button">S Sub</button>
       <button class="topbar-btn" id="btnGraph" type="button">G Grafo</button>
@@ -670,6 +777,57 @@ const isAdmin = /ddd_session=/.test(cookie);
   <!-- Voice flash feedback -->
   <div class="voice-flash" id="voiceFlash"></div>
 
+  {isAdmin && (
+    <aside class="debug-panel" id="debugPanel" aria-live="polite">
+      <div class="debug-head">
+        <span class="debug-title">Debug Presenter</span>
+        <span class="debug-pill" id="debugMode">oculto</span>
+      </div>
+      <div class="debug-grid">
+        <div class="debug-item">
+          <span class="debug-label">Voz</span>
+          <span class="debug-value" id="debugVoiceStatus">inactiva</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Micrófono</span>
+          <span class="debug-value" id="debugMicStatus">pendiente</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Reconocimiento</span>
+          <span class="debug-value" id="debugRecognitionStatus">sin inicializar</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Reintentos</span>
+          <span class="debug-value" id="debugRestartAttempts">0</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Último comando</span>
+          <span class="debug-value" id="debugLastCommand">ninguno</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Grafo</span>
+          <span class="debug-value" id="debugGraphStatus">inactivo</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Fuente grafo</span>
+          <span class="debug-value" id="debugGraphSource">sin datos</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Nodos visibles</span>
+          <span class="debug-value" id="debugGraphNodes">0</span>
+        </div>
+      </div>
+      <div class="debug-transcript">
+        <span class="debug-label">Última transcripción final</span>
+        <div class="debug-transcript-text" id="debugTranscript">sin texto</div>
+      </div>
+      <div class="debug-transcript">
+        <span class="debug-label">Último error</span>
+        <div class="debug-transcript-text" id="debugLastError">sin errores</div>
+      </div>
+    </aside>
+  )}
+
   <!-- Atención overlay -->
   <div class="atencion-overlay" id="atencionOverlay">
     <span class="atencion-text">ATENCIÓN</span>
@@ -722,6 +880,16 @@ const STATE = {
   graphTranscriptBuffer: '',
   graphTimer: null,
   graphBusy: false,
+  debugVisible: false,
+  debugSpeechAvailable: false,
+  debugVoiceStatus: 'inactiva',
+  debugMicStatus: 'pendiente',
+  debugRecognitionStatus: 'sin inicializar',
+  debugLastCommand: 'ninguno',
+  debugGraphStatus: 'inactivo',
+  debugGraphSource: 'sin datos',
+  debugTranscript: 'sin texto',
+  debugLastError: 'sin errores',
   // Timer
   presStartTime: 0,
   slideStartTime: 0,
@@ -769,6 +937,12 @@ async function init() {
     nextPreview: $('nextPreview'), nextPreviewTitle: $('nextPreviewTitle'),
     nextPreviewTag: $('nextPreviewTag'), presTitle: $('presTitle'),
     btnVoice: $('btnVoice'), btnSubtitles: $('btnSubtitles'), btnGraph: $('btnGraph'),
+    btnDebugHud: $('btnDebugHud'), debugPanel: $('debugPanel'), debugMode: $('debugMode'),
+    debugVoiceStatus: $('debugVoiceStatus'), debugMicStatus: $('debugMicStatus'),
+    debugRecognitionStatus: $('debugRecognitionStatus'), debugRestartAttempts: $('debugRestartAttempts'),
+    debugLastCommand: $('debugLastCommand'), debugGraphStatus: $('debugGraphStatus'),
+    debugGraphSource: $('debugGraphSource'), debugGraphNodes: $('debugGraphNodes'),
+    debugTranscript: $('debugTranscript'), debugLastError: $('debugLastError'),
     atencionOverlay: $('atencionOverlay'),
     graphModeBanner: $('graphModeBanner'),
     graphOverlay: $('graphOverlay'), graphNodes: $('graphNodes'), graphSvg: $('graphSvg'),
@@ -812,9 +986,56 @@ async function init() {
 
   renderSlide(0);
   bindEvents();
+  updateDebugHud();
   startLoop();
   scheduleHideUI();
   initVoice();
+}
+
+function updateDebugHud() {
+  const d = STATE.dom;
+  if (!d.debugPanel) return;
+
+  d.debugPanel.classList.toggle('visible', STATE.debugVisible);
+  d.debugMode.textContent = STATE.debugVisible ? 'visible' : 'oculto';
+  d.debugVoiceStatus.textContent = STATE.debugVoiceStatus;
+  d.debugMicStatus.textContent = STATE.debugMicStatus;
+  d.debugRecognitionStatus.textContent = STATE.debugRecognitionStatus;
+  d.debugRestartAttempts.textContent = String(STATE.voiceRestartAttempts);
+  d.debugLastCommand.textContent = STATE.debugLastCommand;
+  d.debugGraphStatus.textContent = STATE.debugGraphStatus;
+  d.debugGraphSource.textContent = STATE.debugGraphSource;
+  d.debugGraphNodes.textContent = String(STATE.graphNodes.size);
+  d.debugTranscript.textContent = STATE.debugTranscript;
+  d.debugLastError.textContent = STATE.debugLastError;
+
+  d.debugVoiceStatus.className = 'debug-value' + (STATE.voiceActive ? ' is-good' : '');
+  d.debugMicStatus.className = 'debug-value' + (STATE.debugMicStatus === 'listo' ? ' is-good' : STATE.debugMicStatus.includes('bloqueado') || STATE.debugMicStatus.includes('no disponible') ? ' is-error' : '');
+  d.debugRecognitionStatus.className = 'debug-value' + (STATE.debugRecognitionStatus.includes('escuchando') ? ' is-good' : STATE.debugRecognitionStatus.includes('error') ? ' is-error' : '');
+  d.debugGraphStatus.className = 'debug-value' + ((STATE.graphOn || STATE.graphFocusActive) ? ' is-good' : '');
+  d.debugLastError.className = 'debug-transcript-text' + (STATE.debugLastError !== 'sin errores' ? ' is-error' : '');
+}
+
+function setDebugCommand(value) {
+  STATE.debugLastCommand = value;
+  updateDebugHud();
+}
+
+function setDebugError(value) {
+  STATE.debugLastError = value;
+  updateDebugHud();
+}
+
+function setDebugGraphStatus(value, source) {
+  STATE.debugGraphStatus = value;
+  if (source) STATE.debugGraphSource = source;
+  updateDebugHud();
+}
+
+function toggleDebugHud() {
+  if (!STATE.dom.debugPanel) return;
+  STATE.debugVisible = !STATE.debugVisible;
+  updateDebugHud();
 }
 
 // ── SLIDE RENDERING ──────────────────────────────────────
@@ -901,6 +1122,7 @@ function applySlide(slide) {
 function bindEvents() {
   STATE.dom.btnPrev.addEventListener('click', () => go(-1));
   STATE.dom.btnNext.addEventListener('click', () => go(1));
+  STATE.dom.btnDebugHud?.addEventListener('click', toggleDebugHud);
   document.getElementById('btnNotes').addEventListener('click', toggleNotes);
   document.getElementById('notesClose').addEventListener('click', closeNotes);
   document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
@@ -919,6 +1141,7 @@ function bindEvents() {
     if (e.key === 'v' || e.key === 'V') toggleVoice();
     if (e.key === 's' || e.key === 'S') toggleSubtitles();
     if (e.key === 'g' || e.key === 'G') toggleGraph();
+    if ((e.key === 'd' || e.key === 'D') && STATE.dom.debugPanel) toggleDebugHud();
     if (e.key === 'Escape') { dismissAtencion(); closeNotes(); closeSummary(); }
     showUI();
   });
@@ -1014,8 +1237,12 @@ async function ensureMicInput() {
     STATE.micSource = source;
     STATE.analyser = analyser;
     STATE.analyserData = new Float32Array(analyser.fftSize);
+    STATE.debugMicStatus = 'listo';
+    updateDebugHud();
     return true;
   } catch {
+    STATE.debugMicStatus = 'no disponible';
+    setDebugError('mic_not_available');
     showVoiceFlash('Micrófono no disponible');
     return false;
   }
@@ -1100,7 +1327,17 @@ function setReactiveAccent(accent) {
 // ── VOICE COMMANDS ───────────────────────────────────────
 function initVoice() {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Recognition) return;
+  if (!Recognition) {
+    STATE.debugSpeechAvailable = false;
+    STATE.debugRecognitionStatus = 'speech api no disponible';
+    setDebugError('speech_api_unavailable');
+    updateDebugHud();
+    return;
+  }
+
+  STATE.debugSpeechAvailable = true;
+  STATE.debugRecognitionStatus = 'lista';
+  updateDebugHud();
 
   const recognition = new Recognition();
   recognition.lang = 'es-MX';
@@ -1117,10 +1354,12 @@ function initVoice() {
         for (let j = 0; j < result.length; j += 1) {
           transcripts.push(result[j].transcript.toLowerCase().trim());
         }
+        STATE.debugTranscript = result[0].transcript.trim();
         handleVoiceTranscript(transcripts);
         updateSubtitle(result[0].transcript.trim(), false);
         feedGraphTranscript(result[0].transcript);
         STATE.allTranscripts += ' ' + result[0].transcript.trim();
+        updateDebugHud();
       } else {
         interimText += result[0].transcript;
       }
@@ -1134,10 +1373,15 @@ function initVoice() {
     if (event.error === 'no-speech' || event.error === 'aborted') return;
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
       STATE.voiceActive = false;
+      STATE.debugMicStatus = 'bloqueado';
+      STATE.debugRecognitionStatus = 'error';
       updateVoiceButton();
+      setDebugError(event.error);
       showVoiceFlash('Micrófono bloqueado');
       return;
     }
+    STATE.debugRecognitionStatus = 'error';
+    setDebugError(event.error);
     showVoiceFlash(`Voz: ${event.error}`);
   };
 
@@ -1146,17 +1390,24 @@ function initVoice() {
     const attempts = STATE.voiceRestartAttempts;
     if (attempts > 8) {
       STATE.voiceActive = false;
+      STATE.debugVoiceStatus = 'agotada';
+      STATE.debugRecognitionStatus = 'detenida';
       updateVoiceButton();
+      setDebugError('speech_restart_exhausted');
       showVoiceFlash('Voz: reintentos agotados');
       return;
     }
     const delay = Math.min(100 * Math.pow(2, attempts), 5000);
     STATE.voiceRestartAttempts += 1;
+    STATE.debugRecognitionStatus = `reinicio en ${Math.round(delay)}ms`;
+    updateDebugHud();
     setTimeout(() => {
       if (!STATE.voiceActive) return;
       try {
         recognition.start();
         STATE.voiceRestartAttempts = Math.max(0, STATE.voiceRestartAttempts - 1);
+        STATE.debugRecognitionStatus = 'escuchando';
+        updateDebugHud();
       } catch {}
     }, delay);
   };
@@ -1166,6 +1417,7 @@ function initVoice() {
 
 async function toggleVoice() {
   if (!STATE.recognition) {
+    setDebugError('speech_not_initialized');
     showVoiceFlash('Voz no disponible');
     return;
   }
@@ -1175,23 +1427,38 @@ async function toggleVoice() {
 
   if (STATE.voiceActive) {
     STATE.voiceRestartAttempts = 0;
+    STATE.debugVoiceStatus = 'activando';
+    STATE.debugRecognitionStatus = 'solicitando audio';
+    updateDebugHud();
     const micReady = await ensureMicInput();
     if (!micReady) {
       STATE.voiceActive = false;
+      STATE.debugVoiceStatus = 'inactiva';
       updateVoiceButton();
+      updateDebugHud();
       return;
     }
     try {
       STATE.recognition.start();
+      STATE.debugVoiceStatus = 'activa';
+      STATE.debugRecognitionStatus = 'escuchando';
+      STATE.debugMicStatus = 'listo';
+      updateDebugHud();
       showVoiceFlash('Escuchando');
     } catch {
       STATE.voiceActive = false;
+      STATE.debugVoiceStatus = 'inactiva';
+      STATE.debugRecognitionStatus = 'error al iniciar';
+      setDebugError('speech_start_failed');
       showVoiceFlash('No se pudo iniciar voz');
     }
   } else {
     try {
       STATE.recognition.stop();
     } catch {}
+    STATE.debugVoiceStatus = 'inactiva';
+    STATE.debugRecognitionStatus = 'detenida';
+    updateDebugHud();
     showVoiceFlash('Voz desactivada');
   }
 
@@ -1266,6 +1533,7 @@ function updateSubtitleButton() {
 function toggleGraph() {
   const nextPinned = !STATE.graphPinned;
   setGraphPinned(nextPinned);
+  setDebugCommand(nextPinned ? 'toggle_grafo_on' : 'toggle_grafo_off');
   showVoiceFlash(nextPinned ? 'Grafo ON' : 'Grafo OFF');
 }
 
@@ -1274,6 +1542,10 @@ function syncGraphUi() {
   STATE.dom.graphOverlay?.classList.toggle('active', graphVisible);
   STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphPinned || STATE.graphFocusActive);
   document.body.classList.toggle('graph-focus', STATE.graphFocusActive);
+  STATE.debugGraphStatus = graphVisible
+    ? STATE.graphFocusActive ? 'focus 10s' : STATE.graphPinned ? 'fijado' : 'activo'
+    : 'inactivo';
+  updateDebugHud();
 }
 
 function setGraphPinned(enabled) {
@@ -1321,6 +1593,7 @@ function clearGraph() {
   STATE.graphBusy = false;
   if (STATE.dom.graphNodes) STATE.dom.graphNodes.innerHTML = '';
   if (STATE.dom.graphSvg) STATE.dom.graphSvg.innerHTML = '';
+  updateDebugHud();
 }
 
 function seedGraphFromSlide() {
@@ -1455,6 +1728,7 @@ async function requestGraphUpdate() {
   if (!transcript || transcript.length < 15) return;
   if (STATE.graphBusy) return;
   STATE.graphBusy = true;
+  setDebugGraphStatus('procesando', STATE.debugGraphSource);
 
   const slide = STATE.slides[STATE.idx];
   try {
@@ -1476,9 +1750,16 @@ async function requestGraphUpdate() {
     const data = await res.json();
     if (data.ok && data.graph) {
       mergeGraph(data.graph);
+      setDebugGraphStatus(`ok (${data.graph.nodes?.length ?? 0} nodos)`, data.source ?? 'desconocida');
+    } else {
+      setDebugGraphStatus('sin respuesta', 'desconocida');
     }
-  } catch { /* network errors are fine to ignore */ }
+  } catch {
+    setDebugGraphStatus('error de red', 'desconocida');
+    setDebugError('graph_network_error');
+  }
   STATE.graphBusy = false;
+  updateDebugHud();
 }
 
 function mergeGraph(graph) {
@@ -1506,6 +1787,7 @@ function mergeGraph(graph) {
     addGraphEdge(e.from, e.to);
   });
   nudgeGraphNodes();
+  updateDebugHud();
 }
 
 function handleVoiceTranscript(transcripts) {
@@ -1515,12 +1797,14 @@ function handleVoiceTranscript(transcripts) {
   const match = (re) => normalizedTranscripts.some(t => re.test(t));
 
   if (match(/(?:modo|vista)\s+grafo|(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo/)) {
+    setDebugCommand('modo_grafo');
     activateGraphFocus(10000);
     showVoiceFlash('Modo grafo');
     return;
   }
 
   if (match(/(?:cerrar|cierra|quitar|ocultar|salir\s+de)\s+(?:modo\s+)?grafo/)) {
+    setDebugCommand('cerrar_grafo');
     deactivateGraphFocus();
     showVoiceFlash('Vista normal');
     return;
@@ -1528,6 +1812,7 @@ function handleVoiceTranscript(transcripts) {
 
   // "oigan atención" — full-screen yellow overlay for 5 seconds
   if (match(/oigan\s*atenci[oó]n/)) {
+    setDebugCommand('oigan_atencion');
     showAtencion();
     return;
   }
@@ -1541,24 +1826,28 @@ function handleVoiceTranscript(transcripts) {
   }
 
   if (match(/siguiente|adelante|avanzar|pr[oó]xim[ao]/)) {
+    setDebugCommand('siguiente');
     showVoiceFlash('Siguiente');
     go(1);
     return;
   }
 
   if (match(/anterior|atr[aá]s|volver|regresar/)) {
+    setDebugCommand('anterior');
     showVoiceFlash('Anterior');
     go(-1);
     return;
   }
 
   if (match(/notas?/)) {
+    setDebugCommand('notas');
     showVoiceFlash('Notas');
     toggleNotes();
     return;
   }
 
   if (match(/pantalla completa|fullscreen/)) {
+    setDebugCommand('fullscreen');
     showVoiceFlash('Pantalla completa');
     toggleFullscreen();
     return;
@@ -1572,10 +1861,13 @@ function handleVoiceTranscript(transcripts) {
     });
 
     if (!hasMatch) continue;
+    setDebugCommand(`slide_${idx + 1}`);
     showVoiceFlash(`Slide ${idx + 1}`);
     renderSlide(idx, idx > STATE.idx ? 'next' : 'prev');
     return;
   }
+
+  setDebugCommand('sin_match');
 }
 
 // ── UI HIDE / SHOW ────────────────────────────────────────

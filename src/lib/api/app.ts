@@ -330,13 +330,21 @@ app.post('/slides/live-graph', async (c) => {
 
   try {
     const { buildFallbackConceptGraph, extractConceptGraph } = await import('../server/ai');
-    const graph = c.env.AI
-      ? await extractConceptGraph(c.env.AI, body.slide, body.transcript, body.existingNodes ?? [])
-      : buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []);
-    return c.json({ ok: true, graph });
+    const ai = c.env.AI;
+    if (ai) {
+      const graph = await extractConceptGraph(ai, body.slide, body.transcript, body.existingNodes ?? []);
+      return c.json({ ok: true, graph, source: 'ai' });
+    }
+
+    const graph = buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []);
+    return c.json({ ok: true, graph, source: 'fallback' });
   } catch {
     const { buildFallbackConceptGraph } = await import('../server/ai');
-    return c.json({ ok: true, graph: buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []) });
+    return c.json({
+      ok: true,
+      graph: buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []),
+      source: 'fallback',
+    });
   }
 });
 
