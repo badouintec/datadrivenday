@@ -94,6 +94,111 @@ export interface ConceptGraph {
   edges: GraphEdge[];
 }
 
+function normalizeText(value: string): string {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function toGraphId(value: string): string {
+  return normalizeText(value)
+    .replace(/\s+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 48);
+}
+
+function toGraphLabel(value: string): string {
+  return String(value ?? '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+const GRAPH_STOPWORDS = new Set([
+  'para', 'como', 'este', 'esta', 'estos', 'estas', 'sobre', 'desde', 'hasta', 'donde', 'cuando',
+  'porque', 'tambien', 'entre', 'tener', 'tiene', 'vamos', 'puede', 'pueden', 'hacer', 'hacia',
+  'cada', 'todos', 'todas', 'datos', 'valor', 'senal', 'senalar', 'mismo', 'misma', 'mismos',
+  'mismas', 'muy', 'mas', 'menos', 'bien', 'solo', 'nada', 'algo', 'esta', 'esto', 'aqui', 'alli',
+  'entonces', 'bueno', 'pues', 'osea', 'digamos', 'ser', 'estar', 'fue', 'son', 'era', 'eran',
+  'hay', 'una', 'uno', 'unos', 'unas', 'con', 'sin', 'por', 'del', 'las', 'los', 'que', 'esa',
+  'ese', 'eso', 'sus', 'nos', 'les', 'pero', 'sobre', 'tema', 'cosa', 'cosas', 'parte', 'nivel',
+]);
+
+export function buildFallbackConceptGraph(
+  slide: SlideContext,
+  transcript: string,
+  existingNodes: string[],
+): ConceptGraph {
+  const normalizedTranscript = normalizeText(transcript);
+  const existingNodeSet = new Set(existingNodes.map((node) => normalizeText(node).replace(/\s+/g, '_')));
+  const nodes: GraphNode[] = [];
+  const edges: GraphEdge[] = [];
+  const seen = new Set(existingNodeSet);
+
+  const addNode = (rawLabel: string) => {
+    const label = toGraphLabel(rawLabel);
+    const id = toGraphId(label);
+    if (!label || !id || seen.has(id)) return;
+    seen.add(id);
+    nodes.push({ id, label });
+  };
+
+  for (const concept of slide.conceptosClave ?? []) {
+    const normalizedConcept = normalizeText(concept);
+    if (normalizedConcept && normalizedTranscript.includes(normalizedConcept)) {
+      addNode(concept);
+    }
+    if (nodes.length >= 4) break;
+  }
+
+  if (nodes.length < 4) {
+    const wordCounts = new Map<string, number>();
+    const words = normalizedTranscript.split(' ').filter(Boolean);
+    for (const word of words) {
+      if (word.length < 4 || GRAPH_STOPWORDS.has(word)) continue;
+      wordCounts.set(word, (wordCounts.get(word) ?? 0) + 1);
+    }
+
+    const topWords = [...wordCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([word]) => word);
+
+    for (const word of topWords) {
+      addNode(word);
+      if (nodes.length >= 4) break;
+    }
+  }
+
+  if (!nodes.length) {
+    const fallbackContext = [slide.tag, slide.titulo, slide.subtitulo]
+      .map((part) => String(part ?? '').trim())
+      .find(Boolean);
+    if (fallbackContext) addNode(fallbackContext);
+  }
+
+  const anchor = existingNodes.find(Boolean);
+  for (let index = 0; index < nodes.length; index += 1) {
+    const current = nodes[index];
+    if (index > 0) {
+      edges.push({ from: nodes[index - 1].id, to: current.id });
+    } else if (anchor) {
+      const anchorId = toGraphId(anchor);
+      if (anchorId && anchorId !== current.id) {
+        edges.push({ from: anchorId, to: current.id });
+      }
+    }
+  }
+
+  return { nodes, edges };
+}
+
 export async function extractConceptGraph(
   ai: Ai,
   slide: SlideContext,
@@ -103,34 +208,34 @@ export async function extractConceptGraph(
   const slideCtx = buildSlidePrompt(slide);
   const existing = existingNodes.length ? `\nNodos ya visibles: ${existingNodes.join(', ')}` : '';
 
-  const result = await runModel(ai, {
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Extraes conceptos clave y sus conexiones de lo que dice un presentador en una conferencia de datos y política pública. ' +
-          'Responde SOLO con JSON válido, sin markdown, sin explicación. Formato exacto:\n' +
-          '{"nodes":[{"id":"concepto_corto","label":"Concepto Corto"}],"edges":[{"from":"id1","to":"id2"}]}\n' +
-          'Reglas:\n' +
-          '- Máximo 4 nodos nuevos por llamada\n' +
-          '- Los id son snake_case sin acentos\n' +
-          '- Labels son 1-3 palabras en español, capitalizados\n' +
-          '- Conecta nodos relacionados semánticamente (incluye nodos existentes si aplica)\n' +
-          '- No repitas nodos que ya existen\n' +
-          '- Si no hay conceptos claros, responde {"nodes":[],"edges":[]}',
-      },
-      {
-        role: 'user',
-        content: `Contexto del slide:\n${slideCtx}${existing}\n\nTranscripción reciente:\n"${transcript}"`,
-      },
-    ],
-    max_tokens: 250,
-  });
-
-  const text = (result as { response?: string }).response ?? '';
   try {
+    const result = await runModel(ai, {
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Extraes conceptos clave y sus conexiones de lo que dice un presentador en una conferencia de datos y política pública. ' +
+            'Responde SOLO con JSON válido, sin markdown, sin explicación. Formato exacto:\n' +
+            '{"nodes":[{"id":"concepto_corto","label":"Concepto Corto"}],"edges":[{"from":"id1","to":"id2"}]}\n' +
+            'Reglas:\n' +
+            '- Máximo 4 nodos nuevos por llamada\n' +
+            '- Los id son snake_case sin acentos\n' +
+            '- Labels son 1-3 palabras en español, capitalizados\n' +
+            '- Conecta nodos relacionados semánticamente (incluye nodos existentes si aplica)\n' +
+            '- No repitas nodos que ya existen\n' +
+            '- Si no hay conceptos claros, responde {"nodes":[],"edges":[]}',
+        },
+        {
+          role: 'user',
+          content: `Contexto del slide:\n${slideCtx}${existing}\n\nTranscripción reciente:\n"${transcript}"`,
+        },
+      ],
+      max_tokens: 250,
+    });
+
+    const text = (result as { response?: string }).response ?? '';
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return { nodes: [], edges: [] };
+    if (!match) return buildFallbackConceptGraph(slide, transcript, existingNodes);
     const parsed = JSON.parse(match[0]);
     const nodes: GraphNode[] = (parsed.nodes ?? [])
       .filter((n: { id?: string; label?: string }) => n?.id && n?.label)
@@ -138,8 +243,11 @@ export async function extractConceptGraph(
     const edges: GraphEdge[] = (parsed.edges ?? [])
       .filter((e: { from?: string; to?: string }) => e?.from && e?.to)
       .map((e: { from: string; to: string }) => ({ from: String(e.from), to: String(e.to) }));
+    if (!nodes.length && !edges.length) {
+      return buildFallbackConceptGraph(slide, transcript, existingNodes);
+    }
     return { nodes, edges };
   } catch {
-    return { nodes: [], edges: [] };
+    return buildFallbackConceptGraph(slide, transcript, existingNodes);
   }
 }

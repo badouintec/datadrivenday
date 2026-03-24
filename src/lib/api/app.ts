@@ -321,7 +321,6 @@ app.get('/slides', async (c) => {
 });
 
 app.post('/slides/live-graph', async (c) => {
-  if (!c.env.AI) return c.json({ ok: false, error: 'ai_not_available' }, 503);
   const body = await c.req.json<{
     slide: { titulo: string; subtitulo?: string; cuerpo?: string; conceptosClave?: string[]; tag?: string };
     transcript: string;
@@ -330,11 +329,14 @@ app.post('/slides/live-graph', async (c) => {
   if (!body?.transcript || !body?.slide?.titulo) return c.json({ ok: false, error: 'invalid_body' }, 400);
 
   try {
-    const { extractConceptGraph } = await import('../server/ai');
-    const graph = await extractConceptGraph(c.env.AI, body.slide, body.transcript, body.existingNodes ?? []);
+    const { buildFallbackConceptGraph, extractConceptGraph } = await import('../server/ai');
+    const graph = c.env.AI
+      ? await extractConceptGraph(c.env.AI, body.slide, body.transcript, body.existingNodes ?? [])
+      : buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []);
     return c.json({ ok: true, graph });
   } catch {
-    return c.json({ ok: false, error: 'ai_error' }, 500);
+    const { buildFallbackConceptGraph } = await import('../server/ai');
+    return c.json({ ok: true, graph: buildFallbackConceptGraph(body.slide, body.transcript, body.existingNodes ?? []) });
   }
 });
 
