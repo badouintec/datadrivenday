@@ -306,6 +306,25 @@ const isAdmin = /ddd_session=/.test(cookie);
       opacity: 0; transition: opacity 0.5s ease;
     }
     .graph-overlay.active { opacity: 1; }
+    body.graph-focus .graph-overlay { opacity: 1; }
+    body.graph-focus canvas {
+      opacity: 0.18;
+      filter: blur(1px);
+      transition: opacity 0.25s ease, filter 0.25s ease;
+    }
+    body.graph-focus .slide-hud,
+    body.graph-focus .pres-nav,
+    body.graph-focus .next-preview,
+    body.graph-focus .notes-panel,
+    body.graph-focus .pres-timer,
+    body.graph-focus .subtitle-bar {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.graph-focus .pres-topbar {
+      background: rgba(13,17,23,0.55);
+      border-bottom-color: rgba(52, 211, 153, 0.2);
+    }
     .graph-svg {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
@@ -353,6 +372,29 @@ const isAdmin = /ddd_session=/.test(cookie);
     @keyframes node-pop {
       0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    .graph-mode-banner {
+      position: fixed;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 120;
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 999px;
+      background: rgba(13,17,23,0.84);
+      color: var(--accent, #34d399);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    body.graph-focus .graph-mode-banner {
+      opacity: 1;
     }
 
     /* ── SUBTITLES ────────────────────────────────────────── */
@@ -482,6 +524,7 @@ const isAdmin = /ddd_session=/.test(cookie);
     <svg class="graph-svg" id="graphSvg"></svg>
     <div class="graph-nodes" id="graphNodes"></div>
   </div>
+  <div class="graph-mode-banner" id="graphModeBanner">Modo grafo · 10s</div>
 
   <!-- Live subtitles -->
   <div class="subtitle-bar" id="subtitleBar" hidden></div>
@@ -573,6 +616,9 @@ const STATE = {
   subtitlesOn: false,
   subtitleTimer: null,
   graphOn: false,
+  graphPinned: false,
+  graphFocusActive: false,
+  graphFocusTimer: null,
   graphNodes: new Map(),
   graphEdges: [],
   graphTranscriptBuffer: '',
@@ -616,6 +662,7 @@ async function init() {
     nextPreviewTag: $('nextPreviewTag'), presTitle: $('presTitle'),
     btnVoice: $('btnVoice'), btnSubtitles: $('btnSubtitles'), btnGraph: $('btnGraph'),
     atencionOverlay: $('atencionOverlay'),
+    graphModeBanner: $('graphModeBanner'),
     graphOverlay: $('graphOverlay'), graphNodes: $('graphNodes'), graphSvg: $('graphSvg'),
   };
 
@@ -667,7 +714,7 @@ function renderSlide(idx, direction) {
   const slides = STATE.slides;
   if (!slides.length) return;
   STATE.idx = idx;
-  if (STATE.graphOn) seedGraphFromSlide();
+  if (STATE.graphOn || STATE.graphFocusActive) seedGraphFromSlide();
 
   const slide = slides[idx];
   const hud = document.getElementById('slideHud');
@@ -1109,16 +1156,52 @@ function updateSubtitleButton() {
 
 // ── LIVE CONCEPT GRAPH ───────────────────────────────────
 function toggleGraph() {
-  STATE.graphOn = !STATE.graphOn;
-  STATE.dom.graphOverlay?.classList.toggle('active', STATE.graphOn);
-  STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphOn);
-  if (STATE.graphOn) {
+  const nextPinned = !STATE.graphPinned;
+  setGraphPinned(nextPinned);
+  showVoiceFlash(nextPinned ? 'Grafo ON' : 'Grafo OFF');
+}
+
+function syncGraphUi() {
+  const graphVisible = STATE.graphOn || STATE.graphFocusActive;
+  STATE.dom.graphOverlay?.classList.toggle('active', graphVisible);
+  STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphPinned || STATE.graphFocusActive);
+  document.body.classList.toggle('graph-focus', STATE.graphFocusActive);
+}
+
+function setGraphPinned(enabled) {
+  STATE.graphPinned = enabled;
+  if (enabled) {
+    STATE.graphOn = true;
+    if (!STATE.graphNodes.size) seedGraphFromSlide();
     if (!STATE.voiceActive) toggleVoice();
-    seedGraphFromSlide();
-    showVoiceFlash('Grafo ON');
-  } else {
-    showVoiceFlash('Grafo OFF');
+  } else if (!STATE.graphFocusActive) {
+    STATE.graphOn = false;
+    clearGraph();
   }
+  syncGraphUi();
+}
+
+function activateGraphFocus(durationMs = 10000) {
+  clearTimeout(STATE.graphFocusTimer);
+  STATE.graphOn = true;
+  STATE.graphFocusActive = true;
+  if (!STATE.graphNodes.size) seedGraphFromSlide();
+  if (!STATE.voiceActive) toggleVoice();
+  syncGraphUi();
+  STATE.graphFocusTimer = setTimeout(() => {
+    deactivateGraphFocus();
+  }, durationMs);
+}
+
+function deactivateGraphFocus() {
+  clearTimeout(STATE.graphFocusTimer);
+  STATE.graphFocusTimer = null;
+  STATE.graphFocusActive = false;
+  if (!STATE.graphPinned) {
+    STATE.graphOn = false;
+    clearGraph();
+  }
+  syncGraphUi();
 }
 
 function clearGraph() {
@@ -1126,6 +1209,8 @@ function clearGraph() {
   STATE.graphEdges = [];
   STATE.graphTranscriptBuffer = '';
   clearTimeout(STATE.graphTimer);
+  STATE.graphTimer = null;
+  STATE.graphBusy = false;
   if (STATE.dom.graphNodes) STATE.dom.graphNodes.innerHTML = '';
   if (STATE.dom.graphSvg) STATE.dom.graphSvg.innerHTML = '';
 }
@@ -1222,25 +1307,37 @@ function nudgeGraphNodes() {
 
 // Feed transcript to graph AI (throttled)
 function feedGraphTranscript(text) {
-  if (!STATE.graphOn) return;
-  STATE.graphTranscriptBuffer += ' ' + text;
+  if (!STATE.graphOn && !STATE.graphFocusActive) return;
+  const cleanedText = sanitizeGraphTranscript(text);
+  if (!cleanedText) return;
+
+  STATE.graphTranscriptBuffer += ' ' + cleanedText;
   if (STATE.graphTranscriptBuffer.length > 500) {
     STATE.graphTranscriptBuffer = STATE.graphTranscriptBuffer.slice(-500);
   }
 
   // Check if any seed node is mentioned
   STATE.graphNodes.forEach((node, id) => {
-    if (node.seed && text.toLowerCase().includes(node.label.toLowerCase())) {
+    if (node.seed && cleanedText.toLowerCase().includes(node.label.toLowerCase())) {
       activateSeedNode(id);
     }
   });
 
-  // Throttle AI calls — every 10 seconds
+  // Throttle AI calls enough to feel live in graph mode.
   if (STATE.graphBusy || STATE.graphTimer) return;
   STATE.graphTimer = setTimeout(() => {
     STATE.graphTimer = null;
     requestGraphUpdate();
-  }, 10000);
+  }, STATE.graphFocusActive ? 1800 : 3000);
+}
+
+function sanitizeGraphTranscript(text) {
+  return String(text ?? '')
+    .replace(/\b(?:modo|vista)\s+grafo\b/gi, ' ')
+    .replace(/\b(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo\b/gi, ' ')
+    .replace(/\b(?:cerrar|cierra|quitar|ocultar|salir\s+de)\s+(?:modo\s+)?grafo\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function requestGraphUpdate() {
@@ -1304,6 +1401,18 @@ function mergeGraph(graph) {
 
 function handleVoiceTranscript(transcripts) {
   const match = (re) => transcripts.some(t => re.test(t));
+
+  if (match(/(?:modo|vista)\s+grafo|(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo/)) {
+    activateGraphFocus(10000);
+    showVoiceFlash('Modo grafo');
+    return;
+  }
+
+  if (match(/(?:cerrar|cierra|quitar|ocultar|salir\s+de)\s+(?:modo\s+)?grafo/)) {
+    deactivateGraphFocus();
+    showVoiceFlash('Vista normal');
+    return;
+  }
 
   // "oigan atención" — full-screen yellow overlay for 5 seconds
   if (match(/oigan\s*atenci[oó]n/)) {
