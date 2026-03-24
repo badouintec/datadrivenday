@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { requireAuth } from '../auth';
 import type { AppBindings, AppVariables } from '../types';
 import {
-  getPresentations, getPresentation, insertPresentation,
+  getPresentations, insertPresentation,
   updatePresentation, deletePresentation,
   getSlides, getSlide, getMaxSlideNumero, insertSlide, updateSlide, deleteSlide,
   reorderSlides, duplicateSlide,

@@ -470,7 +470,7 @@ const staticDashboardData = {
     </div>
   </section>
 
-  <script id="participantStaticData" type="application/json" set:html={JSON.stringify(staticDashboardData)} />
+  <script is:inline id="participantStaticData" type="application/json" set:html={JSON.stringify(staticDashboardData)} />
 
   <script>
     import { generateRecognitionPdf } from '../lib/client/recognition-pdf';

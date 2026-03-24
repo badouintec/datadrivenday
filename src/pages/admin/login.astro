@@ -70,7 +70,7 @@ if (!redirect.startsWith('/') || redirect.startsWith('//')) redirect = '/admin';
     </form>
   </div>
 
-  <script define:vars={{ redirect }}>
+  <script is:inline define:vars={{ redirect }}>
     const form = /** @type {HTMLFormElement} */ (document.getElementById('loginForm'));
     const errorEl = document.getElementById('loginError');
     const btn = /** @type {HTMLButtonElement} */ (document.getElementById('loginBtn'));

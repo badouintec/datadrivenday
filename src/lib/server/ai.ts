@@ -3,7 +3,11 @@
  * Uses @cf/meta/llama-3.1-8b-instruct via the AI binding.
  */
 
-const MODEL = '@cf/meta/llama-3.1-8b-instruct' as const;
+const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8' as const;
+
+function runModel(ai: Ai, input: Record<string, unknown>) {
+  return ai.run(MODEL as keyof AiModels, input);
+}
 
 interface SlideContext {
   titulo: string;
@@ -26,7 +30,7 @@ function buildSlidePrompt(slide: SlideContext): string {
 export async function generateNotes(ai: Ai, slide: SlideContext): Promise<string> {
   const slideCtx = buildSlidePrompt(slide);
 
-  const result = await ai.run(MODEL, {
+  const result = await runModel(ai, {
     messages: [
       {
         role: 'system',
@@ -52,7 +56,7 @@ export async function generateNotes(ai: Ai, slide: SlideContext): Promise<string
 export async function suggestConcepts(ai: Ai, slide: SlideContext): Promise<string[]> {
   const slideCtx = buildSlidePrompt(slide);
 
-  const result = await ai.run(MODEL, {
+  const result = await runModel(ai, {
     messages: [
       {
         role: 'system',
