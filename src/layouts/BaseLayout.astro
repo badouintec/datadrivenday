@@ -54,6 +54,14 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
       />
     </noscript>
     <title>{title}</title>
+    <!-- Theme: apply before paint to prevent flash -->
+    <script is:inline>
+      (function(){
+        var t = localStorage.getItem('ddd-theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
     <slot name="head" />
   </head>
   <body>
@@ -87,6 +95,14 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
             ))}
           </nav>
 
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
+            <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+          </button>
           <button
             class="mobile-nav-toggle"
             type="button"
@@ -121,16 +137,16 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
       <div class="page-shell footer-panel">
         <div class="footer-brand">
           <SiteLogo class="footer-logo" />
-          <p class="footer-copy">Una conversacion abierta sobre soberania de datos, infraestructura critica y decisiones publicas asistidas por inteligencia aplicada.</p>
+          <p class="footer-copy">Una conversación abierta sobre soberanía de datos, infraestructura crítica y decisiones públicas asistidas por inteligencia aplicada.</p>
           <p class="footer-copy" style="margin-top:0.5rem">Hermosillo, Sonora &mdash; 2026</p>
         </div>
         <div class="footer-meta">
           <div>
             <p class="footer-label">Temas 2026</p>
             <div class="tag-row">
-              <span class="tag">Soberania de datos</span>
-              <span class="tag">Infraestructura critica</span>
-              <span class="tag">Salud de precision</span>
+              <span class="tag">Soberanía de datos</span>
+              <span class="tag">Infraestructura crítica</span>
+              <span class="tag">Salud de precisión</span>
               <span class="tag">Geointeligencia</span>
               <span class="tag">Trazabilidad</span>
               <span class="tag">IA aplicada</span>
@@ -145,6 +161,17 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
     </footer>}
 
     <script>
+      // ── THEME TOGGLE ──────────────────────────────────────────
+      const themeToggle = document.getElementById('themeToggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme') ?? 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('ddd-theme', next);
+        });
+      }
+
       // ── MOBILE NAV TOGGLE ──────────────────────────────────────
       const mobileToggle = document.querySelector('.mobile-nav-toggle') as HTMLButtonElement | null;
       const mobilePanel = document.getElementById('mobile-nav-panel');
@@ -177,15 +204,33 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
             mobileToggle.setAttribute('aria-label', 'Abrir menú');
           });
         });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && mobilePanel.classList.contains('is-open')) {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobilePanel.classList.remove('is-open');
+            mobilePanel.setAttribute('aria-hidden', 'true');
+            mobileToggle.setAttribute('aria-label', 'Abrir menú');
+            mobileToggle.focus();
+          }
+        });
       }
 
-      // ── SCROLL PROGRESS ──────────────────────────────────────
+      // ── SCROLL PROGRESS + HEADER SHADOW ──────────────────────
       const progressBar = document.getElementById('scroll-progress');
-      if (progressBar) {
+      const siteHeader = document.querySelector('.site-header');
+      if (progressBar || siteHeader) {
         window.addEventListener('scroll', () => {
-          const total = document.documentElement.scrollHeight - window.innerHeight;
-          const pct   = total > 0 ? (window.scrollY / total) * 100 : 0;
-          progressBar.style.width = pct + '%';
+          const scrollY = window.scrollY;
+          if (progressBar) {
+            const total = document.documentElement.scrollHeight - window.innerHeight;
+            const pct   = total > 0 ? (scrollY / total) * 100 : 0;
+            progressBar.style.width = pct + '%';
+          }
+          if (siteHeader) {
+            siteHeader.classList.toggle('is-scrolled', scrollY > 10);
+          }
         }, { passive: true });
       }
 

@@ -2,15 +2,15 @@ export const site = {
   name: 'Data Driven Day',
   title: 'Data Driven Day 2026',
   description:
-    'Encuentro y plataforma para impulsar soberania de datos, infraestructura critica e inteligencia aplicada desde Hermosillo.',
+    'Encuentro y plataforma para impulsar soberanía de datos, infraestructura crítica e inteligencia aplicada desde Hermosillo.',
   location: 'Hermosillo, Sonora',
   eventDate: '28 de marzo de 2026',
-  tagline: 'Una agenda local para convertir datos, ciudad e inteligencia aplicada en decisiones publicas y colaboraciones reales.'
+  tagline: 'Una agenda local para convertir datos, ciudad e inteligencia aplicada en decisiones públicas y colaboraciones reales.'
 };
 
 export const navigation = [
   { href: '/', label: 'Inicio' },
-  { href: '/#proyecto', label: 'Vision' },
+  { href: '/#proyecto', label: 'Visión' },
   { href: '/dataller', label: 'Dataller' },
   { href: '/registro', label: 'Registro' },
   { href: '/hermosillo', label: 'Hermosillo' },
@@ -20,40 +20,40 @@ export const navigation = [
 
 export const capabilityCards = [
   {
-    title: 'Una vision para Hermosillo',
-    copy: 'Data Driven Day pone sobre la mesa una conversacion urgente sobre soberania de datos, infraestructura critica, resiliencia y decisiones asistidas por inteligencia aplicada.'
+    title: 'Una visión para Hermosillo',
+    copy: 'Data Driven Day pone sobre la mesa una conversación urgente sobre soberanía de datos, infraestructura crítica, resiliencia y decisiones asistidas por inteligencia aplicada.'
   },
   {
     title: 'Temas que importan ahora',
-    copy: 'Gemelos digitales, salud de precision, trazabilidad industrial, clima urbano y geointeligencia se abordan como prioridades reales para la ciudad y su ecosistema regional.'
+    copy: 'Gemelos digitales, salud de precisión, trazabilidad industrial, clima urbano y geointeligencia se abordan como prioridades reales para la ciudad y su ecosistema regional.'
   },
   {
-    title: 'Un evento para pasar a la accion',
-    copy: 'El Dataller de IA reune a quienes quieren convertir la conversacion en prototipos, colaboraciones, herramientas y capacidad instalada.'
+    title: 'Un evento para pasar a la acción',
+    copy: 'El Dataller de IA reúne a quienes quieren convertir la conversación en prototipos, colaboraciones, herramientas y capacidad instalada.'
   }
 ];
 
 export const roadmap = [
-  'Abrir una conversacion local sobre soberania de datos, infraestructura critica y resiliencia sistemica.',
-  'Conectar a gobierno, industria, academia y salud alrededor de una agenda comun.',
+  'Abrir una conversación local sobre soberanía de datos, infraestructura crítica y resiliencia sistémica.',
+  'Conectar a gobierno, industria, academia y salud alrededor de una agenda común.',
   'Usar el Dataller para acelerar prototipos, colaboraciones y nuevas capacidades.',
-  'Atraer aliados, speakers, instituciones y equipos con interes en implementar casos reales.',
-  'Mantener una comunidad activa con recursos, ideas y oportunidades de participacion.'
+  'Atraer aliados, speakers, instituciones y equipos con interés en implementar casos reales.',
+  'Mantener una comunidad activa con recursos, ideas y oportunidades de participación.'
 ];
 
 export const samplePosts = [
   {
-    title: 'Como estructurar una agenda editorial para politica publica',
+    title: 'Cómo estructurar una agenda editorial para política pública',
     category: 'Editorial ops',
-    excerpt: 'El nuevo sitio necesita contenido gobernable: tipos, estados y responsables, no solo paginas sueltas.'
+    excerpt: 'El nuevo sitio necesita contenido gobernable: tipos, estados y responsables, no solo páginas sueltas.'
   },
   {
-    title: 'Por que D1 basta para eventos, leads y submissions',
+    title: 'Por qué D1 basta para eventos, leads y submissions',
     category: 'Backend',
     excerpt: 'Para este caso, una base ligera y cercana al edge resuelve mucho sin traer un stack de SaaS pesado.'
   },
   {
-    title: 'Sanity como capa de operacion, no como adorno',
+    title: 'Sanity como capa de operación, no como adorno',
     category: 'CMS',
     excerpt: 'El CMS debe editar speakers, agenda, posts, recursos y FAQs con flujos claros y pocos tipos.'
   }
@@ -70,19 +70,19 @@ export const manualModules = [
 export const strategicStats = [
   {
     value: '57%',
-    label: 'de expertos proyecta una decada de turbulencia sistemica en 2026'
+    label: 'de expertos proyecta una década de turbulencia sistémica en 2026'
   },
   {
     value: '18%',
-    label: 'de las metas ODS va en camino segun el marco citado en el informe'
+    label: 'de las metas ODS va en camino según el marco citado en el informe'
   },
   {
     value: '76%',
-    label: 'del territorio mexicano enfrenta estres hidrico'
+    label: 'del territorio mexicano enfrenta estrés hídrico'
   },
   {
     value: '200M',
-    label: 'de personas podrian verse desplazadas por migracion climatica hacia 2030'
+    label: 'de personas podrían verse desplazadas por migración climática hacia 2030'
   }
 ];
 
@@ -90,72 +90,72 @@ export const focusPillars = [
   {
     title: 'Ciudades inteligentes y resilientes',
     summary:
-      'Gemelos digitales, sensores urbanos y modelos what-if para responder a isla de calor, energia, movilidad y desastres.',
+      'Gemelos digitales, sensores urbanos y modelos what-if para responder a isla de calor, energía, movilidad y desastres.',
     takeaway: 'Hermosillo necesita datos operables, no solo dashboards bonitos.'
   },
   {
     title: 'Sostenibilidad y salud planetaria',
     summary:
-      'El estres hidrico, el calor extremo y la agricultura de precision obligan a integrar clima, agua, energia y territorio.',
-    takeaway: 'La crisis ambiental ya es una crisis de coordinacion de datos.'
+      'El estrés hídrico, el calor extremo y la agricultura de precisión obligan a integrar clima, agua, energía y territorio.',
+    takeaway: 'La crisis ambiental ya es una crisis de coordinación de datos.'
   },
   {
-    title: 'Economia circular y trazabilidad industrial',
+    title: 'Economía circular y trazabilidad industrial',
     summary:
       'Pasaportes digitales, trazabilidad interoperable y monitoreo de cadenas de suministro reemplazan enfoques opacos e ineficientes.',
     takeaway: 'La trazabilidad deja de ser compliance y se vuelve ventaja operativa.'
   },
   {
-    title: 'Longevidad y salud de precision',
+    title: 'Longevidad y salud de precisión',
     summary:
-      'La IA poblacional cruza entorno, clinica y demografia para anticipar riesgos de salud en poblaciones urbanas y envejecidas.',
+      'La IA poblacional cruza entorno, clínica y demografía para anticipar riesgos de salud en poblaciones urbanas y envejecidas.',
     takeaway: 'Los determinantes sociales ya no pueden modelarse por separado.'
   },
   {
-    title: 'Retos existenciales y fragilidad sistemica',
+    title: 'Retos existenciales y fragilidad sistémica',
     summary:
-      'Geopolitica, migracion climatica y colapso de confianza hacen que la soberania de datos sea una prioridad institucional.',
-    takeaway: 'La gobernanza de datos es una capacidad de seguridad publica.'
+      'Geopolítica, migración climática y colapso de confianza hacen que la soberanía de datos sea una prioridad institucional.',
+    takeaway: 'La gobernanza de datos es una capacidad de seguridad pública.'
   }
 ];
 
 export const datallerAgenda = [
   {
     time: '9:00 - 10:00',
-    title: 'Modulo 1: Setup de copilotos y contexto progresivo',
+    title: 'Módulo 1: Setup de copilotos y contexto progresivo',
     detail:
-      'Vibe coding multinodal con GitHub Copilot para flujo de desarrollo y Gemini para razonamiento arquitectonico; uso de MCP para acceder a contexto local, archivos y esquemas; arranque de README.md, PROMPTS.md y ARCHITECTURE.md.'
+      'Vibe coding multinodal con GitHub Copilot para flujo de desarrollo y Gemini para razonamiento arquitectónico; uso de MCP para acceder a contexto local, archivos y esquemas; arranque de README.md, PROMPTS.md y ARCHITECTURE.md.'
   },
   {
     time: '10:00 - 11:30',
-    title: 'Modulo 2: Infraestructura de datos con Neon',
+    title: 'Módulo 2: Infraestructura de datos con Neon',
     detail:
-      'Diseno de esquemas con Gemini para gemelos digitales, salud de precision y trazabilidad industrial; aprovisionamiento de Postgres serverless con branching en Neon; integracion de pgvector para busqueda semantica de datos climaticos y estres hidrico.'
+      'Diseño de esquemas con Gemini para gemelos digitales, salud de precisión y trazabilidad industrial; aprovisionamiento de Postgres serverless con branching en Neon; integración de pgvector para búsqueda semántica de datos climáticos y estrés hídrico.'
   },
   {
     time: '11:30 - 13:00',
-    title: 'Modulo 3: Inteligencia y logica de negocio (RAG 2.0)',
+    title: 'Módulo 3: Inteligencia y lógica de negocio (RAG 2.0)',
     detail:
-      'Construccion de un pipeline RAG con Gemini para razonamiento multihop sobre grafos de conocimiento; desarrollo con Copilot de knowledge runtimes y busqueda hibrida; validacion de latencia con FLASH Framework para respuestas sub-segundo.'
+      'Construcción de un pipeline RAG con Gemini para razonamiento multihop sobre grafos de conocimiento; desarrollo con Copilot de knowledge runtimes y búsqueda híbrida; validación de latencia con FLASH Framework para respuestas sub-segundo.'
   },
   {
     time: '13:00 - 14:30',
-    title: 'Modulo 4: Frontend reactivo y despliegue en Vercel',
+    title: 'Módulo 4: Frontend reactivo y despliegue en Vercel',
     detail:
       'UI conectada con Gemini y Neon mediante Vercel AI SDK; vibe coding de componentes para visualizaciones inmersivas; despliegue continuo con Vercel integrando variables de entorno y GitOps.'
   },
   {
     time: '14:00 - 15:00',
-    title: 'Modulo 5: Observabilidad y auditoria de IA',
+    title: 'Módulo 5: Observabilidad y auditoría de IA',
     detail:
-      'Implementacion de trazas de decision auditables, atribucion de datos y demo final de un producto funcional orientado a economia plateada o salud planetaria.'
+      'Implementación de trazas de decisión auditables, atribución de datos y demo final de un producto funcional orientado a economía plateada o salud planetaria.'
   }
 ];
 
 export const eventOutcomes = [
-  'Una comunidad mas clara sobre por que los datos ya son infraestructura esencial.',
+  'Una comunidad más clara sobre por qué los datos ya son infraestructura esencial.',
   'Nuevas conversaciones entre sectores que normalmente no se sientan en la misma mesa.',
-  'Aliados, speakers y posibles patrocinadores alineados con la vision 2026.',
+  'Aliados, speakers y posibles patrocinadores alineados con la visión 2026.',
   'Un Dataller de IA capaz de traducir ideas en trabajo visible y demostrable.'
 ];
 

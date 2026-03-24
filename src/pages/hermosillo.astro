@@ -322,7 +322,7 @@ export const prerender = true;
 }
 .hermo-subtitle a {
   color: var(--color-accent-sky);
-  border-bottom: 1px solid rgba(96,165,250,0.35);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent-sky) 35%, transparent);
   transition: border-color 0.15s;
 }
 .hermo-subtitle a:hover { border-color: var(--color-accent-sky); }
@@ -534,20 +534,34 @@ canvas[data-animate]::before {
 
 <script is:inline>
 (function () {
-  // ── Design tokens ────────────────────────────────────────────
-  const C = {
-    blue:   '#3b82f6', sky:    '#60a5fa', data:   '#93c5fd',
-    green:  '#34d399', red:    '#f87171', amber:  '#fbbf24',
-    purple: '#a78bfa', teal:   '#2dd4bf', indigo: '#818cf8',
-    surf:   '#161b22', surf2:  '#1c2333', border: '#21262d',
-    text:   '#e6edf3', muted:  '#7d8590',
-  };
+  // ── Design tokens (theme-aware) ────────────────────────────────
+  function getColors() {
+    var s = getComputedStyle(document.documentElement);
+    var g = function(v) { return s.getPropertyValue(v).trim(); };
+    return {
+      blue:   g('--color-accent-blue')  || '#3b82f6',
+      sky:    g('--color-accent-sky')   || '#60a5fa',
+      data:   g('--color-accent-data')  || '#93c5fd',
+      green:  g('--color-accent-go')    || '#34d399',
+      red:    g('--color-accent-heat')  || '#f87171',
+      amber:  g('--color-accent-warn')  || '#fbbf24',
+      purple: '#a78bfa', teal: '#2dd4bf', indigo: '#818cf8',
+      surf:   g('--color-surface')      || '#161b22',
+      surf2:  g('--color-surface-2')    || '#1c2333',
+      border: g('--color-border')       || '#21262d',
+      text:   g('--color-text-primary') || '#e6edf3',
+      muted:  g('--color-text-muted')   || '#7d8590',
+    };
+  }
+  var C = getColors();
 
-  // ── Chart.js global defaults ─────────────────────────────────
-  Chart.defaults.color       = C.muted;
-  Chart.defaults.borderColor = C.border;
-  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
-  Chart.defaults.font.size   = 13;
+  function applyDefaults() {
+    Chart.defaults.color       = C.muted;
+    Chart.defaults.borderColor = C.border;
+    Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+    Chart.defaults.font.size   = 13;
+  }
+  applyDefaults();
 
   const ANIM = { duration: 900, easing: 'easeInOutQuart' };
 
@@ -601,12 +615,35 @@ canvas[data-animate]::before {
   }, { threshold: 0.15 });
 
   // ── Chart factory helpers ────────────────────────────────────
+  var chartInstances = [];
   function makeChart(id, config) {
     const el = document.getElementById(id);
     if (!el) return null;
     clearLoading(el);
     io.observe(el);
-    return new Chart(el, config);
+    var ch = new Chart(el, config);
+    chartInstances.push(ch);
+    return ch;
+  }
+
+  function hexToRgba(hex, alpha) {
+    // Handle both #abc and #aabbcc, and also rgb()/rgba() pass-through
+    if (!hex) return 'transparent';
+    hex = hex.trim();
+    if (hex.startsWith('rgb')) {
+      // Already rgb/rgba — inject alpha
+      return hex.replace(/rgba?\(([^)]+)\)/, function(_, inner) {
+        var parts = inner.split(',').map(function(s){return s.trim();});
+        return 'rgba(' + parts[0] + ',' + parts[1] + ',' + parts[2] + ',' + alpha + ')';
+      });
+    }
+    var r = 0, g = 0, b = 0;
+    if (hex.length === 4) {
+      r = parseInt(hex[1]+hex[1], 16); g = parseInt(hex[2]+hex[2], 16); b = parseInt(hex[3]+hex[3], 16);
+    } else if (hex.length === 7) {
+      r = parseInt(hex.substring(1,3), 16); g = parseInt(hex.substring(3,5), 16); b = parseInt(hex.substring(5,7), 16);
+    }
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
   }
 
   function lineData(label, data, color, fill = false, dash = []) {
@@ -614,7 +651,7 @@ canvas[data-animate]::before {
       label,
       data,
       borderColor: color,
-      backgroundColor: fill ? color.replace(')', ', 0.08)').replace('rgb', 'rgba') : 'transparent',
+      backgroundColor: fill ? hexToRgba(color, 0.08) : 'transparent',
       fill,
       tension: 0.42,
       pointRadius: 5,
@@ -826,7 +863,7 @@ canvas[data-animate]::before {
         datasets: [{
           ...lineData('% satisfacción empresarial', aq.satisfaccion, C.amber, true),
           fill: true,
-          backgroundColor: 'rgba(251,191,36,0.08)',
+          backgroundColor: hexToRgba(C.amber, 0.08),
         }],
       },
       options: {
@@ -849,14 +886,14 @@ canvas[data-animate]::before {
           {
             label: 'Hermosillo',
             data: [35, 73, 55, 62, 40, 88],
-            borderColor: C.blue, backgroundColor: 'rgba(59,130,246,0.12)',
+            borderColor: C.blue, backgroundColor: hexToRgba(C.blue, 0.12),
             pointBackgroundColor: C.blue, pointRadius: 5,
             animation: ANIM,
           },
           {
             label: 'Promedio nacional',
             data: [50, 68, 65, 70, 55, 92],
-            borderColor: C.green, backgroundColor: 'rgba(52,211,153,0.08)',
+            borderColor: C.green, backgroundColor: hexToRgba(C.green, 0.08),
             borderDash: [4,3], pointBackgroundColor: C.green, pointRadius: 5,
             animation: ANIM,
           },
@@ -941,7 +978,7 @@ canvas[data-animate]::before {
         datasets: [{
           ...lineData('Mercado global servicios digitales (índice)', ec.digital_idx, C.green, true),
           fill: true,
-          backgroundColor: 'rgba(52,211,153,0.08)',
+          backgroundColor: hexToRgba(C.green, 0.08),
         }],
       },
       options: {
@@ -987,9 +1024,9 @@ canvas[data-animate]::before {
       data: {
         labels: ['Ing. mecánica','Talento digital','Energía renovable','Logística frontera','Manufactura avanzada','Servicios profesionales'],
         datasets: [
-          { label: 'Nearshoring',         data: [8,6,7,9,7,5], borderColor: C.blue,  backgroundColor: 'rgba(59,130,246,0.1)',  pointBackgroundColor: C.blue,  pointRadius: 4, animation: ANIM },
-          { label: 'Powershoring',         data: [6,4,10,7,8,4], borderColor: C.amber, backgroundColor: 'rgba(251,191,36,0.08)', pointBackgroundColor: C.amber, pointRadius: 4, animation: ANIM },
-          { label: 'Servicios digitales', data: [5,9,5,6,4,9],  borderColor: C.green, backgroundColor: 'rgba(52,211,153,0.08)', pointBackgroundColor: C.green, pointRadius: 4, animation: ANIM },
+          { label: 'Nearshoring',         data: [8,6,7,9,7,5], borderColor: C.blue,  backgroundColor: hexToRgba(C.blue, 0.1),  pointBackgroundColor: C.blue,  pointRadius: 4, animation: ANIM },
+          { label: 'Powershoring',         data: [6,4,10,7,8,4], borderColor: C.amber, backgroundColor: hexToRgba(C.amber, 0.08), pointBackgroundColor: C.amber, pointRadius: 4, animation: ANIM },
+          { label: 'Servicios digitales', data: [5,9,5,6,4,9],  borderColor: C.green, backgroundColor: hexToRgba(C.green, 0.08), pointBackgroundColor: C.green, pointRadius: 4, animation: ANIM },
         ],
       },
       options: {
@@ -1042,8 +1079,17 @@ canvas[data-animate]::before {
   }
 
   // ── Main: fetch → build ──────────────────────────────────────
+  var cachedData = null;
+
+  function rebuildAllCharts() {
+    chartInstances.forEach(function(ch) { ch.destroy(); });
+    chartInstances = [];
+    if (cachedData) buildCharts(cachedData);
+  }
+
   loadData()
     .then((data) => {
+      cachedData = data;
       buildCharts(data);
       setStatus('Datos cargados · fuente: base de datos', 'is-ok');
       setTimeout(() => { if (statusBar) statusBar.hidden = true; }, 3000);
@@ -1053,6 +1099,18 @@ canvas[data-animate]::before {
       setStatus('Error al cargar datos del servidor', 'is-error');
       document.querySelectorAll('canvas[data-animate]').forEach(clearLoading);
     });
+
+  // ── Theme change → rebuild charts ──────────────────────────
+  var obs = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.attributeName === 'data-theme') {
+        C = getColors();
+        applyDefaults();
+        rebuildAllCharts();
+      }
+    });
+  });
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   // ── Tab switching ────────────────────────────────────────────
   document.querySelectorAll('.htab').forEach(btn => {
