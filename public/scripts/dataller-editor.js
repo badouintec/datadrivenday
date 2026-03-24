@@ -506,6 +506,54 @@ async function removeSlideImage() {
   } catch { /* ignore */ }
 }
 
+// ── AI HELPERS ──────────────────────────────────────────────────────────────
+async function aiGenerateNotes() {
+  var slide = getSelectedSlide();
+  if (!slide) return;
+  var btn = document.getElementById('btnAiNotes');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+  try {
+    var res = await fetch('/api/admin/slides/' + slide.id + '/generate-notes', { method: 'POST' });
+    var data = await res.json();
+    if (data.ok && data.notes) {
+      document.getElementById('propNotas').value = data.notes;
+      setSlideField('notas', data.notes);
+    } else {
+      alert(data.error === 'ai_not_available' ? 'IA no disponible en este entorno' : 'Error al generar notas');
+    }
+  } catch {
+    alert('Error de conexión');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '\u2733 Generar con IA';
+  }
+}
+
+async function aiSuggestConcepts() {
+  var slide = getSelectedSlide();
+  if (!slide) return;
+  var btn = document.getElementById('btnAiConcepts');
+  btn.disabled = true;
+  btn.textContent = 'Sugiriendo...';
+  try {
+    var res = await fetch('/api/admin/slides/' + slide.id + '/suggest-concepts', { method: 'POST' });
+    var data = await res.json();
+    if (data.ok && data.concepts?.length) {
+      var merged = [...new Set([...(slide.conceptosClave ?? []), ...data.concepts])];
+      setSlideField('conceptosClave', merged);
+      renderTagsEditor('conceptsEditor', merged, 'conceptosClave');
+    } else {
+      alert(data.error === 'ai_not_available' ? 'IA no disponible en este entorno' : 'No se encontraron conceptos');
+    }
+  } catch {
+    alert('Error de conexión');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '\u2733 Sugerir con IA';
+  }
+}
+
 // ── BIND PROPS PANEL ─────────────────────────────────────────────────────────
 function bindPropsPanel() {
   const textFields = [
@@ -552,6 +600,10 @@ function bindPropsPanel() {
   });
   document.getElementById('btnChangeImage').addEventListener('click', function () { imageInput.click(); });
   document.getElementById('btnRemoveImage').addEventListener('click', removeSlideImage);
+
+  // AI buttons
+  document.getElementById('btnAiNotes').addEventListener('click', aiGenerateNotes);
+  document.getElementById('btnAiConcepts').addEventListener('click', aiSuggestConcepts);
 }
 
 // ── BIND SIDEBAR ACTIONS ─────────────────────────────────────────────────────

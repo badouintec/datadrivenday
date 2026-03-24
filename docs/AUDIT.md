@@ -22,17 +22,13 @@ Evidencia:
 - `src/pages/registro.astro`: el PDF se genera del lado cliente importando `src/lib/client/recognition-pdf.ts`.
 - `README.md` anterior seguia documentando descarga por API como si fuera el flujo activo.
 
-### 2. Doble implementacion del reconocimiento PDF
+### 2. Flujo de reconocimiento ya consolidado
 
-Impacto: alto
+Impacto: resuelto
 
-- Existe un generador server-side en `src/lib/server/documents/participant-recognition.ts`.
-- El flujo activo usa el generador client-side en `src/lib/client/recognition-pdf.ts`.
-- Ambos contienen logica de layout similar y el logo embebido en base64, lo que aumenta el riesgo de divergencia visual y de mantenimiento.
-
-Decision pendiente:
-
-- Elegir una sola fuente de verdad para el reconocimiento PDF.
+- El flujo activo se mantiene en `src/lib/client/recognition-pdf.ts`.
+- `src/lib/api/routes/participant.ts` conserva la validacion backend previa a la descarga.
+- La implementacion server-side huérfana fue eliminada para evitar divergencia visual y mantenimiento duplicado.
 
 ### 3. Falta de pruebas automatizadas y pipeline de calidad
 
@@ -66,13 +62,11 @@ Impacto: medio
 
 ## Riesgos operativos
 
-- Un cambio en el reconocimiento puede requerir tocar dos implementaciones distintas.
 - Un contribuidor nuevo puede tomar decisiones usando documentacion vieja.
 - La falta de smoke tests deja rutas sensibles sin cobertura minima.
 
 ## Recomendacion inmediata
 
 1. Consolidar documentacion viva en `docs/`.
-2. Elegir si el reconocimiento PDF vive en cliente o servidor y eliminar la via sobrante.
-3. Agregar al menos smoke tests para auth, dashboard participante y presentaciones.
-4. Separar la politica de fallback de datos para distinguir modo local, modo demo y modo prod.
+2. Agregar al menos smoke tests para auth, dashboard participante y presentaciones.
+3. Separar la politica de fallback de datos para distinguir modo local, modo demo y modo prod.

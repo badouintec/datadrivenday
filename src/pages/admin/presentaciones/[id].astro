@@ -106,6 +106,7 @@ const presId = Astro.params.id;
           <div class="prop-field">
             <label class="prop-label" for="propNotas">Notas del presentador</label>
             <textarea id="propNotas" class="prop-textarea prop-textarea--notes" rows="4" placeholder="Solo visibles al presionar N"></textarea>
+            <button type="button" class="prop-ai-btn" id="btnAiNotes" title="Generar notas con IA">&#9733; Generar con IA</button>
           </div>
         </section>
 
@@ -127,6 +128,7 @@ const presId = Astro.params.id;
         <section class="props-section">
           <h3 class="props-section-title">CONCEPTOS CLAVE</h3>
           <div class="tags-editor" id="conceptsEditor"></div>
+          <button type="button" class="prop-ai-btn" id="btnAiConcepts" title="Sugerir conceptos con IA">&#9733; Sugerir con IA</button>
         </section>
 
         <section class="props-section">

@@ -32,6 +32,7 @@ export interface AppBindings {
   DB: D1Database;
   MEDIA: R2Bucket;
   APP_SESSION: KVNamespace;
+  AI?: Ai;
   RESEND_API_KEY?: string;
   PUBLIC_SITE_URL?: string;
   PUBLIC_SANITY_PROJECT_ID?: string;

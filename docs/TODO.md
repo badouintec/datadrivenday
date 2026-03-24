@@ -4,11 +4,9 @@ Backlog extendido derivado de la auditoria del 2026-03-23.
 
 ## P0 - Riesgo inmediato
 
-- [ ] Definir una sola implementacion para el reconocimiento PDF y borrar la duplicada.
 - [ ] Decidir si `GET /api/participant/recognition` debe solo validar o volver a entregar el PDF.
 - [ ] Agregar smoke tests para login admin, login participante, dashboard, presentaciones y reconocimiento.
 - [ ] Cubrir con pruebas los permisos de admin para presentaciones, recursos, blog y participantes.
-- [ ] Confirmar que el flujo de reconocimiento no depende de dos layouts distintos entre cliente y servidor.
 - [ ] Revisar si el PDF cliente debe seguir cargando el logo como base64 inline o moverse a un asset compartido.
 - [ ] Documentar oficialmente el flujo de reconocimiento en README y docs tecnicos.
 
@@ -20,7 +18,6 @@ Backlog extendido derivado de la auditoria del 2026-03-23.
 - [ ] Limpiar imports no usados reportados por `astro check`.
 - [ ] Resolver los hints de scripts inline en paginas Astro o documentar por que se mantienen.
 - [ ] Revisar chunk size de Vite y definir si amerita code splitting.
-- [ ] Verificar que no haya modulos huérfanos en `src/lib/server/documents`.
 - [ ] Auditar uso real de Sanity para distinguir integracion activa contra fallback documental.
 
 ## P1 - Datos y backend

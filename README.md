@@ -107,7 +107,7 @@ npm run preview:worker
 ## Snapshot de auditoria
 
 1. La mayor deuda actual es de documentacion y coherencia operativa, no de build roto.
-2. El reconocimiento PDF tiene implementacion duplicada: existe una via server-side y otra client-side, pero la activa es la client-side.
+2. El reconocimiento PDF ya tiene una sola fuente de verdad: generacion client-side con validacion backend previa.
 3. No hay pruebas automatizadas ni scripts de lint dedicados fuera de `astro check` y build.
 4. Hay datos fallback embebidos en API que ayudan en resiliencia, pero pueden ocultar deriva de datos si no se documentan.
 

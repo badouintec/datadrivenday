@@ -4,7 +4,7 @@ import type { AppBindings, AppVariables } from '../types';
 import {
   getPresentations, getPresentation, insertPresentation,
   updatePresentation, deletePresentation,
-  getSlides, getMaxSlideNumero, insertSlide, updateSlide, deleteSlide,
+  getSlides, getSlide, getMaxSlideNumero, insertSlide, updateSlide, deleteSlide,
   reorderSlides, duplicateSlide,
 } from '../../server/db/slides';
 import { listPresentationComments } from '../../server/db/participants';
@@ -178,6 +178,39 @@ slidesRoutes.post('/:id/imagen', requireAuth('presentations:write'), async (c) =
 slidesRoutes.delete('/:id/imagen', requireAuth('presentations:write'), async (c) => {
   await updateSlide(c.env.DB!, c.req.param('id')!, { imagen_url: null } as any);
   return c.json({ ok: true });
+});
+
+// ── AI-powered slide helpers ────────────────────────────────────────────────────
+slidesRoutes.post('/:id/generate-notes', requireAuth('presentations:write'), async (c) => {
+  if (!c.env.AI) return c.json({ ok: false, error: 'ai_not_available' }, 503);
+  const slide = await getSlide(c.env.DB!, c.req.param('id')!);
+  if (!slide) return c.json({ ok: false, error: 'not_found' }, 404);
+
+  const { generateNotes } = await import('../../server/ai');
+  const notes = await generateNotes(c.env.AI, {
+    titulo: slide.titulo,
+    subtitulo: slide.subtitulo,
+    cuerpo: slide.cuerpo,
+    conceptosClave: slide.conceptosClave,
+    tag: slide.tag,
+  });
+  return c.json({ ok: true, notes });
+});
+
+slidesRoutes.post('/:id/suggest-concepts', requireAuth('presentations:write'), async (c) => {
+  if (!c.env.AI) return c.json({ ok: false, error: 'ai_not_available' }, 503);
+  const slide = await getSlide(c.env.DB!, c.req.param('id')!);
+  if (!slide) return c.json({ ok: false, error: 'not_found' }, 404);
+
+  const { suggestConcepts } = await import('../../server/ai');
+  const concepts = await suggestConcepts(c.env.AI, {
+    titulo: slide.titulo,
+    subtitulo: slide.subtitulo,
+    cuerpo: slide.cuerpo,
+    conceptosClave: slide.conceptosClave,
+    tag: slide.tag,
+  });
+  return c.json({ ok: true, concepts });
 });
 
 // ── Presentation comments (read-only for admin) ───────────────────────────────

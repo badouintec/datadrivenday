@@ -365,6 +365,7 @@ const STATE = {
   voicePitch: 0,
   reactiveAccent: null,
   reactiveAccentUntil: 0,
+  atencionTimer: null,
   presentation: null,
 };
 
@@ -488,6 +489,7 @@ function bindEvents() {
   document.getElementById('notesClose').addEventListener('click', closeNotes);
   document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('btnVoice').addEventListener('click', toggleVoice);
+  document.getElementById('atencionOverlay').addEventListener('click', dismissAtencion);
 
   document.addEventListener('keydown', (e) => {
     ensureAudioContext();
@@ -496,7 +498,7 @@ function bindEvents() {
     if (e.key === 'n' || e.key === 'N') toggleNotes();
     if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     if (e.key === 'v' || e.key === 'V') toggleVoice();
-    if (e.key === 'Escape') closeNotes();
+    if (e.key === 'Escape') { dismissAtencion(); closeNotes(); }
     showUI();
   });
 
@@ -656,13 +658,21 @@ function getActiveAccent(slide) {
   return slide?.accentColor ?? slide?.accent_color ?? 'primary';
 }
 
+const ACCENT_LABELS = { primary: 'IA', alert: 'Alerta', sage: 'Sistema', light: 'Claridad', amber: 'Datos' };
+
 function setReactiveAccent(accent) {
   STATE.reactiveAccent = accent;
   STATE.reactiveAccentUntil = performance.now() + 6000;
   const slide = STATE.slides[STATE.idx];
   const hex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
   document.documentElement.style.setProperty('--accent', hex);
-  showVoiceFlash(`Color: ${accent}`);
+  // Show flash with the accent color applied
+  const flash = document.getElementById('voiceFlash');
+  flash.style.color = hex;
+  flash.style.borderColor = hex;
+  showVoiceFlash(`● ${ACCENT_LABELS[accent] ?? accent}`);
+  // Reset flash color after it hides
+  setTimeout(() => { flash.style.color = ''; flash.style.borderColor = ''; }, 2200);
 }
 
 // ── VOICE COMMANDS ───────────────────────────────────────
@@ -760,45 +770,57 @@ function showVoiceFlash(message) {
 
 function showAtencion() {
   const overlay = document.getElementById('atencionOverlay');
+  clearTimeout(STATE.atencionTimer);
+  // Re-trigger animation by removing and re-adding element
+  overlay.hidden = true;
+  void overlay.offsetWidth; // force reflow
   overlay.hidden = false;
-  setTimeout(() => { overlay.hidden = true; }, 5000);
+  STATE.atencionTimer = setTimeout(() => { overlay.hidden = true; }, 5000);
+}
+function dismissAtencion() {
+  const overlay = document.getElementById('atencionOverlay');
+  if (!overlay.hidden) {
+    clearTimeout(STATE.atencionTimer);
+    overlay.hidden = true;
+  }
 }
 
 function handleVoiceTranscript(transcripts) {
-  const spoken = transcripts.join(' ');
+  const match = (re) => transcripts.some(t => re.test(t));
 
   // "oigan atención" — full-screen yellow overlay for 5 seconds
-  if (/oigan\s*atenci[oó]n|atenci[oó]n/.test(spoken)) {
+  if (match(/oigan\s*atenci[oó]n/)) {
     showAtencion();
     return;
   }
 
+  // Color accent from keywords
   for (const rule of VOICE_COLOR_RULES) {
-    if (rule.words.some(word => spoken.includes(word))) {
+    if (rule.words.some(word => transcripts.some(t => t.includes(word)))) {
       setReactiveAccent(rule.accent);
       break;
     }
   }
 
-  if (/siguiente|adelante|avanzar|próxima|proxima|próximo|proximo/.test(spoken)) {
+  if (match(/siguiente|adelante|avanzar|pr[oó]xim[ao]/)) {
     showVoiceFlash('Siguiente');
     go(1);
     return;
   }
 
-  if (/anterior|atrás|atras|volver|regresar/.test(spoken)) {
+  if (match(/anterior|atr[aá]s|volver|regresar/)) {
     showVoiceFlash('Anterior');
     go(-1);
     return;
   }
 
-  if (/notas|nota/.test(spoken)) {
+  if (match(/notas?/)) {
     showVoiceFlash('Notas');
     toggleNotes();
     return;
   }
 
-  if (/pantalla completa|fullscreen/.test(spoken)) {
+  if (match(/pantalla completa|fullscreen/)) {
     showVoiceFlash('Pantalla completa');
     toggleFullscreen();
     return;
