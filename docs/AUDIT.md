@@ -13,7 +13,7 @@ El proyecto esta en un estado funcional y desplegable. La separacion entre sitio
 Impacto: alto
 
 - El README anterior describia rutas y comportamientos que ya no coinciden con el codigo actual.
-- [PLAN_MIGRACION_Y_SETUP.md](./PLAN_MIGRACION_Y_SETUP.md) todavia habla de una base inicial y de placeholders que ya no representan el despliegue productivo actual.
+- [MIGRATION-SETUP.md](./MIGRATION-SETUP.md) todavia habla de una base inicial y de placeholders que ya no representan el despliegue productivo actual.
 - La carpeta raiz acumula markdowns historicos y operativos sin una jerarquia clara.
 
 Evidencia:

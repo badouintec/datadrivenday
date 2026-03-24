@@ -10,12 +10,12 @@ Indice operativo de la documentacion del proyecto.
 
 ## Documentacion historica o de apoyo
 
-- [PLAN_MIGRACION_Y_SETUP.md](./PLAN_MIGRACION_Y_SETUP.md): plan de migracion y setup original.
-- [DOCUMENTACION_PROYECTO.md](./DOCUMENTACION_PROYECTO.md): analisis del sitio legacy.
-- [admin_system_ddd2026.md](./admin_system_ddd2026.md): notas del sistema admin.
-- [auditoria_ddd2026.md](./auditoria_ddd2026.md): auditoria previa del proyecto.
-- [presentacion.md](./presentacion.md): documento de presentacion.
-- [tema2026.md](./tema2026.md): insumos tematicos y curatoriales.
+- [MIGRATION-SETUP.md](./MIGRATION-SETUP.md): plan de migracion y setup original.
+- [LEGACY-DOCUMENTATION.md](./LEGACY-DOCUMENTATION.md): analisis del sitio legacy.
+- [ADMIN-SYSTEM-2026.md](./ADMIN-SYSTEM-2026.md): notas del sistema admin.
+- [AUDIT-2026.md](./AUDIT-2026.md): auditoria previa del proyecto.
+- [PRESENTATION-2026.md](./PRESENTATION-2026.md): documento de presentacion.
+- [THEME-2026.md](./THEME-2026.md): insumos tematicos y curatoriales.
 
 ## Regla de mantenimiento
 

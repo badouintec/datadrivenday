@@ -4,7 +4,7 @@
 
 Este documento cierra la transicion entre:
 
-- el sitio legacy documentado en [DOCUMENTACION_PROYECTO.md](./DOCUMENTACION_PROYECTO.md)
+- el sitio legacy documentado en [LEGACY-DOCUMENTATION.md](./LEGACY-DOCUMENTATION.md)
 - la nueva base sobre Astro, Cloudflare, Hono, D1, R2 y Sanity
 
 Sirve para arrancar el entorno, provisionar infraestructura y migrar contenido sin rehacer trabajo.
@@ -210,7 +210,7 @@ Pasos:
 
 ## 8. Relacion con el legacy
 
-El legacy ya fue analizado en [DOCUMENTACION_PROYECTO.md](./DOCUMENTACION_PROYECTO.md).
+El legacy ya fue analizado en [LEGACY-DOCUMENTATION.md](./LEGACY-DOCUMENTATION.md).
 
 Ese documento debe usarse como fuente para rescatar solo lo valioso:
 
