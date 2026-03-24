@@ -168,6 +168,7 @@ function fillPropsPanel(slide) {
   renderTagsEditor('commandWordsEditor', slide.commandWords ?? [], 'commandWords');
   renderChordEditor(slide.chord ?? []);
   renderRefsEditor(slide.referencias ?? []);
+  fillImagePreview(slide);
 }
 
 // ── PARTICLE STATE GRID ──────────────────────────────────────────────────────
@@ -456,6 +457,55 @@ async function saveSlide(slide) {
   }
 }
 
+// ── SLIDE IMAGE ─────────────────────────────────────────────────────────────
+function fillImagePreview(slide) {
+  var imgUrl = slide.imagenUrl ?? slide.imagen_url ?? null;
+  var preview = document.getElementById('slideImagePreview');
+  var dropzone = document.getElementById('slideImageDropzone');
+  var actions = document.getElementById('slideImageActions');
+  var prevImg = document.getElementById('prevImagen');
+  if (imgUrl) {
+    preview.src = imgUrl; preview.hidden = false;
+    dropzone.hidden = true; actions.hidden = false;
+    if (prevImg) { prevImg.src = imgUrl; prevImg.hidden = false; }
+  } else {
+    preview.hidden = true; preview.src = '';
+    dropzone.hidden = false; actions.hidden = true;
+    if (prevImg) { prevImg.hidden = true; prevImg.src = ''; }
+  }
+}
+
+async function uploadSlideImage(file) {
+  var slide = getSelectedSlide();
+  if (!slide) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Imagen demasiado grande (max 5 MB)'); return; }
+  document.getElementById('saveStatus').textContent = 'Subiendo imagen...';
+  var formData = new FormData();
+  formData.append('imagen', file);
+  try {
+    var res = await fetch('/api/admin/slides/' + slide.id + '/imagen', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.ok) {
+      slide.imagenUrl = data.url; slide.imagen_url = data.url;
+      fillImagePreview(slide); updateCanvasPreview(slide);
+      document.getElementById('saveStatus').textContent = 'Guardado';
+    } else {
+      document.getElementById('saveStatus').textContent = 'Error: ' + data.error;
+    }
+  } catch { document.getElementById('saveStatus').textContent = 'Error al subir imagen'; }
+}
+
+async function removeSlideImage() {
+  var slide = getSelectedSlide();
+  if (!slide) return;
+  try {
+    await fetch('/api/admin/slides/' + slide.id + '/imagen', { method: 'DELETE' });
+    slide.imagenUrl = null; slide.imagen_url = null;
+    fillImagePreview(slide); updateCanvasPreview(slide);
+    document.getElementById('saveStatus').textContent = 'Imagen eliminada';
+  } catch { /* ignore */ }
+}
+
 // ── BIND PROPS PANEL ─────────────────────────────────────────────────────────
 function bindPropsPanel() {
   const textFields = [
@@ -487,6 +537,21 @@ function bindPropsPanel() {
   document.getElementById('propIsActive').addEventListener('change', (e) => {
     setSlideField('isActive', e.target.checked);
   });
+
+  // Image upload bindings
+  var imageInput = document.getElementById('slideImageInput');
+  var imageZone = document.getElementById('slideImageZone');
+  document.getElementById('slideImageDropzone').addEventListener('click', function () { imageInput.click(); });
+  imageInput.addEventListener('change', function () { if (imageInput.files.length) uploadSlideImage(imageInput.files[0]); });
+  imageZone.addEventListener('dragover', function (e) { e.preventDefault(); imageZone.classList.add('drag-hover'); });
+  imageZone.addEventListener('dragleave', function () { imageZone.classList.remove('drag-hover'); });
+  imageZone.addEventListener('drop', function (e) {
+    e.preventDefault(); imageZone.classList.remove('drag-hover');
+    var file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) uploadSlideImage(file);
+  });
+  document.getElementById('btnChangeImage').addEventListener('click', function () { imageInput.click(); });
+  document.getElementById('btnRemoveImage').addEventListener('click', removeSlideImage);
 }
 
 // ── BIND SIDEBAR ACTIONS ─────────────────────────────────────────────────────
@@ -701,6 +766,13 @@ function updateCanvasPreview(slide) {
     pill.textContent = c;
     conceptsEl.appendChild(pill);
   });
+
+  var prevImg = document.getElementById('prevImagen');
+  if (prevImg) {
+    var imgUrl = slide.imagenUrl ?? slide.imagen_url ?? null;
+    if (imgUrl) { prevImg.src = imgUrl; prevImg.hidden = false; }
+    else { prevImg.hidden = true; prevImg.src = ''; }
+  }
 }
 
 function startCanvasLoop() {

@@ -59,6 +59,7 @@ const presId = Astro.params.id;
           <p id="prevSubtitulo" class="preview-subtitulo"></p>
         </div>
         <div class="canvas-concepts" id="prevConcepts" aria-hidden="true"></div>
+        <img id="prevImagen" class="canvas-imagen" hidden aria-hidden="true" />
         <div class="canvas-cuerpo" aria-hidden="true">
           <p id="prevCuerpo"></p>
         </div>
@@ -105,6 +106,21 @@ const presId = Astro.params.id;
           <div class="prop-field">
             <label class="prop-label" for="propNotas">Notas del presentador</label>
             <textarea id="propNotas" class="prop-textarea prop-textarea--notes" rows="4" placeholder="Solo visibles al presionar N"></textarea>
+          </div>
+        </section>
+
+        <section class="props-section">
+          <h3 class="props-section-title">IMAGEN <span class="prop-optional">(opcional)</span></h3>
+          <div class="slide-image-zone" id="slideImageZone">
+            <img id="slideImagePreview" class="slide-image-preview" hidden />
+            <div id="slideImageDropzone" class="slide-image-dropzone">
+              <span class="slide-image-dropzone-text">Arrastra imagen o haz clic para subir</span>
+              <input type="file" id="slideImageInput" accept="image/*" hidden />
+            </div>
+            <div class="slide-image-actions" id="slideImageActions" hidden>
+              <button type="button" class="slide-image-btn" id="btnChangeImage">Cambiar</button>
+              <button type="button" class="slide-image-btn slide-image-btn--danger" id="btnRemoveImage">Eliminar</button>
+            </div>
           </div>
         </section>
 

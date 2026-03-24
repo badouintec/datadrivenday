@@ -58,7 +58,7 @@ participantRoutes.post('/forgot-password', handleForgotPassword);
 participantRoutes.post('/reset-password', handleResetPassword);
 participantRoutes.delete('/account', requireParticipantAuth(), handleDeleteAccount);
 
-// PDF is now generated client-side in /scripts/recognition-pdf.js.
+// PDF is now generated client-side (src/lib/client/recognition-pdf.ts).
 // This endpoint is kept only as a validation check (e.g. for future API consumers).
 participantRoutes.get('/recognition', requireVerifiedParticipantAuth(), async (c) => {
   const participant = c.get('participant');

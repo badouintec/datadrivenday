@@ -17,8 +17,40 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
     <p class="stat-sub">Cargando...</p>
   </div>
 
+  <!-- Modal nueva presentacion -->
+  <div class="modal-overlay" id="nuevaModal" hidden role="dialog" aria-modal="true" aria-labelledby="nuevaModalTitle">
+    <div class="modal-box">
+      <h2 id="nuevaModalTitle">Nueva presentacion</h2>
+      <div class="modal-form">
+        <div class="prop-field">
+          <label class="prop-label" for="nuevaNombre">Nombre</label>
+          <input type="text" id="nuevaNombre" class="prop-input" placeholder="Dataller DDD 2026" maxlength="150" autocomplete="off" />
+        </div>
+        <div class="prop-field">
+          <label class="prop-label" for="nuevaSlug">Slug <span class="prop-optional">(solo letras, numeros y guiones)</span></label>
+          <input type="text" id="nuevaSlug" class="prop-input" placeholder="dataller-ddd-2026" maxlength="80" autocomplete="off" />
+        </div>
+        <p class="modal-error" id="nuevaError" hidden></p>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn--ghost" id="nuevaCancel" type="button">Cancelar</button>
+        <button class="modal-btn modal-btn--primary" id="nuevaConfirm" type="button">Crear</button>
+      </div>
+    </div>
+  </div>
+
   <script>
 // @ts-nocheck
+    /** Escape HTML to prevent XSS when building DOM via innerHTML */
+    function esc(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     async function load() {
       const res = await fetch('/api/admin/presentaciones');
       if (!res.ok) { if (res.status === 401) window.location.href = '/admin/login'; return; }
@@ -33,15 +65,17 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
       list.innerHTML = data.presentations.map(p => `
         <div class="pres-card">
           <div class="pres-card-info">
-            <span class="pres-card-nombre">${p.nombre}</span>
+            <span class="pres-card-nombre">${esc(p.nombre)}</span>
             <span class="pres-card-meta">
-              <span class="estado-badge estado-badge--${p.estado}">${p.estado}</span>
-              <span>${p.slug}</span>
+              <span class="estado-badge estado-badge--${esc(p.estado)}">${esc(p.estado)}</span>
+              <span>${esc(p.slug)}</span>
+              ${p.slideCount != null ? `<span class="pres-card-slides">${esc(String(p.slideCount))} slides</span>` : ''}
+              ${p.updated_at ? `<span class="pres-card-date">${esc(new Date(p.updated_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>` : ''}
             </span>
           </div>
           <div class="pres-card-actions">
-            <a href="/admin/presentaciones/${p.id}" class="table-action-btn">Editar</a>
-            <button class="table-action-btn table-action-btn--danger" data-delete="${p.id}" type="button">Eliminar</button>
+            <a href="/admin/presentaciones/${esc(p.id)}" class="table-action-btn">Editar</a>
+            <button class="table-action-btn table-action-btn--danger" data-delete="${esc(p.id)}" data-nombre="${esc(p.nombre)}" type="button">Eliminar</button>
           </div>
         </div>
       `).join('');
@@ -49,26 +83,84 @@ const usuario = { username: '...', rol: 'editor', nombre: null };
       list.addEventListener('click', async (e) => {
         const btn = e.target.closest('[data-delete]');
         if (!btn) return;
-        if (!confirm('Eliminar esta presentacion y todos sus slides?')) return;
-        await fetch('/api/admin/presentaciones/' + btn.dataset.delete, { method: 'DELETE' });
+        if (!confirm(`Eliminar "${btn.dataset.nombre}" y todos sus slides? Esta accion no se puede deshacer.`)) return;
+        const r = await fetch('/api/admin/presentaciones/' + btn.dataset.delete, { method: 'DELETE' });
+        if (!r.ok) { alert('No se pudo eliminar.'); return; }
         load();
       });
     }
 
-    document.getElementById('btnNueva')?.addEventListener('click', async () => {
-      const nombre = prompt('Nombre de la presentacion:');
-      if (!nombre) return;
-      const slug = nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const token = crypto.randomUUID().slice(0, 8);
+    // ── Modal nueva presentacion ─────────────────────────────────────────────
+    const modal    = document.getElementById('nuevaModal');
+    const inputNom = document.getElementById('nuevaNombre');
+    const inputSlg = document.getElementById('nuevaSlug');
+    const errMsg   = document.getElementById('nuevaError');
+
+    document.getElementById('btnNueva')?.addEventListener('click', () => {
+      inputNom.value = '';
+      inputSlg.value = '';
+      errMsg.hidden = true;
+      modal.hidden = false;
+      inputNom.focus();
+    });
+
+    document.getElementById('nuevaCancel')?.addEventListener('click', () => {
+      modal.hidden = true;
+    });
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) modal.hidden = true;
+    });
+
+    // Auto-generate slug from nombre
+    inputNom?.addEventListener('input', () => {
+      inputSlg.value = inputNom.value
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    });
+
+    document.getElementById('nuevaConfirm')?.addEventListener('click', async () => {
+      const nombre = inputNom.value.trim();
+      const slug   = inputSlg.value.trim().toLowerCase();
+
+      errMsg.hidden = true;
+
+      if (!nombre) { errMsg.textContent = 'El nombre es requerido.'; errMsg.hidden = false; return; }
+      if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+        errMsg.textContent = 'El slug solo puede contener letras minusculas, numeros y guiones.';
+        errMsg.hidden = false;
+        return;
+      }
+
+      const confirmBtn = document.getElementById('nuevaConfirm');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Creando...';
+
       const res = await fetch('/api/admin/presentaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, slug, token }),
+        body: JSON.stringify({ nombre, slug }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        window.location.href = '/admin/presentaciones/' + data.id;
+
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Crear';
+
+      if (res.status === 409) {
+        errMsg.textContent = 'Ese slug ya esta en uso. Elige otro.';
+        errMsg.hidden = false;
+        return;
       }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        errMsg.textContent = err.error ?? 'Error al crear la presentacion.';
+        errMsg.hidden = false;
+        return;
+      }
+
+      const data = await res.json();
+      window.location.href = '/admin/presentaciones/' + data.id;
     });
 
     load();

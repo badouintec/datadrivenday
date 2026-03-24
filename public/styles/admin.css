@@ -955,6 +955,34 @@
 .modal-btn--danger:hover {
   background: color-mix(in srgb, var(--color-accent-heat) 10%, transparent);
 }
+.modal-btn--primary {
+  border-color: var(--color-accent-sky);
+  color: var(--color-accent-sky);
+}
+.modal-btn--primary:hover {
+  background: color-mix(in srgb, var(--color-accent-sky) 12%, transparent);
+}
+.modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.modal-error {
+  font-size: 0.82rem;
+  color: var(--color-accent-heat);
+  margin: 0;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--color-accent-heat) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent-heat) 25%, transparent);
+  border-radius: 4px;
+}
 
 /* ── PRESENTATION LIST ───────────────────────────────────────── */
 .pres-list {
@@ -993,7 +1021,18 @@
   font-size: 0.78rem;
   color: var(--color-text-muted);
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-sm);
+}
+
+.pres-card-slides {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.pres-card-date {
+  opacity: 0.55;
 }
 
 .pres-card-actions {

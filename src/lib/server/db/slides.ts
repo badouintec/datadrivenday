@@ -16,6 +16,7 @@ export interface SlideRow {
   referencias_json: string;
   codigo_demo: string | null;
   conceptos_json: string;
+  imagen_url: string | null;
   is_active: number;
   created_at: string;
   updated_at: string;
@@ -33,18 +34,23 @@ export interface PresentationRow {
   updated_at: string;
 }
 
+function safeJsonParse<T>(json: string, fallback: T): T {
+  try { return JSON.parse(json) as T; } catch { return fallback; }
+}
+
 function parseSlideRow(row: SlideRow) {
   return {
     ...row,
-    chord: JSON.parse(row.chord_json) as number[],
-    commandWords: JSON.parse(row.command_words_json) as string[],
-    referencias: JSON.parse(row.referencias_json),
-    conceptosClave: JSON.parse(row.conceptos_json) as string[],
+    chord: safeJsonParse<number[]>(row.chord_json, [196, 261.63, 329.63]),
+    commandWords: safeJsonParse<string[]>(row.command_words_json, []),
+    referencias: safeJsonParse<unknown[]>(row.referencias_json, []),
+    conceptosClave: safeJsonParse<string[]>(row.conceptos_json, []),
     isActive: row.is_active === 1,
     particleState: row.particle_state,
     accentColor: row.accent_color,
     particleSpeed: row.particle_speed,
     codigoDemo: row.codigo_demo,
+    imagenUrl: row.imagen_url,
   };
 }
 
@@ -52,8 +58,18 @@ function parseSlideRow(row: SlideRow) {
 
 export async function getPresentations(db: D1Database) {
   const result = await db
-    .prepare('SELECT * FROM presentations ORDER BY updated_at DESC')
-    .all<PresentationRow>();
+    .prepare(`
+      SELECT p.*,
+             COALESCE(s.slide_count, 0) AS slideCount
+      FROM presentations p
+      LEFT JOIN (
+        SELECT presentacion, COUNT(*) AS slide_count
+        FROM presentation_slides
+        GROUP BY presentacion
+      ) s ON s.presentacion = p.id
+      ORDER BY p.updated_at DESC
+    `)
+    .all<PresentationRow & { slideCount: number }>();
   return result.results;
 }
 
@@ -100,6 +116,7 @@ export async function updatePresentation(
 
 export async function deletePresentation(db: D1Database, id: string) {
   await db.batch([
+    db.prepare('DELETE FROM participant_presentation_comments WHERE presentacion_id = ?').bind(id),
     db.prepare('DELETE FROM presentation_slides WHERE presentacion = ?').bind(id),
     db.prepare('DELETE FROM presentations WHERE id = ?').bind(id),
   ]);
@@ -127,6 +144,14 @@ export async function getSlide(db: D1Database, id: string) {
   return row ? parseSlideRow(row) : null;
 }
 
+export async function getMaxSlideNumero(db: D1Database, presentacion: string): Promise<number> {
+  const row = await db
+    .prepare('SELECT COALESCE(MAX(numero), 0) AS max_n FROM presentation_slides WHERE presentacion = ?')
+    .bind(presentacion)
+    .first<{ max_n: number }>();
+  return row?.max_n ?? 0;
+}
+
 export async function insertSlide(
   db: D1Database,
   data: Omit<SlideRow, 'id' | 'created_at' | 'updated_at'>
@@ -137,8 +162,9 @@ export async function insertSlide(
       `INSERT INTO presentation_slides
        (id, presentacion, numero, tag, titulo, subtitulo, cuerpo, notas,
         duracion, particle_state, accent_color, chord_json, particle_speed,
-        command_words_json, referencias_json, codigo_demo, conceptos_json, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        command_words_json, referencias_json, codigo_demo, conceptos_json,
+        imagen_url, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id, data.presentacion, data.numero, data.tag, data.titulo,
@@ -146,7 +172,7 @@ export async function insertSlide(
       data.duracion, data.particle_state, data.accent_color,
       data.chord_json, data.particle_speed, data.command_words_json,
       data.referencias_json, data.codigo_demo ?? null,
-      data.conceptos_json, data.is_active
+      data.conceptos_json, data.imagen_url ?? null, data.is_active
     )
     .run();
   return id;
@@ -155,7 +181,7 @@ export async function insertSlide(
 const ALLOWED_SLIDE_FIELDS = new Set<string>([
   'presentacion', 'numero', 'tag', 'titulo', 'subtitulo', 'cuerpo', 'notas',
   'duracion', 'particle_state', 'accent_color', 'chord_json', 'particle_speed',
-  'command_words_json', 'referencias_json', 'codigo_demo', 'conceptos_json', 'is_active',
+  'command_words_json', 'referencias_json', 'codigo_demo', 'conceptos_json', 'imagen_url', 'is_active',
 ]);
 
 export async function updateSlide(
@@ -194,9 +220,19 @@ export async function duplicateSlide(db: D1Database, id: string) {
   const original = await getSlide(db, id);
   if (!original) throw new Error('Slide not found');
 
+  const newNumero = original.numero + 1;
+
+  // Shift all subsequent slides up by 1 to make room
+  await db
+    .prepare(
+      'UPDATE presentation_slides SET numero = numero + 1 WHERE presentacion = ? AND numero >= ?'
+    )
+    .bind(original.presentacion, newNumero)
+    .run();
+
   return insertSlide(db, {
     presentacion: original.presentacion,
-    numero: original.numero + 1,
+    numero: newNumero,
     tag: original.tag,
     titulo: `${original.titulo} (copia)`,
     subtitulo: original.subtitulo,
@@ -211,6 +247,7 @@ export async function duplicateSlide(db: D1Database, id: string) {
     referencias_json: JSON.stringify(original.referencias),
     codigo_demo: original.codigo_demo,
     conceptos_json: JSON.stringify(original.conceptosClave),
+    imagen_url: null,
     is_active: original.isActive ? 1 : 0,
   });
 }

@@ -125,6 +125,12 @@ const isAdmin = /ddd_session=/.test(cookie);
       text-transform: uppercase; letter-spacing: 0.08em;
     }
 
+    .slide-imagen {
+      max-width: 60%; max-height: 32vh;
+      border-radius: 4px; margin-top: 1.2rem;
+      object-fit: contain;
+    }
+
     /* ── NAVIGATION ARROWS ──────────────────────────────── */
     .pres-nav {
       position: fixed; bottom: 2rem;
@@ -239,6 +245,27 @@ const isAdmin = /ddd_session=/.test(cookie);
       white-space: nowrap;
     }
     .voice-flash.show { opacity: 1; }
+
+    .atencion-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: #fbbf24;
+      animation: atencion-in 0.25s ease-out;
+    }
+    .atencion-text {
+      font-family: var(--mono); font-size: clamp(4rem, 12vw, 10rem);
+      font-weight: 900; color: #000; letter-spacing: 0.06em;
+      text-align: center;
+      animation: atencion-pulse 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes atencion-in {
+      from { opacity: 0; transform: scale(1.15); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes atencion-pulse {
+      from { transform: scale(1); }
+      to   { transform: scale(1.04); }
+    }
   </style>
 </head>
 <body>
@@ -276,6 +303,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       <p  class="slide-subtitulo" id="slideSubtitulo"></p>
       <p  class="slide-cuerpo"    id="slideCuerpo"></p>
       <div class="slide-concepts" id="slideConcepts"></div>
+      <img class="slide-imagen" id="slideImagen" hidden />
     </div>
   </div>
 
@@ -298,6 +326,11 @@ const isAdmin = /ddd_session=/.test(cookie);
 
   <!-- Voice flash feedback -->
   <div class="voice-flash" id="voiceFlash"></div>
+
+  <!-- Atención overlay -->
+  <div class="atencion-overlay" id="atencionOverlay" hidden>
+    <span class="atencion-text">ATENCIÓN</span>
+  </div>
 
   <script>
 // @ts-nocheck
@@ -423,6 +456,12 @@ function applySlide(slide) {
   const concepts = slide.conceptosClave ?? [];
   const el = document.getElementById('slideConcepts');
   el.innerHTML = concepts.map(c => `<span class="concept-pill">${c}</span>`).join('');
+
+  // Slide image
+  const imgEl = document.getElementById('slideImagen');
+  const imgUrl = slide.imagenUrl ?? slide.imagen_url ?? null;
+  if (imgUrl) { imgEl.src = imgUrl; imgEl.hidden = false; }
+  else { imgEl.hidden = true; imgEl.src = ''; }
 
   // Notes
   const notes = slide.notas ?? '';
@@ -619,10 +658,11 @@ function getActiveAccent(slide) {
 
 function setReactiveAccent(accent) {
   STATE.reactiveAccent = accent;
-  STATE.reactiveAccentUntil = performance.now() + 2200;
+  STATE.reactiveAccentUntil = performance.now() + 6000;
   const slide = STATE.slides[STATE.idx];
   const hex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
   document.documentElement.style.setProperty('--accent', hex);
+  showVoiceFlash(`Color: ${accent}`);
 }
 
 // ── VOICE COMMANDS ───────────────────────────────────────
@@ -718,8 +758,20 @@ function showVoiceFlash(message) {
   }, 1800);
 }
 
+function showAtencion() {
+  const overlay = document.getElementById('atencionOverlay');
+  overlay.hidden = false;
+  setTimeout(() => { overlay.hidden = true; }, 5000);
+}
+
 function handleVoiceTranscript(transcripts) {
   const spoken = transcripts.join(' ');
+
+  // "oigan atención" — full-screen yellow overlay for 5 seconds
+  if (/oigan\s*atenci[oó]n|atenci[oó]n/.test(spoken)) {
+    showAtencion();
+    return;
+  }
 
   for (const rule of VOICE_COLOR_RULES) {
     if (rule.words.some(word => spoken.includes(word))) {

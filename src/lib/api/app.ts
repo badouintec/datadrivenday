@@ -310,6 +310,10 @@ app.get('/slides', async (c) => {
     getSlides(c.env.DB, presentacion),
     getPresentation(c.env.DB, presentacion),
   ]);
+  // Do not expose archived presentations publicly
+  if (presentation?.estado === 'archivado') {
+    return c.json({ slides: [], presentation: null }, 200, { 'Cache-Control': 'no-store' });
+  }
   return c.json({
     slides: slides.filter(s => s.isActive),
     presentation: presentation ? { nombre: presentation.nombre, descripcion: presentation.descripcion } : null,
