@@ -158,7 +158,7 @@ function fillPropsPanel(slide) {
   document.getElementById('propCuerpo').value    = slide.cuerpo ?? '';
   document.getElementById('propNotas').value     = slide.notas ?? '';
   document.getElementById('propCodigo').value    = slide.codigoDemo ?? slide.codigo_demo ?? '';
-  document.getElementById('propIsActive').checked = slide.isActive;
+  document.getElementById('propIsActive').checked = slide.isActive !== false;
   document.getElementById('propSpeed').value     = slide.particleSpeed ?? slide.particle_speed ?? 0.04;
   document.getElementById('speedDisplay').textContent = slide.particleSpeed ?? slide.particle_speed ?? 0.04;
 
@@ -576,7 +576,7 @@ function bindPropsPanel() {
   });
 
   document.getElementById('propSpeed').addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value);
+    const val = parseFloat(e.target.value) || 0.04;
     document.getElementById('speedDisplay').textContent = val.toFixed(3);
     setSlideField('particleSpeed', val);
     setSlideField('particle_speed', val);
@@ -662,7 +662,8 @@ function bindDeleteModal() {
     const slideId = EDITOR._pendingDeleteId;
     if (!slideId) return;
 
-    await fetch(`/api/admin/slides/${slideId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/slides/${slideId}`, { method: 'DELETE' });
+    if (!res.ok) { document.getElementById('saveStatus').textContent = 'Error al eliminar'; }
     document.getElementById('deleteModal').hidden = true;
     EDITOR._pendingDeleteId = null;
 
@@ -739,13 +740,17 @@ function bindDragAndDrop() {
 
     EDITOR.slides.forEach((s, i) => { s.numero = i + 1; });
 
-    await fetch('/api/admin/slides/reorder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        updates: EDITOR.slides.map(s => ({ id: s.id, numero: s.numero }))
-      }),
-    });
+    try {
+      await fetch('/api/admin/slides/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          updates: EDITOR.slides.map(s => ({ id: s.id, numero: s.numero }))
+        }),
+      });
+    } catch {
+      document.getElementById('saveStatus').textContent = 'Error al reordenar';
+    }
 
     renderSidebarList();
     document.querySelectorAll('.drag-over, .is-dragging')

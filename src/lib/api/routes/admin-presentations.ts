@@ -89,7 +89,8 @@ slidesRoutes.get('/', async (c) => {
 });
 
 slidesRoutes.post('/', requireAuth('presentations:write'), async (c) => {
-  const body = await c.req.json();
+  const body = await c.req.json().catch(() => null);
+  if (!body) return c.json({ ok: false, error: 'invalid_json' }, 400);
   const presId = body.presentacion ?? 'pres-dataller-2026';
   // Auto-calculate next numero instead of hardcoding 999
   const maxNumero = body.numero ?? (await getMaxSlideNumero(c.env.DB!, presId)) + 10;
@@ -118,7 +119,8 @@ slidesRoutes.post('/', requireAuth('presentations:write'), async (c) => {
 
 slidesRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
   const id = c.req.param('id')!;
-  const body = await c.req.json();
+  const body = await c.req.json().catch(() => null);
+  if (!body) return c.json({ ok: false, error: 'invalid_json' }, 400);
 
   const patch: Record<string, unknown> = { ...body };
   if (body.chord) patch.chord_json = JSON.stringify(body.chord);
@@ -141,8 +143,9 @@ slidesRoutes.delete('/:id', requireAuth('presentations:delete'), async (c) => {
 });
 
 slidesRoutes.post('/reorder', requireAuth('presentations:write'), async (c) => {
-  const { updates } = await c.req.json<{ updates: Array<{ id: string; numero: number }> }>();
-  await reorderSlides(c.env.DB!, updates);
+  const body = await c.req.json<{ updates: Array<{ id: string; numero: number }> }>().catch(() => null);
+  if (!body?.updates || !Array.isArray(body.updates)) return c.json({ ok: false, error: 'invalid_updates' }, 400);
+  await reorderSlides(c.env.DB!, body.updates);
   return c.json({ ok: true });
 });
 
@@ -152,27 +155,32 @@ slidesRoutes.post('/:id/duplicate', requireAuth('presentations:write'), async (c
 });
 
 slidesRoutes.post('/:id/imagen', requireAuth('presentations:write'), async (c) => {
-  const formData = await c.req.formData();
-  const file = formData.get('imagen') as File | null;
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('imagen') as File | null;
 
-  if (!file || !file.type.startsWith('image/')) {
-    return c.json({ ok: false, error: 'invalid_file' }, 400);
+    if (!file || !file.type.startsWith('image/')) {
+      return c.json({ ok: false, error: 'invalid_file' }, 400);
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ ok: false, error: 'file_too_large' }, 400);
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const slideId = c.req.param('id')!;
+    const key = `slides/${slideId}/${crypto.randomUUID()}.${ext}`;
+
+    if (!c.env.MEDIA) return c.json({ ok: false, error: 'storage_not_available' }, 503);
+    await c.env.MEDIA.put(key, file.stream(), {
+      httpMetadata: { contentType: file.type },
+    });
+
+    const url = `/media/${key}`;
+    await updateSlide(c.env.DB!, slideId, { imagen_url: url } as any);
+    return c.json({ ok: true, url });
+  } catch {
+    return c.json({ ok: false, error: 'upload_failed' }, 500);
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return c.json({ ok: false, error: 'file_too_large' }, 400);
-  }
-
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const slideId = c.req.param('id')!;
-  const key = `slides/${slideId}/${crypto.randomUUID()}.${ext}`;
-
-  await c.env.MEDIA!.put(key, file.stream(), {
-    httpMetadata: { contentType: file.type },
-  });
-
-  const url = `/media/${key}`;
-  await updateSlide(c.env.DB!, slideId, { imagen_url: url } as any);
-  return c.json({ ok: true, url });
 });
 
 slidesRoutes.delete('/:id/imagen', requireAuth('presentations:write'), async (c) => {
@@ -186,15 +194,19 @@ slidesRoutes.post('/:id/generate-notes', requireAuth('presentations:write'), asy
   const slide = await getSlide(c.env.DB!, c.req.param('id')!);
   if (!slide) return c.json({ ok: false, error: 'not_found' }, 404);
 
-  const { generateNotes } = await import('../../server/ai');
-  const notes = await generateNotes(c.env.AI, {
-    titulo: slide.titulo,
-    subtitulo: slide.subtitulo,
-    cuerpo: slide.cuerpo,
-    conceptosClave: slide.conceptosClave,
-    tag: slide.tag,
-  });
-  return c.json({ ok: true, notes });
+  try {
+    const { generateNotes } = await import('../../server/ai');
+    const notes = await generateNotes(c.env.AI, {
+      titulo: slide.titulo,
+      subtitulo: slide.subtitulo,
+      cuerpo: slide.cuerpo,
+      conceptosClave: slide.conceptosClave,
+      tag: slide.tag,
+    });
+    return c.json({ ok: true, notes });
+  } catch {
+    return c.json({ ok: false, error: 'ai_error' }, 500);
+  }
 });
 
 slidesRoutes.post('/:id/suggest-concepts', requireAuth('presentations:write'), async (c) => {
@@ -202,15 +214,19 @@ slidesRoutes.post('/:id/suggest-concepts', requireAuth('presentations:write'), a
   const slide = await getSlide(c.env.DB!, c.req.param('id')!);
   if (!slide) return c.json({ ok: false, error: 'not_found' }, 404);
 
-  const { suggestConcepts } = await import('../../server/ai');
-  const concepts = await suggestConcepts(c.env.AI, {
-    titulo: slide.titulo,
-    subtitulo: slide.subtitulo,
-    cuerpo: slide.cuerpo,
-    conceptosClave: slide.conceptosClave,
-    tag: slide.tag,
-  });
-  return c.json({ ok: true, concepts });
+  try {
+    const { suggestConcepts } = await import('../../server/ai');
+    const concepts = await suggestConcepts(c.env.AI, {
+      titulo: slide.titulo,
+      subtitulo: slide.subtitulo,
+      cuerpo: slide.cuerpo,
+      conceptosClave: slide.conceptosClave,
+      tag: slide.tag,
+    });
+    return c.json({ ok: true, concepts });
+  } catch {
+    return c.json({ ok: false, error: 'ai_error' }, 500);
+  }
 });
 
 // ── Presentation comments (read-only for admin) ───────────────────────────────

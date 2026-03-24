@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { requireAuth } from '../auth';
+import { getRateLimitCount, incrementRateLimitCount, requireAuth } from '../auth';
 import type { AppBindings, AppVariables } from '../types';
 import {
   handleParticipantLogin,
@@ -35,17 +35,37 @@ import { getPresentation, getPresentations, getSlides } from '../../server/db/sl
 
 type Env = { Bindings: Partial<AppBindings>; Variables: AppVariables };
 
+const COMMENT_RATE_LIMIT = { max: 5, ttlSeconds: 60 };
+const TEAM_CREATE_RATE_LIMIT = { max: 3, ttlSeconds: 3600 };
+const TEAM_JOIN_RATE_LIMIT = { max: 10, ttlSeconds: 900 };
+
 export const participantRoutes = new Hono<Env>();
+
+async function consumeParticipantRateLimit(
+  kv: KVNamespace | undefined,
+  key: string,
+  limit: { max: number; ttlSeconds: number },
+) {
+  if (!kv) return true;
+
+  const attempts = await getRateLimitCount(kv, key, limit.ttlSeconds);
+  if (attempts >= limit.max) {
+    return false;
+  }
+
+  await incrementRateLimitCount(kv, key, limit.ttlSeconds);
+  return true;
+}
 
 async function getParticipantWorkspacePresentation(db: D1Database) {
   const preferredPresentationId = 'pres-dataller-2026';
   const preferredPresentation = await getPresentation(db, preferredPresentationId);
 
-  if (preferredPresentation && preferredPresentation.estado !== 'archivada') {
+  if (preferredPresentation && preferredPresentation.estado !== 'archivado') {
     return preferredPresentation;
   }
 
-  return (await getPresentations(db)).find((presentation) => presentation.estado !== 'archivada') ?? null;
+  return (await getPresentations(db)).find((presentation) => presentation.estado !== 'archivado') ?? null;
 }
 
 participantRoutes.post('/signup', handleParticipantSignup);
@@ -192,6 +212,15 @@ participantRoutes.post('/dataller/comments', requireVerifiedParticipantAuth(), a
     return c.json({ ok: false, error: 'invalid_length' }, 400);
   }
 
+  const canComment = await consumeParticipantRateLimit(
+    c.env.APP_SESSION,
+    `participant-comment:${participant.id}`,
+    COMMENT_RATE_LIMIT,
+  );
+  if (!canComment) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+
   const presentation = await getParticipantWorkspacePresentation(c.env.DB!);
   if (!presentation || presentation.id !== presentacionId) {
     return c.json({ ok: false, error: 'presentation_not_found' }, 404);
@@ -320,6 +349,15 @@ participantRoutes.post('/teams', requireVerifiedParticipantAuth(), async (c) => 
     return c.json({ ok: false, error: 'focus_area_too_long' }, 400);
   }
 
+  const canCreateTeam = await consumeParticipantRateLimit(
+    c.env.APP_SESSION,
+    `participant-team-create:${participant.id}`,
+    TEAM_CREATE_RATE_LIMIT,
+  );
+  if (!canCreateTeam) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
+  }
+
   const teamId = await insertParticipantTeam(c.env.DB!, {
     ownerId: participant.id,
     name: body.name,
@@ -345,6 +383,15 @@ participantRoutes.post('/teams/:id/join', requireVerifiedParticipantAuth(), asyn
 
   if (!team.is_open) {
     return c.json({ ok: false, error: 'team_closed' }, 400);
+  }
+
+  const canJoinTeam = await consumeParticipantRateLimit(
+    c.env.APP_SESSION,
+    `participant-team-join:${participant.id}`,
+    TEAM_JOIN_RATE_LIMIT,
+  );
+  if (!canJoinTeam) {
+    return c.json({ ok: false, error: 'too_many_attempts' }, 429);
   }
 
   const memberCountRow = await c.env.DB!.prepare(

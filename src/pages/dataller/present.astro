@@ -217,6 +217,25 @@ const isAdmin = /ddd_session=/.test(cookie);
       letter-spacing: 0.1em; text-transform: uppercase;
     }
 
+    /* ── SUBTITLES ────────────────────────────────────────── */
+    .subtitle-bar {
+      position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%);
+      z-index: 90;
+      max-width: 80vw; min-width: 280px;
+      padding: 0.6em 1.4em;
+      font-family: var(--display); font-size: clamp(1rem, 2.2vw, 1.45rem);
+      font-weight: 500; line-height: 1.5;
+      color: #fff;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      border-radius: 6px;
+      text-align: center;
+      pointer-events: none;
+      opacity: 1; transition: opacity 0.35s ease;
+    }
+    .subtitle-bar:empty, .subtitle-bar[hidden] { opacity: 0; }
+    .subtitle-bar .interim { color: rgba(255,255,255,0.55); }
+
     /* ── VOICE ───────────────────────────────────────────── */
     .voice-dot {
       display: inline-block; width: 6px; height: 6px;
@@ -248,9 +267,13 @@ const isAdmin = /ddd_session=/.test(cookie);
 
     .atencion-overlay {
       position: fixed; inset: 0; z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
+      align-items: center; justify-content: center;
       background: #fbbf24;
+      display: none;
       animation: atencion-in 0.25s ease-out;
+    }
+    .atencion-overlay.active {
+      display: flex;
     }
     .atencion-text {
       font-family: var(--mono); font-size: clamp(4rem, 12vw, 10rem);
@@ -283,6 +306,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       )}
       <span class="slide-counter" id="slideCounter">– / –</span>
       <button class="topbar-btn" id="btnVoice" type="button"><span class="voice-dot"></span>V Voz</button>
+      <button class="topbar-btn" id="btnSubtitles" type="button">S Sub</button>
       <button class="topbar-btn" id="btnFullscreen" type="button">⛶</button>
       <button class="topbar-btn" id="btnNotes" type="button">N Notas</button>
     </div>
@@ -307,6 +331,9 @@ const isAdmin = /ddd_session=/.test(cookie);
     </div>
   </div>
 
+  <!-- Live subtitles -->
+  <div class="subtitle-bar" id="subtitleBar" hidden></div>
+
   <!-- Navigation -->
   <div class="pres-nav" id="presNav">
     <button class="nav-btn" id="btnPrev" disabled>←</button>
@@ -328,7 +355,7 @@ const isAdmin = /ddd_session=/.test(cookie);
   <div class="voice-flash" id="voiceFlash"></div>
 
   <!-- Atención overlay -->
-  <div class="atencion-overlay" id="atencionOverlay" hidden>
+  <div class="atencion-overlay" id="atencionOverlay">
     <span class="atencion-text">ATENCIÓN</span>
   </div>
 
@@ -366,6 +393,8 @@ const STATE = {
   reactiveAccent: null,
   reactiveAccentUntil: 0,
   atencionTimer: null,
+  subtitlesOn: false,
+  subtitleTimer: null,
   presentation: null,
 };
 
@@ -456,7 +485,10 @@ function applySlide(slide) {
 
   const concepts = slide.conceptosClave ?? [];
   const el = document.getElementById('slideConcepts');
-  el.innerHTML = concepts.map(c => `<span class="concept-pill">${c}</span>`).join('');
+  el.innerHTML = concepts.map(c => {
+    const safe = String(c).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<span class="concept-pill">${safe}</span>`;
+  }).join('');
 
   // Slide image
   const imgEl = document.getElementById('slideImagen');
@@ -489,6 +521,7 @@ function bindEvents() {
   document.getElementById('notesClose').addEventListener('click', closeNotes);
   document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('btnVoice').addEventListener('click', toggleVoice);
+  document.getElementById('btnSubtitles').addEventListener('click', toggleSubtitles);
   document.getElementById('atencionOverlay').addEventListener('click', dismissAtencion);
 
   document.addEventListener('keydown', (e) => {
@@ -498,6 +531,7 @@ function bindEvents() {
     if (e.key === 'n' || e.key === 'N') toggleNotes();
     if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     if (e.key === 'v' || e.key === 'V') toggleVoice();
+    if (e.key === 's' || e.key === 'S') toggleSubtitles();
     if (e.key === 'Escape') { dismissAtencion(); closeNotes(); }
     showUI();
   });
@@ -683,19 +717,26 @@ function initVoice() {
   const recognition = new Recognition();
   recognition.lang = 'es-MX';
   recognition.continuous = true;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
   recognition.maxAlternatives = 3;
 
   recognition.onresult = (event) => {
+    let interimText = '';
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
       const result = event.results[i];
-      if (!result.isFinal) continue;
-
-      const transcripts = [];
-      for (let j = 0; j < result.length; j += 1) {
-        transcripts.push(result[j].transcript.toLowerCase().trim());
+      if (result.isFinal) {
+        const transcripts = [];
+        for (let j = 0; j < result.length; j += 1) {
+          transcripts.push(result[j].transcript.toLowerCase().trim());
+        }
+        handleVoiceTranscript(transcripts);
+        updateSubtitle(result[0].transcript.trim(), false);
+      } else {
+        interimText += result[0].transcript;
       }
-      handleVoiceTranscript(transcripts);
+    }
+    if (interimText) {
+      updateSubtitle(interimText.trim(), true);
     }
   };
 
@@ -771,18 +812,55 @@ function showVoiceFlash(message) {
 function showAtencion() {
   const overlay = document.getElementById('atencionOverlay');
   clearTimeout(STATE.atencionTimer);
-  // Re-trigger animation by removing and re-adding element
-  overlay.hidden = true;
+  // Re-trigger animation by removing and re-adding class
+  overlay.classList.remove('active');
   void overlay.offsetWidth; // force reflow
-  overlay.hidden = false;
-  STATE.atencionTimer = setTimeout(() => { overlay.hidden = true; }, 5000);
+  overlay.classList.add('active');
+  STATE.atencionTimer = setTimeout(() => { overlay.classList.remove('active'); }, 5000);
 }
 function dismissAtencion() {
   const overlay = document.getElementById('atencionOverlay');
-  if (!overlay.hidden) {
+  if (overlay.classList.contains('active')) {
     clearTimeout(STATE.atencionTimer);
-    overlay.hidden = true;
+    overlay.classList.remove('active');
   }
+}
+
+// ── SUBTITLES ────────────────────────────────────────────
+function updateSubtitle(text, isInterim) {
+  if (!STATE.subtitlesOn) return;
+  const bar = document.getElementById('subtitleBar');
+  clearTimeout(STATE.subtitleTimer);
+  if (isInterim) {
+    bar.innerHTML = `<span class="interim">${text.replace(/</g, '&lt;')}</span>`;
+  } else {
+    bar.textContent = text;
+    // Fade out final text after 4 seconds of silence
+    STATE.subtitleTimer = setTimeout(() => { bar.textContent = ''; }, 4000);
+  }
+  bar.hidden = false;
+}
+
+function toggleSubtitles() {
+  STATE.subtitlesOn = !STATE.subtitlesOn;
+  const bar = document.getElementById('subtitleBar');
+  if (!STATE.subtitlesOn) {
+    bar.hidden = true;
+    bar.textContent = '';
+  } else {
+    bar.hidden = false;
+    if (!STATE.voiceActive) {
+      // Auto-enable voice if subtitles turned on
+      toggleVoice();
+    }
+  }
+  updateSubtitleButton();
+  showVoiceFlash(STATE.subtitlesOn ? 'Subtítulos ON' : 'Subtítulos OFF');
+}
+
+function updateSubtitleButton() {
+  const btn = document.getElementById('btnSubtitles');
+  btn.classList.toggle('voice-active', STATE.subtitlesOn);
 }
 
 function handleVoiceTranscript(transcripts) {

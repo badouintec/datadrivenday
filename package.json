@@ -9,6 +9,7 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
+    "test": "vitest run",
     "preview:worker": "npm run build && cp -f .dev.vars dist/server/.dev.vars 2>/dev/null; wrangler dev --config dist/server/wrangler.json",
     "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
     "cf-typegen": "wrangler types",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260317.1",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.1",
     "wrangler": "^4.76.0"
   }
 }
