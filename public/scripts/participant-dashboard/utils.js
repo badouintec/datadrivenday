@@ -35,3 +35,15 @@ export function formatDate(value) {
     minute: '2-digit',
   }).format(date);
 }
+
+export function isValidHttpUrl(value) {
+  const trimmed = String(value ?? '').trim();
+  if (!trimmed) return true;
+
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

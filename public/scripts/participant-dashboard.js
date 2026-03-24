@@ -16,6 +16,7 @@ import {
 import {
   escapeHtml,
   formatDate,
+  isValidHttpUrl,
   nl2br,
   setStatus,
 } from './participant-dashboard/utils.js';
@@ -407,6 +408,7 @@ workspaceFlow = createWorkspaceFlow({
   renderRecognition,
   renderSidebar,
   renderSlide,
+  isValidHttpUrl,
   setStatus,
   showPanel,
   state,

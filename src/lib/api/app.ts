@@ -320,6 +320,24 @@ app.get('/slides', async (c) => {
   }, 200, { 'Cache-Control': 'public, max-age=60' });
 });
 
+app.post('/slides/live-graph', async (c) => {
+  if (!c.env.AI) return c.json({ ok: false, error: 'ai_not_available' }, 503);
+  const body = await c.req.json<{
+    slide: { titulo: string; subtitulo?: string; cuerpo?: string; conceptosClave?: string[]; tag?: string };
+    transcript: string;
+    existingNodes: string[];
+  }>().catch(() => null);
+  if (!body?.transcript || !body?.slide?.titulo) return c.json({ ok: false, error: 'invalid_body' }, 400);
+
+  try {
+    const { extractConceptGraph } = await import('../server/ai');
+    const graph = await extractConceptGraph(c.env.AI, body.slide, body.transcript, body.existingNodes ?? []);
+    return c.json({ ok: true, graph });
+  } catch {
+    return c.json({ ok: false, error: 'ai_error' }, 500);
+  }
+});
+
 app.get('/blog', async (c) => {
   if (!c.env.DB) return c.json({ posts: [] });
   const posts = await getBlogPosts(c.env.DB, 'publicado');

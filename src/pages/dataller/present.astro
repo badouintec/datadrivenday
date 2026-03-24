@@ -217,6 +217,144 @@ const isAdmin = /ddd_session=/.test(cookie);
       letter-spacing: 0.1em; text-transform: uppercase;
     }
 
+    /* ── TIMER ────────────────────────────────────────────── */
+    .pres-timer {
+      position: fixed; top: 0; right: 0; z-index: 101;
+      height: 40px;
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0 1rem;
+      font-family: var(--mono); font-size: 0.65rem; font-weight: 600;
+      color: var(--muted); letter-spacing: 0.06em;
+      opacity: 1; transition: opacity 0.4s ease;
+    }
+    .pres-timer.hidden { opacity: 0; pointer-events: none; }
+    .timer-slide { color: var(--accent, #34d399); }
+    .timer-total { color: var(--muted); }
+    .timer-over { color: #f87171; animation: timer-blink 1s ease-in-out infinite; }
+    @keyframes timer-blink { 50% { opacity: 0.4; } }
+    .timer-divider { opacity: 0.3; }
+
+    /* ── NEXT SLIDE PREVIEW ──────────────────────────────── */
+    .next-preview {
+      position: fixed; bottom: 5.5rem; right: 1.5rem; z-index: 95;
+      width: 220px;
+      background: rgba(13,17,23,0.92);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      backdrop-filter: blur(8px);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+    .next-preview.show { opacity: 1; transform: translateY(0); }
+    .next-preview-label {
+      font-family: var(--mono); font-size: 0.5rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--accent, #34d399);
+      margin-bottom: 0.35rem;
+    }
+    .next-preview-title {
+      font-size: 0.78rem; font-weight: 600; color: var(--text);
+      line-height: 1.3;
+      overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .next-preview-tag {
+      font-family: var(--mono); font-size: 0.5rem;
+      color: var(--muted); margin-top: 0.25rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* ── SUMMARY OVERLAY ─────────────────────────────────── */
+    .summary-overlay {
+      position: fixed; inset: 0; z-index: 9998;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(13,17,23,0.96);
+      backdrop-filter: blur(12px);
+    }
+    .summary-overlay.active { display: flex; }
+    .summary-box {
+      max-width: 700px; width: 90%;
+      max-height: 80vh; overflow-y: auto;
+      padding: 2.5rem;
+    }
+    .summary-label {
+      font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--accent, #34d399);
+      margin-bottom: 1rem;
+    }
+    .summary-text {
+      font-size: 1.05rem; color: var(--text);
+      line-height: 1.8; white-space: pre-wrap;
+    }
+    .summary-text.loading {
+      color: var(--muted); font-style: italic;
+    }
+    .summary-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.4rem; cursor: pointer;
+    }
+    .summary-close:hover { color: var(--text); }
+
+    /* ── CONCEPT GRAPH ────────────────────────────────────── */
+    .graph-overlay {
+      position: fixed; inset: 0; z-index: 15;
+      pointer-events: none;
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .graph-overlay.active { opacity: 1; }
+    .graph-svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+    }
+    .graph-svg line {
+      stroke: var(--accent, #34d399);
+      stroke-width: 1.5;
+      stroke-opacity: 0.35;
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      animation: edge-draw 0.8s ease-out forwards;
+    }
+    @keyframes edge-draw {
+      to { stroke-dashoffset: 0; }
+    }
+    .graph-nodes {
+      position: absolute; inset: 0;
+    }
+    .graph-node {
+      position: absolute;
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--accent, #34d399);
+      border: 1px solid var(--accent, #34d399);
+      background: rgba(13,17,23,0.82);
+      backdrop-filter: blur(4px);
+      border-radius: 4px;
+      padding: 0.3em 0.7em;
+      white-space: nowrap;
+      transform: translate(-50%, -50%) scale(0);
+      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transition: left 0.6s ease, top 0.6s ease;
+    }
+    .graph-node.seed {
+      border-style: dashed;
+      opacity: 0.35;
+      transform: translate(-50%, -50%) scale(1);
+      animation: none;
+    }
+    .graph-node.seed.mentioned {
+      opacity: 1;
+      border-style: solid;
+      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes node-pop {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
     /* ── SUBTITLES ────────────────────────────────────────── */
     .subtitle-bar {
       position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%);
@@ -267,19 +405,26 @@ const isAdmin = /ddd_session=/.test(cookie);
 
     .atencion-overlay {
       position: fixed; inset: 0; z-index: 9999;
-      align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       background: #fbbf24;
-      display: none;
-      animation: atencion-in 0.25s ease-out;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
     }
     .atencion-overlay.active {
-      display: flex;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      animation: atencion-in 0.25s ease-out;
+    }
+    .atencion-overlay.active .atencion-text {
+      animation: atencion-pulse 0.8s ease-in-out infinite alternate;
     }
     .atencion-text {
       font-family: var(--mono); font-size: clamp(4rem, 12vw, 10rem);
       font-weight: 900; color: #000; letter-spacing: 0.06em;
       text-align: center;
-      animation: atencion-pulse 0.8s ease-in-out infinite alternate;
     }
     @keyframes atencion-in {
       from { opacity: 0; transform: scale(1.15); }
@@ -307,6 +452,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       <span class="slide-counter" id="slideCounter">– / –</span>
       <button class="topbar-btn" id="btnVoice" type="button"><span class="voice-dot"></span>V Voz</button>
       <button class="topbar-btn" id="btnSubtitles" type="button">S Sub</button>
+      <button class="topbar-btn" id="btnGraph" type="button">G Grafo</button>
       <button class="topbar-btn" id="btnFullscreen" type="button">⛶</button>
       <button class="topbar-btn" id="btnNotes" type="button">N Notas</button>
     </div>
@@ -331,6 +477,12 @@ const isAdmin = /ddd_session=/.test(cookie);
     </div>
   </div>
 
+  <!-- Live concept graph -->
+  <div class="graph-overlay" id="graphOverlay">
+    <svg class="graph-svg" id="graphSvg"></svg>
+    <div class="graph-nodes" id="graphNodes"></div>
+  </div>
+
   <!-- Live subtitles -->
   <div class="subtitle-bar" id="subtitleBar" hidden></div>
 
@@ -346,6 +498,29 @@ const isAdmin = /ddd_session=/.test(cookie);
     <button class="notes-close" id="notesClose" type="button">✕</button>
     <p class="notes-label">Notas del presentador</p>
     <div id="notesContent"></div>
+  </div>
+
+  <!-- Timer -->
+  <div class="pres-timer" id="presTimer">
+    <span class="timer-slide" id="timerSlide">0:00</span>
+    <span class="timer-divider">/</span>
+    <span class="timer-total" id="timerTotal">0:00</span>
+  </div>
+
+  <!-- Next slide preview -->
+  <div class="next-preview" id="nextPreview">
+    <div class="next-preview-label">Siguiente</div>
+    <div class="next-preview-title" id="nextPreviewTitle"></div>
+    <div class="next-preview-tag" id="nextPreviewTag"></div>
+  </div>
+
+  <!-- Summary overlay -->
+  <div class="summary-overlay" id="summaryOverlay">
+    <button class="summary-close" id="summaryClose" type="button">✕</button>
+    <div class="summary-box">
+      <div class="summary-label">Resumen de la presentacion</div>
+      <div class="summary-text loading" id="summaryText">Generando resumen con IA...</div>
+    </div>
   </div>
 
   <!-- Keyboard hint -->
@@ -376,6 +551,7 @@ const STATE = {
   particles: [],
   animTime: 0,
   animFrame: null,
+  lastFrameTime: 0,
   canvas: null,
   ctx: null,
   notesOpen: false,
@@ -384,6 +560,7 @@ const STATE = {
   recognition: null,
   voiceActive: false,
   voiceFlashTimer: null,
+  voiceRestartAttempts: 0,
   micStream: null,
   micSource: null,
   analyser: null,
@@ -395,7 +572,22 @@ const STATE = {
   atencionTimer: null,
   subtitlesOn: false,
   subtitleTimer: null,
+  graphOn: false,
+  graphNodes: new Map(),
+  graphEdges: [],
+  graphTranscriptBuffer: '',
+  graphTimer: null,
+  graphBusy: false,
+  // Timer
+  presStartTime: 0,
+  slideStartTime: 0,
+  // Next preview
+  nextPreviewVisible: false,
+  // Summary
+  allTranscripts: '',
   presentation: null,
+  // DOM cache (populated in init)
+  dom: {},
 };
 
 const VOICE_COLOR_RULES = [
@@ -408,7 +600,26 @@ const VOICE_COLOR_RULES = [
 
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
-  STATE.canvas = document.getElementById('presCanvas');
+  // Cache DOM refs used in hot paths
+  const $ = (id) => document.getElementById(id);
+  STATE.dom = {
+    topbar: $('topbar'), presNav: $('presNav'), presTimer: $('presTimer'),
+    slideHud: $('slideHud'), slideNum: $('slideNum'), slideTag: $('slideTag'),
+    slideTitulo: $('slideTitulo'), slideSubtitulo: $('slideSubtitulo'),
+    slideCuerpo: $('slideCuerpo'), slideConcepts: $('slideConcepts'),
+    slideImagen: $('slideImagen'), notesContent: $('notesContent'),
+    timerSlide: $('timerSlide'), timerTotal: $('timerTotal'),
+    navProgress: $('navProgress'), slideCounter: $('slideCounter'),
+    btnPrev: $('btnPrev'), btnNext: $('btnNext'),
+    voiceFlash: $('voiceFlash'), subtitleBar: $('subtitleBar'),
+    nextPreview: $('nextPreview'), nextPreviewTitle: $('nextPreviewTitle'),
+    nextPreviewTag: $('nextPreviewTag'), presTitle: $('presTitle'),
+    btnVoice: $('btnVoice'), btnSubtitles: $('btnSubtitles'), btnGraph: $('btnGraph'),
+    atencionOverlay: $('atencionOverlay'),
+    graphOverlay: $('graphOverlay'), graphNodes: $('graphNodes'), graphSvg: $('graphSvg'),
+  };
+
+  STATE.canvas = $('presCanvas');
   STATE.ctx = STATE.canvas.getContext('2d');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
@@ -427,14 +638,22 @@ async function init() {
     STATE.presentation = null;
   }
 
-  document.getElementById('loading').style.display = 'none';
+  $('loading').style.display = 'none';
+
+  // Ensure overlays are dismissed on load
+  STATE.dom.atencionOverlay?.classList.remove('active');
+  $('summaryOverlay')?.classList.remove('active');
 
   if (!STATE.slides.length) {
-    document.getElementById('slideTitulo').textContent = 'Sin slides activos';
-    document.getElementById('slideSubtitulo').textContent = 'Crea slides en el panel de admin';
+    STATE.dom.slideTitulo.textContent = 'Sin slides activos';
+    STATE.dom.slideSubtitulo.textContent = 'Crea slides en el panel de admin';
     startLoop();
     return;
   }
+
+  const now = performance.now();
+  STATE.presStartTime = now;
+  STATE.slideStartTime = now;
 
   renderSlide(0);
   bindEvents();
@@ -448,6 +667,7 @@ function renderSlide(idx, direction) {
   const slides = STATE.slides;
   if (!slides.length) return;
   STATE.idx = idx;
+  if (STATE.graphOn) seedGraphFromSlide();
 
   const slide = slides[idx];
   const hud = document.getElementById('slideHud');
@@ -465,64 +685,75 @@ function renderSlide(idx, direction) {
     applySlide(slide);
   }
 
-  // Update nav
-  document.getElementById('btnPrev').disabled = idx === 0;
-  document.getElementById('btnNext').disabled = idx === slides.length - 1;
-  document.getElementById('navProgress').textContent = `${idx + 1} / ${slides.length}`;
-  document.getElementById('slideCounter').textContent = `${idx + 1} / ${slides.length}`;
+  // Reset slide timer
+  STATE.slideStartTime = performance.now();
+
+  // Update nav (use cached DOM)
+  const d = STATE.dom;
+  d.btnPrev.disabled = idx === 0;
+  d.btnNext.disabled = idx === slides.length - 1;
+  d.navProgress.textContent = `${idx + 1} / ${slides.length}`;
+  d.slideCounter.textContent = `${idx + 1} / ${slides.length}`;
 
   // Accent color on body
   const accentHex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
   document.documentElement.style.setProperty('--accent', accentHex);
+
+  // Next slide preview
+  updateNextPreview(idx);
+
+  // AI summary when reaching last slide
+  if (idx === slides.length - 1 && STATE.allTranscripts.length > 100) {
+    generateSummary();
+  }
 }
 
 function applySlide(slide) {
-  document.getElementById('slideNum').textContent = String(slide.numero ?? 1).padStart(2, '0');
-  document.getElementById('slideTag').textContent = slide.tag ?? '';
-  document.getElementById('slideTitulo').textContent = slide.titulo ?? '';
-  document.getElementById('slideSubtitulo').textContent = slide.subtitulo ?? '';
-  document.getElementById('slideCuerpo').textContent = slide.cuerpo ?? '';
+  const d = STATE.dom;
+  d.slideNum.textContent = String(slide.numero ?? 1).padStart(2, '0');
+  d.slideTag.textContent = slide.tag ?? '';
+  d.slideTitulo.textContent = slide.titulo ?? '';
+  d.slideSubtitulo.textContent = slide.subtitulo ?? '';
+  d.slideCuerpo.textContent = slide.cuerpo ?? '';
 
   const concepts = slide.conceptosClave ?? [];
-  const el = document.getElementById('slideConcepts');
-  el.innerHTML = concepts.map(c => {
+  d.slideConcepts.innerHTML = concepts.map(c => {
     const safe = String(c).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return `<span class="concept-pill">${safe}</span>`;
   }).join('');
 
   // Slide image
-  const imgEl = document.getElementById('slideImagen');
   const imgUrl = slide.imagenUrl ?? slide.imagen_url ?? null;
-  if (imgUrl) { imgEl.src = imgUrl; imgEl.hidden = false; }
-  else { imgEl.hidden = true; imgEl.src = ''; }
+  if (imgUrl) { d.slideImagen.src = imgUrl; d.slideImagen.hidden = false; }
+  else { d.slideImagen.hidden = true; d.slideImagen.src = ''; }
 
   // Notes
   const notes = slide.notas ?? '';
-  const nc = document.getElementById('notesContent');
   if (notes.trim()) {
-    nc.innerHTML = `<p class="notes-text">${notes.replace(/</g,'&lt;')}</p>`;
+    d.notesContent.innerHTML = `<p class="notes-text">${notes.replace(/</g,'&lt;')}</p>`;
   } else {
-    nc.innerHTML = `<p class="notes-empty">Este slide no tiene notas.</p>`;
+    d.notesContent.innerHTML = `<p class="notes-empty">Este slide no tiene notas.</p>`;
   }
 
   const chord = slide.chord ?? [];
   if (chord.length) playChord(chord);
 
   // Pres title
-  const presName = STATE.presentation?.nombre ?? 'Presentacion';
-  document.getElementById('presTitle').textContent = presName;
+  d.presTitle.textContent = STATE.presentation?.nombre ?? 'Presentacion';
 }
 
 // ── EVENTS ───────────────────────────────────────────────
 function bindEvents() {
-  document.getElementById('btnPrev').addEventListener('click', () => go(-1));
-  document.getElementById('btnNext').addEventListener('click', () => go(1));
+  STATE.dom.btnPrev.addEventListener('click', () => go(-1));
+  STATE.dom.btnNext.addEventListener('click', () => go(1));
   document.getElementById('btnNotes').addEventListener('click', toggleNotes);
   document.getElementById('notesClose').addEventListener('click', closeNotes);
   document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('btnVoice').addEventListener('click', toggleVoice);
   document.getElementById('btnSubtitles').addEventListener('click', toggleSubtitles);
+  document.getElementById('btnGraph').addEventListener('click', toggleGraph);
   document.getElementById('atencionOverlay').addEventListener('click', dismissAtencion);
+  document.getElementById('summaryClose').addEventListener('click', closeSummary);
 
   document.addEventListener('keydown', (e) => {
     ensureAudioContext();
@@ -532,7 +763,8 @@ function bindEvents() {
     if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     if (e.key === 'v' || e.key === 'V') toggleVoice();
     if (e.key === 's' || e.key === 'S') toggleSubtitles();
-    if (e.key === 'Escape') { dismissAtencion(); closeNotes(); }
+    if (e.key === 'g' || e.key === 'G') toggleGraph();
+    if (e.key === 'Escape') { dismissAtencion(); closeNotes(); closeSummary(); }
     showUI();
   });
 
@@ -701,12 +933,13 @@ function setReactiveAccent(accent) {
   const hex = ACCENT_COLORS.find(c => c.id === getActiveAccent(slide))?.hex ?? '#34d399';
   document.documentElement.style.setProperty('--accent', hex);
   // Show flash with the accent color applied
-  const flash = document.getElementById('voiceFlash');
-  flash.style.color = hex;
-  flash.style.borderColor = hex;
-  showVoiceFlash(`● ${ACCENT_LABELS[accent] ?? accent}`);
-  // Reset flash color after it hides
-  setTimeout(() => { flash.style.color = ''; flash.style.borderColor = ''; }, 2200);
+  const flash = STATE.dom.voiceFlash;
+  if (flash) {
+    flash.style.color = hex;
+    flash.style.borderColor = hex;
+    showVoiceFlash(`● ${ACCENT_LABELS[accent] ?? accent}`);
+    setTimeout(() => { flash.style.color = ''; flash.style.borderColor = ''; }, 2200);
+  }
 }
 
 // ── VOICE COMMANDS ───────────────────────────────────────
@@ -731,6 +964,8 @@ function initVoice() {
         }
         handleVoiceTranscript(transcripts);
         updateSubtitle(result[0].transcript.trim(), false);
+        feedGraphTranscript(result[0].transcript);
+        STATE.allTranscripts += ' ' + result[0].transcript.trim();
       } else {
         interimText += result[0].transcript;
       }
@@ -753,9 +988,22 @@ function initVoice() {
 
   recognition.onend = () => {
     if (!STATE.voiceActive) return;
-    try {
-      recognition.start();
-    } catch {}
+    const attempts = STATE.voiceRestartAttempts;
+    if (attempts > 8) {
+      STATE.voiceActive = false;
+      updateVoiceButton();
+      showVoiceFlash('Voz: reintentos agotados');
+      return;
+    }
+    const delay = Math.min(100 * Math.pow(2, attempts), 5000);
+    STATE.voiceRestartAttempts += 1;
+    setTimeout(() => {
+      if (!STATE.voiceActive) return;
+      try {
+        recognition.start();
+        STATE.voiceRestartAttempts = Math.max(0, STATE.voiceRestartAttempts - 1);
+      } catch {}
+    }, delay);
   };
 
   STATE.recognition = recognition;
@@ -771,6 +1019,7 @@ async function toggleVoice() {
   STATE.voiceActive = !STATE.voiceActive;
 
   if (STATE.voiceActive) {
+    STATE.voiceRestartAttempts = 0;
     const micReady = await ensureMicInput();
     if (!micReady) {
       STATE.voiceActive = false;
@@ -795,12 +1044,12 @@ async function toggleVoice() {
 }
 
 function updateVoiceButton() {
-  const btn = document.getElementById('btnVoice');
-  btn.classList.toggle('voice-active', STATE.voiceActive);
+  STATE.dom.btnVoice?.classList.toggle('voice-active', STATE.voiceActive);
 }
 
 function showVoiceFlash(message) {
-  const flash = document.getElementById('voiceFlash');
+  const flash = STATE.dom.voiceFlash;
+  if (!flash) return;
   flash.textContent = message;
   flash.classList.add('show');
   clearTimeout(STATE.voiceFlashTimer);
@@ -810,17 +1059,17 @@ function showVoiceFlash(message) {
 }
 
 function showAtencion() {
-  const overlay = document.getElementById('atencionOverlay');
+  const overlay = STATE.dom.atencionOverlay;
+  if (!overlay) return;
   clearTimeout(STATE.atencionTimer);
-  // Re-trigger animation by removing and re-adding class
   overlay.classList.remove('active');
   void overlay.offsetWidth; // force reflow
   overlay.classList.add('active');
   STATE.atencionTimer = setTimeout(() => { overlay.classList.remove('active'); }, 5000);
 }
 function dismissAtencion() {
-  const overlay = document.getElementById('atencionOverlay');
-  if (overlay.classList.contains('active')) {
+  const overlay = STATE.dom.atencionOverlay;
+  if (overlay?.classList.contains('active')) {
     clearTimeout(STATE.atencionTimer);
     overlay.classList.remove('active');
   }
@@ -829,13 +1078,13 @@ function dismissAtencion() {
 // ── SUBTITLES ────────────────────────────────────────────
 function updateSubtitle(text, isInterim) {
   if (!STATE.subtitlesOn) return;
-  const bar = document.getElementById('subtitleBar');
+  const bar = STATE.dom.subtitleBar;
+  if (!bar) return;
   clearTimeout(STATE.subtitleTimer);
   if (isInterim) {
     bar.innerHTML = `<span class="interim">${text.replace(/</g, '&lt;')}</span>`;
   } else {
     bar.textContent = text;
-    // Fade out final text after 4 seconds of silence
     STATE.subtitleTimer = setTimeout(() => { bar.textContent = ''; }, 4000);
   }
   bar.hidden = false;
@@ -843,24 +1092,214 @@ function updateSubtitle(text, isInterim) {
 
 function toggleSubtitles() {
   STATE.subtitlesOn = !STATE.subtitlesOn;
-  const bar = document.getElementById('subtitleBar');
+  const bar = STATE.dom.subtitleBar;
   if (!STATE.subtitlesOn) {
-    bar.hidden = true;
-    bar.textContent = '';
+    if (bar) { bar.hidden = true; bar.textContent = ''; }
   } else {
-    bar.hidden = false;
-    if (!STATE.voiceActive) {
-      // Auto-enable voice if subtitles turned on
-      toggleVoice();
-    }
+    if (bar) bar.hidden = false;
+    if (!STATE.voiceActive) toggleVoice();
   }
   updateSubtitleButton();
   showVoiceFlash(STATE.subtitlesOn ? 'Subtítulos ON' : 'Subtítulos OFF');
 }
 
 function updateSubtitleButton() {
-  const btn = document.getElementById('btnSubtitles');
-  btn.classList.toggle('voice-active', STATE.subtitlesOn);
+  STATE.dom.btnSubtitles?.classList.toggle('voice-active', STATE.subtitlesOn);
+}
+
+// ── LIVE CONCEPT GRAPH ───────────────────────────────────
+function toggleGraph() {
+  STATE.graphOn = !STATE.graphOn;
+  STATE.dom.graphOverlay?.classList.toggle('active', STATE.graphOn);
+  STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphOn);
+  if (STATE.graphOn) {
+    if (!STATE.voiceActive) toggleVoice();
+    seedGraphFromSlide();
+    showVoiceFlash('Grafo ON');
+  } else {
+    showVoiceFlash('Grafo OFF');
+  }
+}
+
+function clearGraph() {
+  STATE.graphNodes.clear();
+  STATE.graphEdges = [];
+  STATE.graphTranscriptBuffer = '';
+  clearTimeout(STATE.graphTimer);
+  if (STATE.dom.graphNodes) STATE.dom.graphNodes.innerHTML = '';
+  if (STATE.dom.graphSvg) STATE.dom.graphSvg.innerHTML = '';
+}
+
+function seedGraphFromSlide() {
+  clearGraph();
+  const slide = STATE.slides[STATE.idx];
+  const concepts = slide?.conceptosClave ?? [];
+  const w = window.innerWidth, h = window.innerHeight;
+  // Place seed nodes in a gentle arc on the right half
+  concepts.forEach((label, i) => {
+    const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    const angle = -0.4 + (i / Math.max(concepts.length - 1, 1)) * 0.8;
+    const cx = w * 0.68 + Math.cos(angle * Math.PI) * w * 0.18;
+    const cy = h * 0.25 + (i / Math.max(concepts.length - 1, 1)) * h * 0.5;
+    addGraphNode(id, label, cx, cy, true);
+  });
+}
+
+function addGraphNode(id, label, x, y, isSeed) {
+  if (STATE.graphNodes.has(id)) return;
+  const container = STATE.dom.graphNodes;
+  const el = document.createElement('div');
+  el.className = isSeed ? 'graph-node seed' : 'graph-node';
+  el.textContent = label;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  container.appendChild(el);
+  STATE.graphNodes.set(id, { label, x, y, el, seed: isSeed });
+}
+
+function activateSeedNode(id) {
+  const node = STATE.graphNodes.get(id);
+  if (node && node.seed && !node.el.classList.contains('mentioned')) {
+    node.el.classList.add('mentioned');
+  }
+}
+
+function addGraphEdge(fromId, toId) {
+  const from = STATE.graphNodes.get(fromId);
+  const to = STATE.graphNodes.get(toId);
+  if (!from || !to) return;
+  // Avoid duplicate edges
+  if (STATE.graphEdges.some(e => (e.from === fromId && e.to === toId) || (e.from === toId && e.to === fromId))) return;
+  const svg = STATE.dom.graphSvg;
+  if (!svg) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const line = document.createElementNS(ns, 'line');
+  line.setAttribute('x1', from.x);
+  line.setAttribute('y1', from.y);
+  line.setAttribute('x2', to.x);
+  line.setAttribute('y2', to.y);
+  svg.appendChild(line);
+  STATE.graphEdges.push({ from: fromId, to: toId, el: line });
+}
+
+function updateGraphEdgePositions() {
+  STATE.graphEdges.forEach(e => {
+    const from = STATE.graphNodes.get(e.from);
+    const to = STATE.graphNodes.get(e.to);
+    if (!from || !to) return;
+    e.el.setAttribute('x1', from.x);
+    e.el.setAttribute('y1', from.y);
+    e.el.setAttribute('x2', to.x);
+    e.el.setAttribute('y2', to.y);
+  });
+}
+
+// Lightweight force-directed push — keeps nodes from overlapping
+function nudgeGraphNodes() {
+  const nodes = [...STATE.graphNodes.values()];
+  const w = window.innerWidth, h = window.innerHeight;
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[j].x - nodes[i].x;
+      const dy = nodes[j].y - nodes[i].y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      if (dist < 120) {
+        const push = (120 - dist) * 0.03;
+        const nx = (dx / dist) * push;
+        const ny = (dy / dist) * push;
+        nodes[i].x -= nx; nodes[i].y -= ny;
+        nodes[j].x += nx; nodes[j].y += ny;
+      }
+    }
+    // Keep within viewport
+    nodes[i].x = Math.max(60, Math.min(w - 60, nodes[i].x));
+    nodes[i].y = Math.max(60, Math.min(h - 60, nodes[i].y));
+    nodes[i].el.style.left = nodes[i].x + 'px';
+    nodes[i].el.style.top = nodes[i].y + 'px';
+  }
+  updateGraphEdgePositions();
+}
+
+// Feed transcript to graph AI (throttled)
+function feedGraphTranscript(text) {
+  if (!STATE.graphOn) return;
+  STATE.graphTranscriptBuffer += ' ' + text;
+  if (STATE.graphTranscriptBuffer.length > 500) {
+    STATE.graphTranscriptBuffer = STATE.graphTranscriptBuffer.slice(-500);
+  }
+
+  // Check if any seed node is mentioned
+  STATE.graphNodes.forEach((node, id) => {
+    if (node.seed && text.toLowerCase().includes(node.label.toLowerCase())) {
+      activateSeedNode(id);
+    }
+  });
+
+  // Throttle AI calls — every 10 seconds
+  if (STATE.graphBusy || STATE.graphTimer) return;
+  STATE.graphTimer = setTimeout(() => {
+    STATE.graphTimer = null;
+    requestGraphUpdate();
+  }, 10000);
+}
+
+async function requestGraphUpdate() {
+  const transcript = STATE.graphTranscriptBuffer.trim();
+  STATE.graphTranscriptBuffer = '';
+  if (!transcript || transcript.length < 15) return;
+  if (STATE.graphBusy) return;
+  STATE.graphBusy = true;
+
+  const slide = STATE.slides[STATE.idx];
+  try {
+    const res = await fetch('/api/slides/live-graph', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slide: {
+          titulo: slide?.titulo ?? '',
+          subtitulo: slide?.subtitulo ?? '',
+          cuerpo: slide?.cuerpo ?? '',
+          conceptosClave: slide?.conceptosClave ?? [],
+          tag: slide?.tag ?? '',
+        },
+        transcript,
+        existingNodes: [...STATE.graphNodes.keys()],
+      }),
+    });
+    const data = await res.json();
+    if (data.ok && data.graph) {
+      mergeGraph(data.graph);
+    }
+  } catch { /* network errors are fine to ignore */ }
+  STATE.graphBusy = false;
+}
+
+function mergeGraph(graph) {
+  const w = window.innerWidth, h = window.innerHeight;
+  (graph.nodes ?? []).forEach(n => {
+    if (STATE.graphNodes.has(n.id)) {
+      activateSeedNode(n.id);
+      return;
+    }
+    // Position near existing connected nodes, or random right side
+    let x = w * 0.55 + Math.random() * w * 0.35;
+    let y = h * 0.15 + Math.random() * h * 0.7;
+    const connected = (graph.edges ?? []).find(e => e.from === n.id || e.to === n.id);
+    if (connected) {
+      const otherId = connected.from === n.id ? connected.to : connected.from;
+      const other = STATE.graphNodes.get(otherId);
+      if (other) {
+        x = other.x + (Math.random() - 0.5) * 160;
+        y = other.y + (Math.random() - 0.5) * 120;
+      }
+    }
+    addGraphNode(n.id, n.label, x, y, false);
+  });
+  (graph.edges ?? []).forEach(e => {
+    addGraphEdge(e.from, e.to);
+  });
+  nudgeGraphNodes();
 }
 
 function handleVoiceTranscript(transcripts) {
@@ -924,13 +1363,98 @@ function scheduleHideUI() {
   STATE.uiHideTimer = setTimeout(hideUI, 3000);
 }
 function showUI() {
-  document.getElementById('topbar').classList.remove('hidden');
-  document.getElementById('presNav').classList.remove('hidden');
+  STATE.dom.topbar?.classList.remove('hidden');
+  STATE.dom.presNav?.classList.remove('hidden');
+  STATE.dom.presTimer?.classList.remove('hidden');
   scheduleHideUI();
 }
 function hideUI() {
-  document.getElementById('topbar').classList.add('hidden');
-  document.getElementById('presNav').classList.add('hidden');
+  STATE.dom.topbar?.classList.add('hidden');
+  STATE.dom.presNav?.classList.add('hidden');
+  STATE.dom.presTimer?.classList.add('hidden');
+}
+
+// ── TIMER ─────────────────────────────────────────────────
+function fmtTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function updateTimerDisplay(now) {
+  if (!STATE.presStartTime) return;
+  const d = STATE.dom;
+  const slideSec = (now - STATE.slideStartTime) / 1000;
+  const totalSec = (now - STATE.presStartTime) / 1000;
+
+  d.timerSlide.textContent = fmtTime(slideSec);
+  d.timerTotal.textContent = fmtTime(totalSec);
+
+  // Over-time alert: compare against slide.duracion (minutes)
+  const slide = STATE.slides[STATE.idx];
+  const durMin = slide?.duracion ?? 0;
+  if (durMin > 0 && slideSec > durMin * 60) {
+    d.timerSlide.classList.add('timer-over');
+  } else {
+    d.timerSlide.classList.remove('timer-over');
+  }
+}
+
+// ── NEXT SLIDE PREVIEW ────────────────────────────────────
+function updateNextPreview(idx) {
+  const d = STATE.dom;
+  const next = STATE.slides[idx + 1];
+  if (!next) {
+    d.nextPreview.classList.remove('show');
+    return;
+  }
+  d.nextPreviewTitle.textContent = next.titulo ?? '';
+  d.nextPreviewTag.textContent = next.tag ?? '';
+  d.nextPreview.classList.add('show');
+}
+
+// ── AI SUMMARY ────────────────────────────────────────────
+async function generateSummary() {
+  const overlay = document.getElementById('summaryOverlay');
+  const textEl = document.getElementById('summaryText');
+  overlay.classList.add('active');
+  textEl.textContent = 'Generando resumen con IA...';
+  textEl.classList.add('loading');
+
+  const transcript = STATE.allTranscripts.trim();
+  if (transcript.length < 50) {
+    textEl.textContent = 'No hay suficiente transcripción para generar un resumen.';
+    textEl.classList.remove('loading');
+    return;
+  }
+
+  try {
+    const slide = STATE.slides[STATE.idx];
+    const res = await fetch('/api/slides/live-graph', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slide: { titulo: STATE.presentation?.nombre ?? 'Presentación', subtitulo: 'Resumen final' },
+        transcript: transcript.slice(-1500),
+        existingNodes: [],
+      }),
+    });
+    const data = await res.json();
+    if (data.ok && data.graph?.nodes?.length) {
+      const concepts = data.graph.nodes.map(n => n.label).join(', ');
+      textEl.textContent = `Conceptos clave identificados:\n\n${concepts}\n\nTotal de slides: ${STATE.slides.length}\nTiempo total: ${fmtTime((performance.now() - STATE.presStartTime) / 1000)}`;
+    } else {
+      textEl.textContent = `Presentación finalizada.\n\nTotal de slides: ${STATE.slides.length}\nTiempo total: ${fmtTime((performance.now() - STATE.presStartTime) / 1000)}`;
+    }
+    textEl.classList.remove('loading');
+  } catch {
+    textEl.textContent = `Presentación finalizada.\n\nTotal de slides: ${STATE.slides.length}\nTiempo total: ${fmtTime((performance.now() - STATE.presStartTime) / 1000)}`;
+    textEl.classList.remove('loading');
+  }
+}
+
+function closeSummary() {
+  document.getElementById('summaryOverlay').classList.remove('active');
 }
 
 // ── PARTICLE ENGINE ───────────────────────────────────────
@@ -951,10 +1475,16 @@ function initParticles() {
 }
 
 function startLoop() {
+  STATE.lastFrameTime = performance.now();
   function frame() {
-    STATE.animTime += 0.016;
+    const now = performance.now();
+    const dt = (now - STATE.lastFrameTime) / 1000;
+    STATE.lastFrameTime = now;
+    STATE.animTime += dt;
     updateVoiceMetrics();
     drawParticles();
+    if (STATE.graphOn && STATE.graphNodes.size > 1) nudgeGraphNodes();
+    updateTimerDisplay(now);
     STATE.animFrame = requestAnimationFrame(frame);
   }
   if (STATE.animFrame) cancelAnimationFrame(STATE.animFrame);

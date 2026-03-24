@@ -409,8 +409,41 @@ export const adminParticipantsRoutes = new Hono<Env>();
 adminParticipantsRoutes.use('*', requireAuth('participants:read'));
 
 adminParticipantsRoutes.get('/', async (c) => {
+  const rawLimit = c.req.query('limit');
+  const rawOffset = c.req.query('offset');
+  const search = c.req.query('search')?.trim().toLowerCase() || '';
+
+  const limit = rawLimit ? Number.parseInt(rawLimit, 10) : 50;
+  const offset = rawOffset ? Number.parseInt(rawOffset, 10) : 0;
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    return c.json({ ok: false, error: 'invalid_limit' }, 400);
+  }
+
+  if (!Number.isInteger(offset) || offset < 0) {
+    return c.json({ ok: false, error: 'invalid_offset' }, 400);
+  }
+
   const participants = await listParticipants(c.env.DB!);
-  return c.json({ ok: true, participants });
+  const filteredParticipants = search
+    ? participants.filter((participant) => {
+        const email = participant.email?.toLowerCase() || '';
+        const fullName = participant.fullName?.toLowerCase() || '';
+        return email.includes(search) || fullName.includes(search);
+      })
+    : participants;
+
+  const page = filteredParticipants.slice(offset, offset + limit);
+  return c.json({
+    ok: true,
+    participants: page,
+    pagination: {
+      limit,
+      offset,
+      returned: page.length,
+      total: filteredParticipants.length,
+    },
+  });
 });
 
 adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (c) => {

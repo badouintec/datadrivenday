@@ -2,6 +2,7 @@ export function createWorkspaceFlow({
   api,
   applyProfileState,
   dom,
+  isValidHttpUrl,
   renderComments,
   renderDatallerResources,
   renderDatallerState,
@@ -148,14 +149,27 @@ export function createWorkspaceFlow({
         return;
       }
 
+      const projectUrl = dom.profileForm.projectUrl.value.trim();
+      const avatarUrl = dom.profileForm.avatarUrl.value.trim();
+
+      if (projectUrl && !isValidHttpUrl(projectUrl)) {
+        setStatus(dom.profileStatus, 'El enlace del proyecto debe iniciar con http:// o https://.', 'error');
+        return;
+      }
+
+      if (avatarUrl && !isValidHttpUrl(avatarUrl)) {
+        setStatus(dom.profileStatus, 'La URL de foto debe iniciar con http:// o https://.', 'error');
+        return;
+      }
+
       setStatus(dom.profileStatus, 'Guardando perfil...', 'info');
       try {
         const { response, data } = await api.updateParticipantProfile({
           fullName: dom.profileForm.fullName.value.trim(),
           occupation: dom.profileForm.occupation.value.trim(),
           organization: dom.profileForm.organization.value.trim(),
-          projectUrl: dom.profileForm.projectUrl.value.trim(),
-          avatarUrl: dom.profileForm.avatarUrl.value.trim(),
+          projectUrl,
+          avatarUrl,
           bio: dom.profileForm.bio.value.trim(),
         });
 
