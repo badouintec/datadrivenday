@@ -405,13 +405,26 @@ const isAdmin = /ddd_session=/.test(cookie);
       pointer-events: none;
       opacity: 0; transition: opacity 0.5s ease;
     }
+    .graph-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(52,211,153,0.12), transparent 28%),
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05), transparent 22%),
+        linear-gradient(180deg, rgba(13,17,23,0.94), rgba(8,12,18,0.98));
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
     .graph-overlay.active { opacity: 1; }
     body.graph-focus .graph-overlay { opacity: 1; }
+    body.graph-focus .graph-overlay::before { opacity: 1; }
     body.graph-focus canvas {
-      opacity: 0.18;
-      filter: blur(1px);
+      opacity: 0.06;
+      filter: blur(4px);
       transition: opacity 0.25s ease, filter 0.25s ease;
     }
+    body.graph-focus .pres-topbar,
     body.graph-focus .slide-hud,
     body.graph-focus .pres-nav,
     body.graph-focus .next-preview,
@@ -422,8 +435,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       pointer-events: none;
     }
     body.graph-focus .pres-topbar {
-      background: rgba(13,17,23,0.55);
-      border-bottom-color: rgba(52, 211, 153, 0.2);
+      transform: translateY(-100%);
     }
     .graph-svg {
       position: absolute; inset: 0;
@@ -431,11 +443,17 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .graph-svg line {
       stroke: var(--accent, #34d399);
-      stroke-width: 1.5;
-      stroke-opacity: 0.35;
+      stroke-width: 1.8;
+      stroke-opacity: 0.42;
       stroke-dasharray: 200;
       stroke-dashoffset: 200;
+      filter: drop-shadow(0 0 8px rgba(52,211,153,0.2));
       animation: edge-draw 0.8s ease-out forwards;
+      transition: stroke-opacity 0.25s ease, stroke-width 0.25s ease;
+    }
+    .graph-svg line.active {
+      stroke-opacity: 0.9;
+      stroke-width: 2.6;
     }
     @keyframes edge-draw {
       to { stroke-dashoffset: 0; }
@@ -455,31 +473,60 @@ const isAdmin = /ddd_session=/.test(cookie);
       padding: 0.3em 0.7em;
       white-space: nowrap;
       transform: translate(-50%, -50%) scale(0);
-      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-float 7s ease-in-out infinite;
       transition: left 0.6s ease, top 0.6s ease;
+    }
+    .graph-node.root {
+      font-size: 1.15rem;
+      padding: 0.55em 1.1em;
+      border-width: 2px;
+      background: rgba(13,17,23,0.98);
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.12), 0 0 28px rgba(52,211,153,0.16), 0 18px 44px rgba(0,0,0,0.38);
+      z-index: 2;
+      animation: node-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-root-pulse 2.8s ease-in-out infinite;
     }
     .graph-node.seed {
       border-style: dashed;
-      opacity: 0.35;
+      opacity: 0.55;
       transform: translate(-50%, -50%) scale(1);
-      animation: none;
+      animation: node-float 8s ease-in-out infinite;
     }
     .graph-node.seed.mentioned {
       opacity: 1;
       border-style: solid;
-      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-float 6.5s ease-in-out infinite;
+    }
+    .graph-node.incoming {
+      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-flash 1.2s ease-out, node-float 6.8s ease-in-out infinite;
+    }
+    .graph-node.active {
+      opacity: 1;
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2), 0 0 22px rgba(52,211,153,0.28), 0 14px 34px rgba(0,0,0,0.36);
     }
     @keyframes node-pop {
       0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
+    @keyframes node-flash {
+      0% { filter: brightness(1.8); }
+      100% { filter: brightness(1); }
+    }
+    @keyframes node-float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-6px); }
+    }
+    @keyframes node-root-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.03); }
+    }
     .graph-mode-banner {
       position: fixed;
-      top: 72px;
+      top: 1.25rem;
       left: 50%;
       transform: translateX(-50%);
       z-index: 120;
-      padding: 0.5rem 1rem;
+      padding: 0.55rem 1rem;
       border: 1px solid rgba(52, 211, 153, 0.35);
       border-radius: 999px;
       background: rgba(13,17,23,0.84);
@@ -918,6 +965,134 @@ function normalizeSpeechText(value) {
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function uniqueGraphTerms(values, limit = 6) {
+  const unique = [];
+  const seen = new Set();
+  for (const raw of values) {
+    const cleaned = String(raw ?? '').trim();
+    const normalized = normalizeSpeechText(cleaned);
+    if (!cleaned || !normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    unique.push(cleaned);
+    if (unique.length >= limit) break;
+  }
+  return unique;
+}
+
+const GRAPH_WORD_STOPWORDS = new Set([
+  'para', 'como', 'esta', 'este', 'estos', 'estas', 'vamos', 'puede', 'pueden', 'hacer', 'desde', 'hasta',
+  'porque', 'tambien', 'entre', 'cada', 'todos', 'todas', 'solo', 'algo', 'nada', 'digamos', 'bueno',
+  'pues', 'entonces', 'tener', 'tiene', 'modo', 'grafo', 'decir', 'hablar', 'habla', 'ahora', 'aqui',
+]);
+
+function toDisplayGraphLabel(value) {
+  return String(value ?? '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function getRootGraphNodeEntry() {
+  return [...STATE.graphNodes.entries()].find(([, node]) => node.root) ?? null;
+}
+
+function activateGraphNode(id) {
+  const node = STATE.graphNodes.get(id);
+  if (!node) return;
+  node.el.classList.add('active');
+  clearTimeout(node.activeTimer);
+  node.activeTimer = setTimeout(() => {
+    node.el.classList.remove('active');
+  }, 1200);
+}
+
+function activateGraphEdge(fromId, toId) {
+  const edge = STATE.graphEdges.find((item) =>
+    (item.from === fromId && item.to === toId) || (item.from === toId && item.to === fromId));
+  if (!edge) return;
+  edge.el.classList.add('active');
+  clearTimeout(edge.activeTimer);
+  edge.activeTimer = setTimeout(() => {
+    edge.el.classList.remove('active');
+  }, 900);
+}
+
+// Find an existing non-root node whose label shares a word with `termWords`.
+// Returns the node entry [id, node] if found, otherwise null.
+function findPeerNode(termWords) {
+  for (const [id, node] of STATE.graphNodes.entries()) {
+    if (node.root) continue;
+    const labelWords = normalizeSpeechText(node.label).split(' ');
+    if (termWords.some((w) => labelWords.includes(w))) return [id, node];
+  }
+  return null;
+}
+
+function expandGraphFromSpeech(text) {
+  const normalized = normalizeSpeechText(text);
+  if (!normalized) return;
+
+  const rootEntry = getRootGraphNodeEntry();
+  if (!rootEntry) return;
+
+  const rootId = rootEntry[0];
+  const rootNode = rootEntry[1];
+  const terms = normalized
+    .split(' ')
+    .filter((word) => word.length >= 4 && !GRAPH_WORD_STOPWORDS.has(word));
+
+  const uniqueTerms = uniqueGraphTerms(terms, 4);
+  uniqueTerms.forEach((term, index) => {
+    const id = normalizeSpeechText(term).replace(/\s+/g, '_');
+    if (!id) return;
+    if (STATE.graphNodes.has(id)) {
+      activateSeedNode(id);
+      activateGraphNode(id);
+      // also light up the edge connecting it
+      const peer = findPeerNode(normalizeSpeechText(id).split('_'));
+      const parentId = peer ? peer[0] : rootId;
+      activateGraphEdge(parentId, id);
+      if (!STATE.graphEdges.some(e => (e.from === parentId && e.to === id) || (e.from === id && e.to === parentId))) {
+        activateGraphEdge(rootId, id);
+      }
+      return;
+    }
+
+    // Decide parent: attach to a semantically related existing node if possible,
+    // otherwise fall back to root.
+    const termWords = normalizeSpeechText(term).split(' ');
+    const peerEntry = findPeerNode(termWords);
+    const parentId = peerEntry ? peerEntry[0] : rootId;
+    const parentNode = peerEntry ? peerEntry[1] : rootNode;
+
+    const angle = -Math.PI / 3 + Math.random() * (Math.PI * 1.25);
+    const distance = (peerEntry ? 110 : 150) + index * 36 + Math.random() * 40;
+    const x = parentNode.x + Math.cos(angle) * distance;
+    const y = parentNode.y + Math.sin(angle) * distance;
+    addGraphNode(id, toDisplayGraphLabel(term), x, y, false);
+    addGraphEdge(parentId, id);
+    activateGraphNode(id);
+    activateGraphEdge(parentId, id);
+  });
+
+  updateDebugHud();
+}
+
+function extractSlideSeedTerms(slide) {
+  const chunks = [];
+  if (slide?.tag) chunks.push(slide.tag);
+  if (slide?.conceptosClave?.length) chunks.push(...slide.conceptosClave);
+  if (slide?.subtitulo) {
+    chunks.push(...String(slide.subtitulo).split(/[,:;|]/));
+  }
+  if (slide?.titulo) {
+    chunks.push(...String(slide.titulo).split(/[,:;|]/));
+  }
+  return uniqueGraphTerms(chunks, 6);
 }
 
 // ── INIT ─────────────────────────────────────────────────
@@ -1365,6 +1540,10 @@ function initVoice() {
       }
     }
     if (interimText) {
+      if (STATE.graphFocusActive) {
+        feedGraphTranscript(interimText.trim());
+        expandGraphFromSpeech(interimText.trim());
+      }
       updateSubtitle(interimText.trim(), true);
     }
   };
@@ -1543,7 +1722,7 @@ function syncGraphUi() {
   STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphPinned || STATE.graphFocusActive);
   document.body.classList.toggle('graph-focus', STATE.graphFocusActive);
   STATE.debugGraphStatus = graphVisible
-    ? STATE.graphFocusActive ? 'focus 10s' : STATE.graphPinned ? 'fijado' : 'activo'
+    ? STATE.graphFocusActive ? 'focus' : STATE.graphPinned ? 'fijado' : 'activo'
     : 'inactivo';
   updateDebugHud();
 }
@@ -1561,16 +1740,14 @@ function setGraphPinned(enabled) {
   syncGraphUi();
 }
 
-function activateGraphFocus(durationMs = 10000) {
+function activateGraphFocus() {
   clearTimeout(STATE.graphFocusTimer);
+  STATE.graphFocusTimer = null;
   STATE.graphOn = true;
   STATE.graphFocusActive = true;
   if (!STATE.graphNodes.size) seedGraphFromSlide();
   if (!STATE.voiceActive) toggleVoice();
   syncGraphUi();
-  STATE.graphFocusTimer = setTimeout(() => {
-    deactivateGraphFocus();
-  }, durationMs);
 }
 
 function deactivateGraphFocus() {
@@ -1599,35 +1776,57 @@ function clearGraph() {
 function seedGraphFromSlide() {
   clearGraph();
   const slide = STATE.slides[STATE.idx];
-  const concepts = slide?.conceptosClave ?? [];
+  const seedTerms = extractSlideSeedTerms(slide);
   const w = window.innerWidth, h = window.innerHeight;
-  // Place seed nodes in a gentle arc on the right half
-  concepts.forEach((label, i) => {
-    const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-    const angle = -0.4 + (i / Math.max(concepts.length - 1, 1)) * 0.8;
-    const cx = w * 0.68 + Math.cos(angle * Math.PI) * w * 0.18;
-    const cy = h * 0.25 + (i / Math.max(concepts.length - 1, 1)) * h * 0.5;
-    addGraphNode(id, label, cx, cy, true);
-  });
+  const rootLabel = slide?.titulo?.trim() || slide?.tag?.trim() || 'Tema actual';
+  const rootId = normalizeSpeechText(rootLabel).replace(/\s+/g, '_') || 'tema_actual';
+  const rootX = w * 0.5;
+  const rootY = h * 0.42;
+
+  addGraphNode(rootId, rootLabel, rootX, rootY, true, true);
+
+  if (!seedTerms.length) {
+    const fallback = slide?.subtitulo?.trim() || slide?.cuerpo?.trim()?.split('.').at(0) || 'Contexto';
+    if (fallback) seedTerms.push(fallback);
+  }
+
+  const radiusX = Math.min(w * 0.22, 240);
+  const radiusY = Math.min(h * 0.2, 180);
+  seedTerms
+    .filter((label) => normalizeSpeechText(label) !== normalizeSpeechText(rootLabel))
+    .forEach((label, index, list) => {
+      const id = normalizeSpeechText(label).replace(/\s+/g, '_');
+      const angle = (-Math.PI / 2) + ((index + 1) / (list.length + 1)) * Math.PI;
+      const cx = rootX + Math.cos(angle) * radiusX;
+      const cy = rootY + Math.sin(angle) * radiusY;
+      addGraphNode(id, label, cx, cy, true, false);
+      addGraphEdge(rootId, id);
+    });
+
+  STATE.debugGraphSource = 'seed';
+  updateDebugHud();
 }
 
-function addGraphNode(id, label, x, y, isSeed) {
+function addGraphNode(id, label, x, y, isSeed, isRoot = false) {
   if (STATE.graphNodes.has(id)) return;
   const container = STATE.dom.graphNodes;
   const el = document.createElement('div');
-  el.className = isSeed ? 'graph-node seed' : 'graph-node';
+  el.className = ['graph-node', isSeed ? 'seed' : '', isRoot ? 'root' : ''].filter(Boolean).join(' ');
   el.textContent = label;
   el.style.left = x + 'px';
   el.style.top = y + 'px';
   container.appendChild(el);
-  STATE.graphNodes.set(id, { label, x, y, el, seed: isSeed });
+  STATE.graphNodes.set(id, { label, x, y, el, seed: isSeed, root: isRoot });
+  if (!isSeed || isRoot) activateGraphNode(id);
 }
 
 function activateSeedNode(id) {
   const node = STATE.graphNodes.get(id);
-  if (node && node.seed && !node.el.classList.contains('mentioned')) {
+  if (!node) return;
+  if (node.seed && !node.el.classList.contains('mentioned')) {
     node.el.classList.add('mentioned');
   }
+  activateGraphNode(id);
 }
 
 function addGraphEdge(fromId, toId) {
@@ -1646,6 +1845,7 @@ function addGraphEdge(fromId, toId) {
   line.setAttribute('y2', to.y);
   svg.appendChild(line);
   STATE.graphEdges.push({ from: fromId, to: toId, el: line });
+  activateGraphEdge(fromId, toId);
 }
 
 function updateGraphEdgePositions() {
@@ -1692,6 +1892,10 @@ function feedGraphTranscript(text) {
   const cleanedText = sanitizeGraphTranscript(text);
   if (!cleanedText) return;
   const normalizedTranscript = normalizeSpeechText(cleanedText);
+
+  if (STATE.graphFocusActive) {
+    expandGraphFromSpeech(cleanedText);
+  }
 
   STATE.graphTranscriptBuffer += ' ' + cleanedText;
   if (STATE.graphTranscriptBuffer.length > 500) {
@@ -1764,6 +1968,7 @@ async function requestGraphUpdate() {
 
 function mergeGraph(graph) {
   const w = window.innerWidth, h = window.innerHeight;
+  const rootNode = [...STATE.graphNodes.entries()].find(([, node]) => node.root);
   (graph.nodes ?? []).forEach(n => {
     if (STATE.graphNodes.has(n.id)) {
       activateSeedNode(n.id);
@@ -1780,12 +1985,20 @@ function mergeGraph(graph) {
         x = other.x + (Math.random() - 0.5) * 160;
         y = other.y + (Math.random() - 0.5) * 120;
       }
+    } else if (rootNode) {
+      x = rootNode[1].x + (Math.random() - 0.5) * 220;
+      y = rootNode[1].y + (Math.random() - 0.5) * 180;
     }
     addGraphNode(n.id, n.label, x, y, false);
   });
   (graph.edges ?? []).forEach(e => {
     addGraphEdge(e.from, e.to);
   });
+  if (rootNode && graph.nodes?.length && !(graph.edges ?? []).length) {
+    graph.nodes.forEach((node) => {
+      if (node.id !== rootNode[0]) addGraphEdge(rootNode[0], node.id);
+    });
+  }
   nudgeGraphNodes();
   updateDebugHud();
 }
@@ -1798,7 +2011,7 @@ function handleVoiceTranscript(transcripts) {
 
   if (match(/(?:modo|vista)\s+grafo|(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo/)) {
     setDebugCommand('modo_grafo');
-    activateGraphFocus(10000);
+    activateGraphFocus();
     showVoiceFlash('Modo grafo');
     return;
   }

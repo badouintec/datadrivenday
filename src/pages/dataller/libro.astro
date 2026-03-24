@@ -1,0 +1,1426 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const prerender = true;
+
+/* ── Book content structured as chapters ── */
+const chapters = [
+  {
+    id: 'prologo',
+    num: '0',
+    title: 'Prólogo',
+    subtitle: 'Por qué este libro existe',
+  },
+  {
+    id: 'para-quien',
+    num: '1',
+    title: 'Para quién es este taller',
+    subtitle: 'Perfiles, expectativas y punto de partida',
+  },
+  {
+    id: 'fundamentos',
+    num: '2',
+    title: 'Fundamentos para construir con IA',
+    subtitle: 'Lógica de modelos y estructuras de datos',
+  },
+  {
+    id: 'modelos-datos',
+    num: '3',
+    title: 'Modelos y datos',
+    subtitle: 'Cómo los modelos aprenden y cuándo confiar en ellos',
+  },
+  {
+    id: 'busqueda-razonamiento',
+    num: '4',
+    title: 'Sistemas que buscan y razonan',
+    subtitle: 'RAG, búsqueda semántica y bases de conocimiento',
+  },
+  {
+    id: 'agentes',
+    num: '5',
+    title: 'Desarrollo con agentes y asistentes',
+    subtitle: 'El desarrollador como arquitecto cuando la IA escribe código',
+  },
+  {
+    id: 'integracion',
+    num: '6',
+    title: 'Integración y despliegue',
+    subtitle: 'De la notebook al producto real',
+  },
+  {
+    id: 'ciudad',
+    num: '7',
+    title: 'Datos, ciudad, gobernanza',
+    subtitle: 'Soberanía de datos y resiliencia sistémica',
+  },
+  {
+    id: 'epilogo',
+    num: '8',
+    title: 'Epílogo',
+    subtitle: 'El siguiente paso',
+  },
+];
+---
+
+<BaseLayout
+  title="Libro del Dataller de IA — Data Driven Day 2026"
+  description="Guía interactiva del Dataller de IA 2026. Capítulos, referencias y contexto para el taller intensivo de inteligencia artificial en Hermosillo."
+>
+
+  <!-- Reading progress bar -->
+  <div class="libro-progress" id="libroProgress" aria-hidden="true">
+    <div class="libro-progress-fill" id="libroProgressFill"></div>
+  </div>
+
+  <div class="libro-layout">
+
+    <!-- ── SIDEBAR: Table of Contents ── -->
+    <aside class="libro-toc" id="libroToc">
+      <div class="toc-header">
+        <span class="toc-brand">Dataller de IA</span>
+        <span class="toc-year">2026</span>
+      </div>
+      <nav class="toc-nav" aria-label="Tabla de contenidos">
+        {chapters.map((ch) => (
+          <a href={`#${ch.id}`} class="toc-link" data-chapter={ch.id}>
+            <span class="toc-num">{ch.num}</span>
+            <span class="toc-title">{ch.title}</span>
+          </a>
+        ))}
+      </nav>
+      <div class="toc-footer">
+        <a href="/dataller" class="toc-back">&larr; Volver al Dataller</a>
+      </div>
+    </aside>
+
+    <!-- Mobile TOC toggle -->
+    <button class="toc-toggle" id="tocToggle" type="button" aria-label="Tabla de contenidos">
+      <span class="toc-toggle-icon"></span>
+    </button>
+
+    <!-- ── BOOK CONTENT ── -->
+    <main class="libro-main" id="libroMain">
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 0 — PRÓLOGO
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="prologo">
+        <header class="chapter-header">
+          <span class="chapter-num">Prólogo</span>
+          <h1 class="chapter-title">Por qué este libro existe</h1>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Este no es un manual de instrucciones. Es una guía de navegación para un territorio
+            que cambia más rápido de lo que cualquier libro puede documentar: la intersección
+            entre inteligencia artificial, datos y las decisiones que definen una ciudad.
+          </p>
+
+          <p>
+            El <strong>Dataller de IA 2026</strong> es un taller intensivo de medio día donde
+            se aprende construyendo. No es una conferencia. No es un demo. Es el espacio donde
+            la teoría se convierte en código, el código en producto, y el producto en herramienta
+            de impacto para Hermosillo y Sonora.
+          </p>
+
+          <aside class="sidenote" id="sn-dataller">
+            <span class="sidenote-num">1</span>
+            El nombre <em>Dataller</em> es un acrónimo deliberado: <strong>Data</strong> + <strong>Taller</strong>.
+            La idea es que los datos no se consumen pasivamente — se trabajan con las manos.
+          </aside>
+
+          <p>
+            El marco que sostiene este taller es el <em>Data Driven Day</em><sup><a href="#sn-ddd" class="ref-link">2</a></sup> —
+            una iniciativa que nace de una premisa directa: las ciudades que no generan,
+            entienden y gobiernan sus propios datos están destinadas a depender de quien sí lo haga.
+          </p>
+
+          <aside class="sidenote" id="sn-ddd">
+            <span class="sidenote-num">2</span>
+            Data Driven Day es un evento anual en Hermosillo enfocado en soberanía de datos,
+            gobernanza algorítmica y capacitación técnica. Primera edición: 2026.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;Los datos no son neutrales. Son infraestructura. Y como toda infraestructura,
+            alguien decide quién tiene acceso y quién no.&rdquo;</p>
+          </blockquote>
+
+          <p>
+            Este libro recorre los seis bloques del taller — desde los fundamentos de la IA hasta
+            la gobernanza de datos a nivel ciudad — con el contexto, las referencias y las notas al margen
+            que no caben en una diapositiva de presentación. Léelo antes, durante o después del taller.
+            Está diseñado para los tres escenarios.
+          </p>
+
+          <div class="chapter-meta-box">
+            <div class="meta-row">
+              <span class="meta-label">Fecha</span>
+              <span class="meta-value">Sábado 28 de marzo de 2026</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Horario</span>
+              <span class="meta-value">8:30 AM – 3:30 PM</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Lugar</span>
+              <span class="meta-value">Design Thinking Lab · 3er piso del PEI · Tec de Monterrey, Campus Sonora Norte</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Costo</span>
+              <span class="meta-value meta-highlight">Gratuito</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 1 — PARA QUIÉN
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="para-quien">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 1</span>
+          <h1 class="chapter-title">Para quién es este taller</h1>
+          <p class="chapter-subtitle">Perfiles, expectativas y punto de partida</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            No se requiere ser experto en programación. Se requiere curiosidad,
+            disposición para trabajar y una laptop con batería.
+          </p>
+
+          <p>
+            El Dataller está diseñado para seis perfiles complementarios. Cada módulo tiene
+            bifurcaciones — caminos alternativos según tu nivel técnico — para que nadie
+            se quede atrás y nadie se aburra.
+          </p>
+
+          <div class="profiles-grid">
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Estudiantes</h3>
+              <p>De ingeniería, ciencias, diseño o cualquier disciplina. El taller asume
+              que estás aprendiendo y te da estructura para avanzar rápido.</p>
+            </div>
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Desarrolladores</h3>
+              <p>Si ya escribes código, aquí vas a integrar modelos de IA en arquitecturas
+              reales — no tutoriales de "Hello World" con GPT.</p>
+            </div>
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Diseñadores</h3>
+              <p>La IA no reemplaza el diseño. Lo amplifica. Vas a explorar cómo los modelos
+              generativos se integran en flujos de trabajo creativos reales.</p>
+            </div>
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Emprendedores</h3>
+              <p>La diferencia entre una idea y un producto es la ejecución técnica.
+              Aquí aprendes a evaluar qué es viable y qué es humo.</p>
+            </div>
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Profesionistas de salud</h3>
+              <p>Expedientes, diagnósticos, datos clínicos — la IA ya está en tu campo.
+              Mejor entenderla que depender de quien la venda.</p>
+            </div>
+            <div class="profile-card">
+              <span class="profile-marker"></span>
+              <h3>Gobierno e industria</h3>
+              <p>Políticas públicas basadas en datos, automatización de procesos,
+              gobernanza algorítmica. La IA no es opcional, es infraestructura.</p>
+            </div>
+          </div>
+
+          <aside class="sidenote" id="sn-requisito">
+            <span class="sidenote-num">3</span>
+            <strong>Requisito único:</strong> traer laptop personal con navegador moderno y
+            conexión a internet. Se proporcionan todas las cuentas y herramientas durante el taller.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;El mejor momento para aprender a construir con IA fue hace un año.
+            El segundo mejor momento es este sábado.&rdquo;</p>
+          </blockquote>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 2 — FUNDAMENTOS
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="fundamentos">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 2</span>
+          <h1 class="chapter-title">Fundamentos para construir con IA</h1>
+          <p class="chapter-subtitle">9:00 – 10:00 · Bloque 01</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo funciona realmente la inteligencia artificial por dentro. Lógica de modelos,
+            estructuras de datos y por qué las decisiones de diseño importan más que la
+            herramienta de moda.
+          </p>
+
+          <h2>Lo que un modelo realmente hace</h2>
+
+          <p>
+            Un modelo de lenguaje no "piensa". Calcula la siguiente palabra más probable
+            dado un contexto<sup><a href="#sn-llm" class="ref-link">4</a></sup>. Eso no lo hace menos útil —
+            lo hace predecible, auditable y, si sabes cómo, dirigible.
+          </p>
+
+          <aside class="sidenote" id="sn-llm">
+            <span class="sidenote-num">4</span>
+            Los Large Language Models (LLMs) son redes neuronales basadas en la arquitectura
+            Transformer, propuesta por Vaswani et al. en <cite>"Attention Is All You Need"</cite>
+            (2017). La clave: el mecanismo de atención permite procesar relaciones entre todas
+            las palabras simultáneamente, no de forma secuencial.
+          </aside>
+
+          <p>
+            En este bloque se trabaja con Python y también con plataformas accesibles —
+            GitHub Copilot, Gemini — según el perfil de cada participante. La idea no es
+            aprender Python en una hora; es entender qué hay detrás de la interfaz amigable.
+          </p>
+
+          <h2>Conceptos clave</h2>
+
+          <dl class="concept-list">
+            <dt>Tokenización</dt>
+            <dd>Cómo un modelo convierte texto en números. Por qué "Hermosillo" y "hermosillo"
+            pueden ser tokens diferentes y qué implica eso para tus resultados.</dd>
+
+            <dt>Embeddings</dt>
+            <dd>Vectores numéricos que representan el significado de palabras y frases.
+            La base de toda búsqueda semántica<sup><a href="#sn-embed" class="ref-link">5</a></sup>.</dd>
+
+            <dt>Temperatura y top-p</dt>
+            <dd>Los parámetros que controlan la creatividad vs. precisión del modelo.
+            No son magia — son estadística.</dd>
+
+            <dt>Prompt engineering</dt>
+            <dd>Diseñar instrucciones efectivas para modelos. Más oficio que ciencia,
+            pero con principios claros.</dd>
+          </dl>
+
+          <aside class="sidenote" id="sn-embed">
+            <span class="sidenote-num">5</span>
+            Los embeddings mapean texto a un espacio vectorial donde la distancia entre puntos
+            representa similitud semántica. "rey − hombre + mujer ≈ reina" es el ejemplo clásico
+            de Mikolov et al. (2013). En la práctica, se usan modelos como <code>text-embedding-3-small</code>
+            de OpenAI o <code>bge-base-en-v1.5</code> de BAAI.
+          </aside>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: var(--color-accent-blue, #60a5fa)">Python</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-blue, #60a5fa)">GitHub Copilot</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-blue, #60a5fa)">Gemini</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 3 — MODELOS Y DATOS
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="modelos-datos">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 3</span>
+          <h1 class="chapter-title">Modelos y datos</h1>
+          <p class="chapter-subtitle">10:00 – 11:00 · Bloque 02</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo los modelos aprenden de tablas, textos, imágenes y documentos.
+            Cuándo usar un modelo grande y cuándo uno pequeño. Cómo evaluar si realmente
+            funciona o solo parece que funciona.
+          </p>
+
+          <h2>La trampa de la precisión aparente</h2>
+
+          <p>
+            Un modelo que responde con confianza no es un modelo que responde correctamente.
+            El fenómeno de <em>alucinación</em><sup><a href="#sn-halluc" class="ref-link">6</a></sup> es la
+            demostración más clara: el modelo genera texto plausible que es factualmente incorrecto.
+          </p>
+
+          <aside class="sidenote" id="sn-halluc">
+            <span class="sidenote-num">6</span>
+            Las alucinaciones en LLMs ocurren porque el modelo optimiza para coherencia
+            lingüística, no para verdad factual. Ji et al. (2023) clasifican las alucinaciones
+            en <em>intrínsecas</em> (contradicen la fuente) y <em>extrínsecas</em>
+            (no pueden verificarse con la fuente). Ambas son problemáticas.
+          </aside>
+
+          <p>
+            En este bloque se enseña a evaluar modelos con métricas reales — no con vibes.
+            Se trabaja con bases de datos vectoriales usando Neon y pgvector sobre PostgreSQL,
+            el stack que escala de prototipo a producción sin cambiar de tecnología.
+          </p>
+
+          <h2>Grande vs. pequeño</h2>
+
+          <p>
+            La decisión entre un modelo de 70B parámetros y uno de 8B no es solo de costo.
+            Es de latencia, privacidad, control y adecuación al problema<sup><a href="#sn-size" class="ref-link">7</a></sup>.
+            Un modelo grande que necesita 4 segundos para responder es inútil para una interfaz
+            en tiempo real. Un modelo pequeño que corre localmente puede ser la diferencia
+            entre soberanía de datos y dependencia de una API externa.
+          </p>
+
+          <aside class="sidenote" id="sn-size">
+            <span class="sidenote-num">7</span>
+            Cloudflare Workers AI ofrece modelos como <code>llama-3.1-8b-instruct</code> que
+            corren en el edge — cerca del usuario, sin enviar datos a un servidor centralizado.
+            Para muchos casos de uso en gobierno y salud, esto resuelve el problema de
+            jurisdicción de datos.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;No necesitas el modelo más grande. Necesitas el modelo correcto
+            para tu problema, tu presupuesto y tus restricciones de privacidad.&rdquo;</p>
+          </blockquote>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: #38bdf8">Neon</span>
+              <span class="stack-pill" style="--pill-color: #38bdf8">pgvector</span>
+              <span class="stack-pill" style="--pill-color: #38bdf8">PostgreSQL</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 4 — BÚSQUEDA Y RAZONAMIENTO
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="busqueda-razonamiento">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 4</span>
+          <h1 class="chapter-title">Sistemas que buscan y razonan</h1>
+          <p class="chapter-subtitle">11:00 – 12:00 · Bloque 03</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo construir aplicaciones que consultan bases de conocimiento propias: desde
+            un catálogo de productos hasta documentos de gobierno o expedientes de salud.
+          </p>
+
+          <h2>RAG: Retrieval-Augmented Generation</h2>
+
+          <p>
+            La idea es simple<sup><a href="#sn-rag" class="ref-link">8</a></sup>: en vez de pedirle
+            al modelo que recuerde todo, le das acceso a documentos relevantes en el momento
+            de la consulta. El modelo genera respuestas <em>fundamentadas</em> en fuentes
+            específicas, no en su entrenamiento general.
+          </p>
+
+          <aside class="sidenote" id="sn-rag">
+            <span class="sidenote-num">8</span>
+            RAG fue formalizado por Lewis et al. (2020) en <cite>"Retrieval-Augmented Generation
+            for Knowledge-Intensive NLP Tasks"</cite>. La arquitectura combina un retriever
+            (que busca documentos relevantes) con un generator (que produce la respuesta
+            condicionada a esos documentos).
+          </aside>
+
+          <p>
+            El patrón se aplica a cualquier dominio donde haya documentos:
+          </p>
+
+          <ul class="chapter-list">
+            <li><strong>Gobierno:</strong> Normativas, planes de desarrollo, datos abiertos municipales</li>
+            <li><strong>Salud:</strong> Guías clínicas, expedientes (con las restricciones de privacidad correspondientes)</li>
+            <li><strong>Educación:</strong> Acervos bibliográficos, materiales de curso</li>
+            <li><strong>Industria:</strong> Manuales técnicos, especificaciones de producto, registros de calidad</li>
+          </ul>
+
+          <h2>Búsqueda semántica vs. búsqueda por palabras</h2>
+
+          <p>
+            La búsqueda tradicional (keyword search) encuentra documentos que contienen
+            las palabras exactas de tu consulta. La búsqueda semántica encuentra documentos
+            que <em>significan</em> lo que buscas<sup><a href="#sn-semantic" class="ref-link">9</a></sup>,
+            aunque usen palabras completamente diferentes.
+          </p>
+
+          <aside class="sidenote" id="sn-semantic">
+            <span class="sidenote-num">9</span>
+            Ejemplo concreto: buscar "¿cómo lidiar con el calor extremo en Hermosillo?"
+            con keyword search requiere que el documento contenga esas palabras. Con búsqueda
+            semántica, encuentra documentos sobre "estrategias de mitigación térmica urbana"
+            o "islas de calor en zonas áridas" — semánticamente relacionados aunque
+            léxicamente distintos.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;Un sistema RAG bien construido no inventa respuestas. Cita sus fuentes.
+            Y cuando no encuentra nada relevante, dice que no sabe.&rdquo;</p>
+          </blockquote>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: var(--color-accent-data, #a78bfa)">RAG</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-data, #a78bfa)">Búsqueda semántica</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-data, #a78bfa)">Gemini</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 5 — AGENTES
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="agentes">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 5</span>
+          <h1 class="chapter-title">Desarrollo con agentes y asistentes</h1>
+          <p class="chapter-subtitle">12:00 – 13:00 · Bloque 04</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo trabajar con herramientas como GitHub Copilot, Cursor o Claude para construir
+            más rápido sin perder el control. El desarrollador como guía de arquitectura
+            cuando la IA escribe código.
+          </p>
+
+          <h2>El humano como arquitecto</h2>
+
+          <p>
+            Los asistentes de código no reemplazan al desarrollador. Cambian su rol<sup><a href="#sn-copilot" class="ref-link">10</a></sup>.
+            En vez de escribir cada línea, el desarrollador diseña la estructura, define
+            las restricciones y revisa el resultado. Es la diferencia entre albañil y arquitecto —
+            ambos son necesarios, pero el valor está en saber qué construir, no solo cómo pegar ladrillos.
+          </p>
+
+          <aside class="sidenote" id="sn-copilot">
+            <span class="sidenote-num">10</span>
+            Un estudio de GitHub (2022) reportó que desarrolladores usando Copilot completaron
+            tareas un 55% más rápido. Pero la métrica importante no es velocidad — es la
+            calidad del código resultante y la capacidad del desarrollador para detectar
+            errores introducidos por el asistente.
+          </aside>
+
+          <h2>Agentes vs. asistentes</h2>
+
+          <dl class="concept-list">
+            <dt>Asistente</dt>
+            <dd>Responde cuando le preguntas. Genera código línea por línea.
+            Necesita dirección constante. Ejemplos: autocompletado de Copilot, chat de Claude.</dd>
+
+            <dt>Agente</dt>
+            <dd>Recibe un objetivo y ejecuta pasos intermedios de forma autónoma<sup><a href="#sn-agent" class="ref-link">11</a></sup>.
+            Puede leer archivos, ejecutar comandos, iterar sobre errores.
+            Ejemplos: Claude Code, Cursor Composer, Devin.</dd>
+          </dl>
+
+          <aside class="sidenote" id="sn-agent">
+            <span class="sidenote-num">11</span>
+            Los agentes de código usan un patrón de <em>tool use</em> donde el modelo
+            tiene acceso a herramientas (terminal, editor, navegador) y decide cuándo y cómo
+            usarlas. El loop es: observar → planear → actuar → verificar → repetir.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;Un agente de IA sin supervisión humana es como un coche autónomo sin
+            frenos. Impresionante hasta que necesitas detenerte.&rdquo;</p>
+          </blockquote>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: var(--color-accent-go, #34d399)">Copilot</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-go, #34d399)">Cursor</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-go, #34d399)">Claude</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 6 — INTEGRACIÓN
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="integracion">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 6</span>
+          <h1 class="chapter-title">Integración y despliegue</h1>
+          <p class="chapter-subtitle">13:00 – 14:00 · Bloque 05</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo conectar un modelo con una API, una base de datos o una interfaz real.
+            De la notebook al producto que usa gente real.
+          </p>
+
+          <h2>El valle de la muerte técnico</h2>
+
+          <p>
+            El 90% de los proyectos de IA nunca salen de la notebook<sup><a href="#sn-valley" class="ref-link">12</a></sup>.
+            No porque la IA no funcione, sino porque integrarla en un sistema real requiere
+            decisiones de infraestructura que los tutoriales no cubren: autenticación, rate limiting,
+            manejo de errores, monitoreo, costos.
+          </p>
+
+          <aside class="sidenote" id="sn-valley">
+            <span class="sidenote-num">12</span>
+            VentureBeat (2019) reportó que el 87% de los proyectos de ciencia de datos nunca
+            llegan a producción. Aunque la cifra ha mejorado con mejores herramientas de MLOps,
+            el patrón persiste: la dificultad no está en entrenar el modelo, sino en desplegarlo
+            y mantenerlo.
+          </aside>
+
+          <p>
+            En este bloque se construye un producto real end-to-end:
+            un modelo conectado a una API, servido por una interfaz web,
+            desplegado en infraestructura que escala.
+          </p>
+
+          <h2>El stack moderno</h2>
+
+          <p>
+            La combinación de Vercel AI SDK + Next.js + APIs de modelos permite construir
+            aplicaciones de IA con la misma ergonomía que una app web tradicional. El streaming
+            de respuestas, la gestión de estado del chat y la integración con herramientas
+            ya están resueltos en librerías maduras<sup><a href="#sn-vercel" class="ref-link">13</a></sup>.
+          </p>
+
+          <aside class="sidenote" id="sn-vercel">
+            <span class="sidenote-num">13</span>
+            El Vercel AI SDK abstrae las diferencias entre proveedores de modelos (OpenAI,
+            Anthropic, Google, etc.) detrás de una interfaz unificada. Esto permite cambiar
+            de modelo sin reescribir la aplicación — un principio clave cuando los modelos
+            mejoran cada 3 meses.
+          </aside>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: #a78bfa">Vercel AI SDK</span>
+              <span class="stack-pill" style="--pill-color: #a78bfa">Next.js</span>
+              <span class="stack-pill" style="--pill-color: #a78bfa">APIs</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 7 — CIUDAD
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="ciudad">
+        <header class="chapter-header">
+          <span class="chapter-num">Capítulo 7</span>
+          <h1 class="chapter-title">Datos, ciudad, gobernanza</h1>
+          <p class="chapter-subtitle">14:00 – 15:00 · Bloque 06</p>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            Cómo todo esto aplica a los problemas de Hermosillo y Sonora: agua, salud, calor,
+            industria. Por qué saber qué hay detrás de una decisión de IA importa. Qué significa
+            soberanía de datos en la práctica cotidiana.
+          </p>
+
+          <h2>El contexto no es opcional</h2>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <span class="stat-num" style="color: var(--color-accent-heat, #f87171)">50.5&deg;C</span>
+              <span class="stat-desc">Temperatura récord histórico en Hermosillo (julio 2021)</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num" style="color: var(--color-accent-warn, #fbbf24)">18%</span>
+              <span class="stat-desc">De metas ODS va en camino de cumplirse</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-num" style="color: var(--color-accent-data, #a78bfa)">Último</span>
+              <span class="stat-desc">Lugar en crecimiento de empleo vs ciudades comparativas</span>
+            </div>
+          </div>
+
+          <p>
+            Hermosillo enfrenta una convergencia de crisis que no se resuelve con tecnología
+            sola — pero que no se resuelve sin ella. El calor extremo<sup><a href="#sn-calor" class="ref-link">14</a></sup>,
+            la escasez de agua, el rezago en metas de desarrollo sostenible y la dependencia
+            económica de sectores vulnerables a la automatización forman un sistema complejo.
+          </p>
+
+          <aside class="sidenote" id="sn-calor">
+            <span class="sidenote-num">14</span>
+            El récord de 50.5°C en Hermosillo (julio 2021) no es un outlier estadístico:
+            es parte de una tendencia. Los modelos climáticos del IPCC proyectan que las
+            temperaturas máximas en zonas áridas del noroeste de México aumentarán entre
+            2°C y 4°C para 2050 bajo escenarios de emisiones moderadas.
+          </aside>
+
+          <h2>Soberanía de datos</h2>
+
+          <p>
+            Soberanía de datos no es un concepto abstracto<sup><a href="#sn-soberania" class="ref-link">15</a></sup>.
+            Es la capacidad de una ciudad, una institución o una comunidad de:
+          </p>
+
+          <ul class="chapter-list">
+            <li><strong>Generar</strong> sus propios datos en formatos abiertos y documentados</li>
+            <li><strong>Almacenarlos</strong> en infraestructura que controla (no en la nube de otra jurisdicción)</li>
+            <li><strong>Analizarlos</strong> con capacidad técnica propia (no depender de consultoras externas)</li>
+            <li><strong>Gobernarlos</strong> con reglas claras de acceso, privacidad y uso ético</li>
+          </ul>
+
+          <aside class="sidenote" id="sn-soberania">
+            <span class="sidenote-num">15</span>
+            El concepto de soberanía de datos tiene raíces en los movimientos de datos
+            abiertos (Open Data) y soberanía digital. En el contexto mexicano, la Ley General
+            de Protección de Datos Personales en Posesión de Sujetos Obligados (2017) establece
+            un marco legal, pero la implementación técnica a nivel municipal sigue siendo
+            fragmentaria.
+          </aside>
+
+          <blockquote class="chapter-quote">
+            <p>&ldquo;Una ciudad que no puede leer sus propios datos es una ciudad que
+            gobierna a ciegas. La infraestructura de datos es tan crítica como la de
+            agua o electricidad.&rdquo;</p>
+          </blockquote>
+
+          <div class="chapter-stack">
+            <span class="stack-label">Herramientas del bloque</span>
+            <div class="stack-pills">
+              <span class="stack-pill" style="--pill-color: var(--color-accent-warn, #fbbf24)">Hermosillo</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-warn, #fbbf24)">Datos abiertos</span>
+              <span class="stack-pill" style="--pill-color: var(--color-accent-warn, #fbbf24)">Gobernanza</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══════════════════════════════════════════════════
+           CHAPTER 8 — EPÍLOGO
+           ═══════════════════════════════════════════════════ -->
+      <article class="chapter" id="epilogo">
+        <header class="chapter-header">
+          <span class="chapter-num">Epílogo</span>
+          <h1 class="chapter-title">El siguiente paso</h1>
+        </header>
+
+        <div class="chapter-body">
+          <p class="chapter-lead">
+            El Dataller termina a las 3:30 PM. Lo que hagas después define si fue
+            un evento más o el inicio de algo diferente.
+          </p>
+
+          <p>
+            Este libro, como el taller mismo, es un punto de partida. Los modelos que usamos
+            hoy serán obsoletos en meses. Las herramientas cambiarán. Los principios no.
+          </p>
+
+          <h2>Lo que permanece</h2>
+
+          <ul class="chapter-list">
+            <li>Entender antes de implementar</li>
+            <li>Evaluar con métricas, no con vibes</li>
+            <li>Construir para personas reales, no para demos</li>
+            <li>Gobernar los datos como infraestructura pública</li>
+            <li>Mantener al humano en el loop</li>
+          </ul>
+
+          <div class="chapter-cta">
+            <p class="cta-label">15:00 – 15:30 · Cierre del taller</p>
+            <h3>Presentación de proyectos</h3>
+            <p>Espacio abierto para mostrar lo que estás construyendo, sin importar si está
+            incompleto. Revisión entre pares. El objetivo no es impresionar — es compartir.</p>
+          </div>
+
+          <div class="chapter-cta" style="margin-top: 1.5rem">
+            <a href="https://luma.com/8asrkjbu" target="_blank" rel="noopener noreferrer" class="button">
+              Reservar mi lugar &rarr;
+            </a>
+            <a href="/dataller" class="button-secondary" style="margin-left: 0.75rem">
+              Volver al Dataller
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- ── Chapter navigation ── -->
+      <nav class="chapter-nav" id="chapterNav" aria-label="Navegación de capítulos">
+        <a href="#" class="chapter-nav-btn chapter-nav-prev" id="navPrev">&larr; <span id="navPrevLabel">Anterior</span></a>
+        <a href="#" class="chapter-nav-btn chapter-nav-next" id="navNext"><span id="navNextLabel">Siguiente</span> &rarr;</a>
+      </nav>
+
+    </main>
+  </div>
+
+</BaseLayout>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   LIBRO — Interactive book reader styles
+   Tufte-inspired typography with sidenotes, progress, TOC
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── PROGRESS BAR ──────────────────────────────────────── */
+.libro-progress {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 3px; z-index: 1000;
+  background: var(--color-border);
+}
+.libro-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-accent-sky, #60a5fa);
+  transition: width 0.15s ease-out;
+}
+
+/* ── LAYOUT ────────────────────────────────────────────── */
+.libro-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR TOC ───────────────────────────────────────── */
+.libro-toc {
+  position: sticky; top: 0;
+  height: 100vh;
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow-y: auto;
+  z-index: 50;
+}
+.toc-header {
+  padding: 1.5rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.toc-brand {
+  font-family: var(--display);
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--color-text-primary);
+}
+.toc-year {
+  font-family: var(--mono);
+  font-size: 0.6rem; font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+}
+
+.toc-nav {
+  flex: 1;
+  padding: 0.75rem 0;
+  display: flex; flex-direction: column;
+}
+.toc-link {
+  display: flex; align-items: baseline; gap: 0.6rem;
+  padding: 0.55rem 1.25rem;
+  text-decoration: none;
+  font-size: 0.82rem; color: var(--color-text-muted);
+  line-height: 1.4;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.toc-link:hover {
+  color: var(--color-text-primary);
+  background: rgba(255,255,255,0.03);
+}
+.toc-link.active {
+  color: var(--color-text-primary);
+  border-left-color: var(--color-accent-sky, #60a5fa);
+  background: rgba(96,165,250,0.06);
+}
+.toc-num {
+  font-family: var(--mono);
+  font-size: 0.6rem; font-weight: 600;
+  color: var(--color-accent-sky, #60a5fa);
+  min-width: 1.2rem;
+  letter-spacing: 0.06em;
+}
+.toc-title { font-weight: 500; }
+
+.toc-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+.toc-back {
+  font-family: var(--mono);
+  font-size: 0.68rem; font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.toc-back:hover { color: var(--color-text-primary); }
+
+/* ── MOBILE TOC TOGGLE ─────────────────────────────────── */
+.toc-toggle {
+  display: none;
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  z-index: 60;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.toc-toggle-icon {
+  display: block; width: 18px; height: 2px;
+  background: currentColor; position: relative;
+}
+.toc-toggle-icon::before, .toc-toggle-icon::after {
+  content: ''; display: block;
+  width: 18px; height: 2px;
+  background: currentColor; position: absolute;
+}
+.toc-toggle-icon::before { top: -6px; }
+.toc-toggle-icon::after { top: 6px; }
+
+/* ── MAIN CONTENT ──────────────────────────────────────── */
+.libro-main {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* ── CHAPTER ───────────────────────────────────────────── */
+.chapter {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 4rem 2.5rem 4rem;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+.chapter:last-of-type { border-bottom: none; }
+
+.chapter-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.chapter-num {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.62rem; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-accent-sky, #60a5fa);
+  margin-bottom: 0.75rem;
+}
+.chapter-title {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+.chapter-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0.75rem 0 0;
+  font-weight: 400;
+}
+
+/* ── CHAPTER BODY — Typography ─────────────────────────── */
+.chapter-body {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--color-text-secondary, #b4bcd0);
+}
+.chapter-body p {
+  margin-bottom: 1.25rem;
+  max-width: 600px;
+}
+.chapter-body h2 {
+  font-family: var(--display);
+  font-size: 1.35rem; font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 2.5rem 0 1rem;
+  letter-spacing: -0.015em;
+}
+.chapter-body strong { color: var(--color-text-primary); font-weight: 600; }
+.chapter-body em { font-style: italic; }
+.chapter-body code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 0.15em 0.35em;
+  background: var(--color-surface-2, rgba(255,255,255,0.04));
+  border-radius: 3px;
+  color: var(--color-accent-sky, #60a5fa);
+}
+.chapter-body cite { font-style: italic; }
+
+.chapter-lead {
+  font-size: 1.2rem;
+  line-height: 1.75;
+  color: var(--color-text-primary);
+  font-weight: 400;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+
+/* ── SIDENOTES (Tufte-style) ───────────────────────────── */
+.sidenote {
+  float: right;
+  clear: right;
+  width: 220px;
+  margin-right: -260px;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-border);
+}
+.sidenote-num {
+  font-family: var(--mono);
+  font-size: 0.6rem; font-weight: 700;
+  color: var(--color-accent-sky, #60a5fa);
+  display: inline-block;
+  margin-right: 0.3rem;
+  vertical-align: super;
+}
+.ref-link {
+  font-family: var(--mono);
+  font-size: 0.7em;
+  color: var(--color-accent-sky, #60a5fa);
+  text-decoration: none;
+  font-weight: 600;
+}
+.ref-link:hover { text-decoration: underline; }
+
+/* ── BLOCKQUOTE ────────────────────────────────────────── */
+.chapter-quote {
+  margin: 2rem 0 2rem -1.25rem;
+  padding: 0 0 0 1.25rem;
+  border-left: 3px solid var(--color-accent-sky, #60a5fa);
+  max-width: 560px;
+}
+.chapter-quote p {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--color-text-primary);
+  line-height: 1.7;
+}
+
+/* ── LISTS ─────────────────────────────────────────────── */
+.chapter-list {
+  margin: 1rem 0 1.5rem;
+  padding-left: 0;
+  list-style: none;
+  max-width: 600px;
+}
+.chapter-list li {
+  position: relative;
+  padding: 0.5rem 0 0.5rem 1.2rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.chapter-list li:last-child { border-bottom: none; }
+.chapter-list li::before {
+  content: '';
+  position: absolute; left: 0; top: 0.95rem;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--color-accent-sky, #60a5fa);
+}
+
+/* ── CONCEPT DEFINITIONS ───────────────────────────────── */
+.concept-list {
+  margin: 1.5rem 0;
+  max-width: 600px;
+}
+.concept-list dt {
+  font-family: var(--mono);
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.03em;
+  margin-top: 1.25rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.concept-list dd {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+/* ── PROFILES GRID ─────────────────────────────────────── */
+.profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  margin: 2rem 0;
+  border: 1px solid var(--color-border);
+}
+.profile-card {
+  background: var(--color-surface);
+  padding: 1.25rem 1.5rem;
+}
+.profile-card h3 {
+  font-family: var(--display);
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.4rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.profile-card p {
+  font-size: 0.85rem !important;
+  color: var(--color-text-muted) !important;
+  line-height: 1.65 !important;
+  margin-bottom: 0 !important;
+}
+.profile-marker {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--color-accent-sky, #60a5fa);
+  flex-shrink: 0;
+}
+
+/* ── STATS ROW ─────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
+.stat-card {
+  padding: 1.5rem;
+  border-right: 1px solid var(--color-border);
+}
+.stat-card:last-child { border-right: none; }
+.stat-num {
+  display: block;
+  font-family: var(--mono);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.stat-desc {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ── STACK PILLS ───────────────────────────────────────── */
+.chapter-stack {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+.stack-label {
+  font-family: var(--mono);
+  font-size: 0.6rem; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.stack-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.stack-pill {
+  font-family: var(--mono);
+  font-size: 0.62rem; font-weight: 500;
+  color: var(--pill-color, var(--color-accent-sky));
+  border: 1px solid color-mix(in srgb, var(--pill-color, var(--color-accent-sky)) 30%, transparent);
+  background: color-mix(in srgb, var(--pill-color, var(--color-accent-sky)) 8%, transparent);
+  padding: 0.2em 0.6em;
+  border-radius: 2px;
+}
+
+/* ── META BOX ──────────────────────────────────────────── */
+.chapter-meta-box {
+  margin: 2rem 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  max-width: 480px;
+}
+.meta-row {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.meta-row:last-child { border-bottom: none; }
+.meta-label {
+  font-family: var(--mono);
+  font-size: 0.58rem; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+.meta-value {
+  font-size: 0.88rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+}
+.meta-highlight { color: var(--color-accent-go, #34d399) !important; font-weight: 700; }
+
+/* ── CTA ───────────────────────────────────────────────── */
+.chapter-cta {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  max-width: 500px;
+}
+.cta-label {
+  font-family: var(--mono);
+  font-size: 0.6rem; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent-sky, #60a5fa);
+  margin-bottom: 0.5rem !important;
+}
+.chapter-cta h3 {
+  font-family: var(--display);
+  font-size: 1.15rem; font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem;
+}
+.chapter-cta p {
+  font-size: 0.9rem !important;
+  color: var(--color-text-muted) !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* ── CHAPTER NAVIGATION ────────────────────────────────── */
+.chapter-nav {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem 4rem;
+  display: flex; justify-content: space-between;
+  gap: 1rem;
+}
+.chapter-nav-btn {
+  font-family: var(--mono);
+  font-size: 0.78rem; font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.chapter-nav-btn:hover {
+  color: var(--color-text-primary);
+  border-color: rgba(255,255,255,0.2);
+  background: var(--color-surface);
+}
+.chapter-nav-prev.hidden, .chapter-nav-next.hidden {
+  visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* Sidenotes fold into body on narrower screens */
+@media (max-width: 1200px) {
+  .sidenote {
+    float: none;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-left: 2px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .libro-layout { grid-template-columns: 1fr; }
+
+  .libro-toc {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+  }
+  .libro-toc.open { transform: translateX(0); }
+
+  .toc-toggle { display: flex; }
+
+  .chapter { padding: 3rem 1.5rem; }
+  .chapter-nav { padding: 2rem 1.5rem 4rem; }
+
+  .profiles-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr; }
+  .stat-card { border-right: none; border-bottom: 1px solid var(--color-border); }
+  .stat-card:last-child { border-bottom: none; }
+}
+
+@media (max-width: 520px) {
+  .chapter-title { font-size: 1.6rem; }
+  .chapter-body { font-size: 0.95rem; }
+  .chapter-lead { font-size: 1.05rem; }
+  .chapter-quote p { font-size: 1rem; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .libro-progress-fill { transition: none; }
+  .libro-toc { transition: none; }
+  .toc-link { transition: none; }
+  .chapter-nav-btn { transition: none; }
+}
+</style>
+
+<script is:inline>
+(function() {
+  const chapters = document.querySelectorAll('.chapter');
+  const tocLinks = document.querySelectorAll('.toc-link');
+  const progressFill = document.getElementById('libroProgressFill');
+  const main = document.getElementById('libroMain');
+  const toc = document.getElementById('libroToc');
+  const tocToggle = document.getElementById('tocToggle');
+  const navPrev = document.getElementById('navPrev');
+  const navNext = document.getElementById('navNext');
+  const navPrevLabel = document.getElementById('navPrevLabel');
+  const navNextLabel = document.getElementById('navNextLabel');
+
+  const chapterIds = [...chapters].map(c => c.id);
+  let activeChapter = chapterIds[0];
+
+  // ── Reading progress ──────────────────────────────────
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+    progressFill.style.width = progress + '%';
+  }
+
+  // ── TOC active highlighting ───────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        activeChapter = entry.target.id;
+        tocLinks.forEach(link => {
+          link.classList.toggle('active', link.dataset.chapter === activeChapter);
+        });
+        updateChapterNav();
+
+        // Scroll active TOC link into view within sidebar
+        const activeLink = toc.querySelector('.toc-link.active');
+        if (activeLink) {
+          activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+    });
+  }, {
+    rootMargin: '-20% 0px -60% 0px',
+    threshold: 0,
+  });
+
+  chapters.forEach(ch => observer.observe(ch));
+
+  // ── Chapter navigation ────────────────────────────────
+  function updateChapterNav() {
+    const idx = chapterIds.indexOf(activeChapter);
+    if (idx > 0) {
+      navPrev.href = '#' + chapterIds[idx - 1];
+      navPrevLabel.textContent = chapters[idx - 1].querySelector('.chapter-title')?.textContent ?? 'Anterior';
+      navPrev.classList.remove('hidden');
+    } else {
+      navPrev.classList.add('hidden');
+    }
+    if (idx < chapterIds.length - 1) {
+      navNext.href = '#' + chapterIds[idx + 1];
+      navNextLabel.textContent = chapters[idx + 1].querySelector('.chapter-title')?.textContent ?? 'Siguiente';
+      navNext.classList.remove('hidden');
+    } else {
+      navNext.classList.add('hidden');
+    }
+  }
+
+  // ── TOC smooth scroll ─────────────────────────────────
+  tocLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(link.dataset.chapter);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Close mobile TOC
+        toc.classList.remove('open');
+      }
+    });
+  });
+
+  // ── Mobile TOC toggle ─────────────────────────────────
+  tocToggle.addEventListener('click', () => {
+    toc.classList.toggle('open');
+  });
+
+  // Close TOC on outside click (mobile)
+  document.addEventListener('click', (e) => {
+    if (toc.classList.contains('open') && !toc.contains(e.target) && e.target !== tocToggle) {
+      toc.classList.remove('open');
+    }
+  });
+
+  // ── Keyboard navigation ───────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    // Don't intercept when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const idx = chapterIds.indexOf(activeChapter);
+    if ((e.key === 'ArrowLeft' || e.key === 'PageUp') && idx > 0) {
+      e.preventDefault();
+      document.getElementById(chapterIds[idx - 1])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if ((e.key === 'ArrowRight' || e.key === 'PageDown') && idx < chapterIds.length - 1) {
+      e.preventDefault();
+      document.getElementById(chapterIds[idx + 1])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // ── Sidenote scroll-to on ref click ───────────────────
+  document.querySelectorAll('.ref-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      // On wide screens, sidenotes are visible in margin — just highlight
+      const target = document.querySelector(link.getAttribute('href'));
+      if (!target) return;
+      if (window.innerWidth > 1200) {
+        e.preventDefault();
+        target.style.background = 'rgba(96,165,250,0.12)';
+        setTimeout(() => { target.style.background = ''; }, 2000);
+      }
+      // On narrow screens, let default anchor behavior scroll to it
+    });
+  });
+
+  // ── Scroll listener ───────────────────────────────────
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => { updateProgress(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // Init
+  updateProgress();
+  updateChapterNav();
+
+  // Set first TOC link active
+  tocLinks[0]?.classList.add('active');
+})();
+</script>
