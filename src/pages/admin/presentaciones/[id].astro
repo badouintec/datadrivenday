@@ -1,8 +1,9 @@
 ---
 import '../../../styles/global.css';
+import { getAdminUserFromRequest } from '../../../lib/server/admin-session';
 
-const cookie = Astro.request.headers.get('cookie') ?? '';
-if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
+const usuario = await getAdminUserFromRequest(Astro.request, 'presentations:read');
+if (!usuario) return Astro.redirect('/admin/login');
 
 const presId = Astro.params.id;
 ---

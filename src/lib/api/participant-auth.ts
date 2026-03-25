@@ -29,6 +29,7 @@ import {
 const PARTICIPANT_SESSION_DURATION_HOURS = 24 * 14;
 const PARTICIPANT_SESSION_COOKIE = 'ddd_participant_session';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DIRECT_LINK_DEBUG_HEADER = 'X-DDD-Debug-Direct-Links';
 
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -56,6 +57,14 @@ export function normalizeOptionalUrl(value?: string | null) {
 function getCookieSessionId(cookieHeader: string) {
   const match = cookieHeader.match(new RegExp(`${PARTICIPANT_SESSION_COOKIE}=([^;]+)`));
   return match?.[1] ?? null;
+}
+
+function safeJsonParse<T>(value: string, fallback: T): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 function buildSessionCookie(c: Context, sessionId: string, maxAge: number) {
@@ -90,7 +99,11 @@ async function getParticipantSession(kv: KVNamespace, sessionId: string) {
   const data = await kv.get(`participant-session:${sessionId}`);
   if (!data) return null;
 
-  const session = JSON.parse(data) as ParticipantUser & { expiresAt: string };
+  const session = safeJsonParse<ParticipantUser & { expiresAt: string } | null>(data, null);
+  if (!session?.expiresAt) {
+    await kv.delete(`participant-session:${sessionId}`);
+    return null;
+  }
   if (new Date(session.expiresAt) < new Date()) {
     await kv.delete(`participant-session:${sessionId}`);
     return null;
@@ -142,6 +155,12 @@ function isLocalOrigin(origin: string) {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 }
 
+function allowDirectAuthLinks(c: ParticipantContext) {
+  const requestOrigin = getRequestOrigin(c);
+  const debugHeader = c.req.header(DIRECT_LINK_DEBUG_HEADER);
+  return isLocalOrigin(requestOrigin) && debugHeader === '1';
+}
+
 function getSiteUrl(c: ParticipantContext) {
   const requestOrigin = getRequestOrigin(c);
   return isLocalOrigin(requestOrigin) ? requestOrigin : (c.env.PUBLIC_SITE_URL ?? requestOrigin);
@@ -167,8 +186,7 @@ async function prepareVerificationDelivery(
   const siteUrl = getSiteUrl(c);
   const verifyToken = await generateVerificationToken(c.env.APP_SESSION!, participant.id);
   const verifyUrl = `${siteUrl}/api/participant/verify-email?token=${verifyToken}`;
-  const requestOrigin = getRequestOrigin(c);
-  const allowDirectUrl = isLocalOrigin(requestOrigin);
+  const allowDirectUrl = allowDirectAuthLinks(c);
   const resendApiKey = typeof c.env.RESEND_API_KEY === 'string' ? c.env.RESEND_API_KEY : null;
 
   if (!resendApiKey) {
@@ -351,7 +369,6 @@ export async function handleParticipantSignup(c: ParticipantContext) {
     needsVerification: true,
     verificationEmailAvailable: delivery.verificationEmailAvailable,
     verificationEmailSent: delivery.verificationEmailSent,
-    verificationDirectUrl: delivery.verificationDirectUrl,
     verificationError: delivery.verificationError,
   }), {
     status: 201,
@@ -485,11 +502,10 @@ export async function handleResendVerification(c: ParticipantContext) {
     return c.json({
       ok: false,
       error: 'email_not_configured',
-      verificationDirectUrl: delivery.verificationDirectUrl,
     }, 500);
   }
 
-  if (!delivery.verificationEmailSent && !delivery.verificationDirectUrl) {
+  if (!delivery.verificationEmailSent && !delivery.verificationError) {
     return c.json({
       ok: false,
       error: 'send_failed',
@@ -500,7 +516,6 @@ export async function handleResendVerification(c: ParticipantContext) {
   return c.json({
     ok: true,
     delivered: delivery.verificationEmailSent,
-    verificationDirectUrl: delivery.verificationDirectUrl,
     verificationError: delivery.verificationError,
   });
 }
@@ -546,7 +561,7 @@ export async function handleForgotPassword(c: ParticipantContext) {
     const token = await generatePasswordResetToken(c.env.APP_SESSION, row.id);
     const siteUrl = getSiteUrl(c);
     const resetUrl = `${siteUrl}/registro?reset_token=${token}`;
-    const allowDirectUrl = isLocalOrigin(getRequestOrigin(c));
+    const allowDirectUrl = allowDirectAuthLinks(c);
     return c.json({ ok: true, resetDirectUrl: allowDirectUrl ? resetUrl : undefined });
   }
 

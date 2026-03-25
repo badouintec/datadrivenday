@@ -67,7 +67,6 @@ function createAuthFlowHarness(overrides = {}) {
 
   const state = {
     participant: null,
-    verificationDirectUrl: null,
     verificationEmailAvailable: true,
     verificationEmailSent: true,
     verificationError: null,
@@ -92,9 +91,6 @@ function createAuthFlowHarness(overrides = {}) {
     renderLoggedOut: vi.fn(),
     setPageMode: vi.fn(),
     setStatus: vi.fn(),
-    setVerificationDirectUrl: vi.fn((url) => {
-      state.verificationDirectUrl = url;
-    }),
     state,
     ...overrides.deps,
   };
@@ -149,15 +145,11 @@ describe('participant dashboard auth flow', () => {
   });
 
   it('shows verification fallback when email delivery is unavailable', () => {
-    const { flow, deps, dom, state } = createAuthFlowHarness({
-      state: {
-        verificationDirectUrl: 'https://example.com/direct-verify',
-      },
-    });
+    const { flow, deps, dom, state } = createAuthFlowHarness();
 
     flow.showVerifyUI(
       { email: 'ana@example.com' },
-      { available: false, directUrl: 'https://example.com/direct-verify' },
+      { available: false },
     );
 
     expect(state.participant).toEqual({ email: 'ana@example.com' });
@@ -166,11 +158,26 @@ describe('participant dashboard auth flow', () => {
     expect(dom.resendBtn.disabled).toBe(true);
     expect(dom.verifyEmail.textContent).toContain('ana@example.com');
     expect(deps.setPageMode).toHaveBeenCalledWith('auth');
-    expect(deps.setVerificationDirectUrl).toHaveBeenCalledWith('https://example.com/direct-verify');
     expect(deps.setStatus).toHaveBeenCalledWith(
       dom.verifyStatus,
-      'Este entorno local no puede mandar correo ahora mismo. Usa el link directo para verificar la cuenta.',
-      'warn',
+      'No fue posible enviar el correo de verificación. Intenta más tarde o solicita soporte.',
+      'error',
+    );
+  });
+
+  it('shows resend guidance without direct verification link when first delivery fails', () => {
+    const { flow, deps, dom } = createAuthFlowHarness();
+
+    flow.showVerifyUI(
+      { email: 'ana@example.com' },
+      { sent: false, error: 'domain_not_verified' },
+    );
+
+    expect(dom.verifyEmail.textContent).toContain('ana@example.com');
+    expect(deps.setStatus).toHaveBeenCalledWith(
+      dom.verifyStatus,
+      'El dominio remitente todavía no está verificado en Resend.',
+      'error',
     );
   });
 

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { getRateLimitCount, incrementRateLimitCount, requireAuth } from '../auth';
-import type { AppBindings, AppVariables } from '../types';
+import type { AppBindings, AppVariables, ParticipantUser } from '../types';
 import {
   handleParticipantLogin,
   handleParticipantLogout,
@@ -17,6 +17,7 @@ import {
 } from '../participant-auth';
 import {
   getOpenTeams,
+  getParticipantById,
   getParticipantTeamById,
   getParticipantTeams,
   insertParticipantTeam,
@@ -32,12 +33,21 @@ import {
 } from '../../server/db/participants';
 import { getPublicRecursos } from '../../server/db/recursos';
 import { getPresentation, getPresentations, getSlides } from '../../server/db/slides';
+import { logAdminAuditEvent, pickAuditFields } from '../../server/audit';
 
 type Env = { Bindings: Partial<AppBindings>; Variables: AppVariables };
 
 const COMMENT_RATE_LIMIT = { max: 5, ttlSeconds: 60 };
 const TEAM_CREATE_RATE_LIMIT = { max: 3, ttlSeconds: 3600 };
 const TEAM_JOIN_RATE_LIMIT = { max: 10, ttlSeconds: 900 };
+const RECOGNITION_FOLIO_RE = /^[A-Z0-9-]{6,50}$/;
+const PARTICIPANT_ADMIN_AUDIT_FIELDS = [
+  'datallerRegistered',
+  'workshopCompleted',
+  'profileEnabled',
+  'recognitionEnabled',
+  'recognitionFolio',
+] as const;
 
 export const participantRoutes = new Hono<Env>();
 
@@ -66,6 +76,10 @@ async function getParticipantWorkspacePresentation(db: D1Database) {
   }
 
   return (await getPresentations(db)).find((presentation) => presentation.estado !== 'archivado') ?? null;
+}
+
+function buildParticipantAdminAuditSnapshot(participant: ParticipantUser | null | undefined) {
+  return pickAuditFields(participant as Record<string, unknown> | null, PARTICIPANT_ADMIN_AUDIT_FIELDS);
 }
 
 participantRoutes.post('/signup', handleParticipantSignup);
@@ -452,6 +466,11 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
     return c.json({ ok: false, error: 'missing_id' }, 400);
   }
 
+  const before = await getParticipantById(c.env.DB!, participantId);
+  if (!before) {
+    return c.json({ ok: false, error: 'not_found' }, 404);
+  }
+
   const body = await c.req.json<{
     datallerRegistered?: boolean;
     workshopCompleted?: boolean;
@@ -465,6 +484,18 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
   }
 
   let recognitionFolio = body.recognitionFolio;
+  if (typeof recognitionFolio === 'string') {
+    recognitionFolio = recognitionFolio.trim().toUpperCase() || null;
+  }
+
+  if (recognitionFolio && !RECOGNITION_FOLIO_RE.test(recognitionFolio)) {
+    return c.json({ ok: false, error: 'invalid_recognition_folio' }, 400);
+  }
+
+  if (body.recognitionEnabled === false) {
+    recognitionFolio = null;
+  }
+
   if (body.recognitionEnabled && !recognitionFolio) {
     recognitionFolio = `DDD-2026-${participantId.slice(0, 8).toUpperCase()}`;
   }
@@ -480,6 +511,14 @@ adminParticipantsRoutes.patch('/:id', requireAuth('participants:write'), async (
   if (!updated) {
     return c.json({ ok: false, error: 'not_found' }, 404);
   }
+
+  await logAdminAuditEvent(c, {
+    resourceType: 'participant',
+    resourceId: participantId,
+    action: 'PATCH',
+    oldValues: buildParticipantAdminAuditSnapshot(serializeParticipant(before)),
+    newValues: buildParticipantAdminAuditSnapshot(serializeParticipant(updated)),
+  });
 
   return c.json({ ok: true, participant: serializeParticipant(updated) });
 });

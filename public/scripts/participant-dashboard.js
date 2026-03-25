@@ -137,19 +137,12 @@ const state = {
   slideIndex: 0,
   verificationEmailAvailable: true,
   verificationEmailSent: true,
-  verificationDirectUrl: null,
   verificationError: null,
 };
 
 let authFlow;
 let renderers;
 let workspaceFlow;
-
-function setVerificationDirectUrl(url) {
-  state.verificationDirectUrl = url || null;
-  verifyDirectLink.hidden = !state.verificationDirectUrl;
-  verifyDirectLink.href = state.verificationDirectUrl || '#';
-}
 
 function setPageMode(mode) {
   const isDashboard = mode === 'dashboard';
@@ -312,13 +305,13 @@ async function loadDashboard() {
   state.platformResources = data.recursos || [];
   state.verificationEmailAvailable = data.verificationEmailAvailable !== false;
   state.verificationError = data.verificationError || null;
-  setVerificationDirectUrl(data.verificationDirectUrl || null);
+  verifyDirectLink.hidden = true;
+  verifyDirectLink.href = '#';
 
   if (!data.participant.emailVerified) {
     authFlow.showVerifyUI(data.participant, {
       available: state.verificationEmailAvailable,
       sent: true,
-      directUrl: state.verificationDirectUrl,
       error: state.verificationError,
     });
     return;
@@ -344,7 +337,8 @@ function renderLoggedOut() {
   state.verificationEmailAvailable = true;
   state.verificationEmailSent = true;
   state.verificationError = null;
-  setVerificationDirectUrl(null);
+  verifyDirectLink.hidden = true;
+  verifyDirectLink.href = '#';
   setPageMode('auth');
   authShell.hidden = false;
   verifyShell.hidden = true;
@@ -453,7 +447,6 @@ authFlow = createAuthFlow({
   renderLoggedOut,
   setPageMode,
   setStatus,
-  setVerificationDirectUrl,
   state,
 });
 

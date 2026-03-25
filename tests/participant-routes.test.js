@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     workshopCompleted: false,
   },
   getOpenTeams: vi.fn(),
+  getParticipantById: vi.fn(),
   getParticipantTeamById: vi.fn(),
   getParticipantTeams: vi.fn(),
   getPresentation: vi.fn(),
@@ -19,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   incrementRateLimitCount: vi.fn(),
   insertParticipantTeam: vi.fn(),
   insertPresentationComment: vi.fn(),
+  logAdminAuditEvent: vi.fn(),
   joinParticipantTeam: vi.fn(),
   listDatallerParticipants: vi.fn(),
   listParticipants: vi.fn(),
@@ -29,10 +31,21 @@ const mocks = vi.hoisted(() => ({
   updateParticipantProfile: vi.fn(),
 }));
 
+vi.mock('../src/lib/server/audit.ts', () => ({
+  logAdminAuditEvent: mocks.logAdminAuditEvent,
+  pickAuditFields: (source, fields) => {
+    if (!source) return null;
+    return Object.fromEntries(fields.filter((field) => field in source).map((field) => [field, source[field]]));
+  },
+}));
+
 vi.mock('../src/lib/api/auth.ts', () => ({
   getRateLimitCount: mocks.getRateLimitCount,
   incrementRateLimitCount: mocks.incrementRateLimitCount,
-  requireAuth: () => async (_c, next) => next(),
+  requireAuth: () => async (c, next) => {
+    c.set('user', { id: 'admin-1', username: 'juan', rol: 'editor', nombre: 'Juan' });
+    await next();
+  },
 }));
 
 vi.mock('../src/lib/api/participant-auth.ts', () => ({
@@ -62,6 +75,7 @@ vi.mock('../src/lib/api/participant-auth.ts', () => ({
 
 vi.mock('../src/lib/server/db/participants.ts', () => ({
   getOpenTeams: mocks.getOpenTeams,
+  getParticipantById: mocks.getParticipantById,
   getParticipantTeamById: mocks.getParticipantTeamById,
   getParticipantTeams: mocks.getParticipantTeams,
   insertParticipantTeam: mocks.insertParticipantTeam,
@@ -116,6 +130,27 @@ describe('participant routes', () => {
     };
 
     mocks.getOpenTeams.mockResolvedValue([]);
+    mocks.getParticipantById.mockResolvedValue({
+      id: 'participant-1',
+      email_verified: 1,
+      dataller_registered: 1,
+      full_name: 'Ana Torres',
+      workshop_completed: 0,
+      profile_enabled: 0,
+      recognition_enabled: 1,
+      recognition_folio: 'DDD-2026-ABC123',
+      email: 'ana@datadriven.day',
+      occupation: null,
+      organization: null,
+      project_url: null,
+      education_level: null,
+      age: null,
+      bio: null,
+      avatar_url: null,
+      created_at: '2026-03-24T00:00:00.000Z',
+      updated_at: '2026-03-24T00:00:00.000Z',
+      last_login_at: null,
+    });
     mocks.getParticipantTeamById.mockResolvedValue({ id: 'team-1', is_open: true });
     mocks.getParticipantTeams.mockResolvedValue([]);
     mocks.getPresentation.mockResolvedValue({ id: 'pres-dataller-2026', estado: 'publicado' });
@@ -130,7 +165,33 @@ describe('participant routes', () => {
     mocks.listDatallerParticipants.mockResolvedValue([]);
     mocks.listParticipants.mockResolvedValue([]);
     mocks.listPresentationComments.mockResolvedValue([]);
-    mocks.serializeParticipant.mockImplementation((participant) => participant);
+    mocks.logAdminAuditEvent.mockResolvedValue(true);
+    mocks.serializeParticipant.mockImplementation((participant) => {
+      if (participant && 'dataller_registered' in participant) {
+        return {
+          id: participant.id,
+          email: participant.email,
+          fullName: participant.full_name,
+          emailVerified: Boolean(participant.email_verified),
+          datallerRegistered: Boolean(participant.dataller_registered),
+          occupation: participant.occupation,
+          organization: participant.organization,
+          projectUrl: participant.project_url,
+          educationLevel: participant.education_level,
+          age: participant.age,
+          bio: participant.bio,
+          avatarUrl: participant.avatar_url,
+          workshopCompleted: Boolean(participant.workshop_completed),
+          profileEnabled: Boolean(participant.profile_enabled),
+          recognitionEnabled: Boolean(participant.recognition_enabled),
+          recognitionFolio: participant.recognition_folio,
+          createdAt: participant.created_at,
+          lastLoginAt: participant.last_login_at,
+        };
+      }
+
+      return participant;
+    });
     mocks.updateParticipantAdminFlags.mockResolvedValue(null);
     mocks.updateParticipantDatallerRegistration.mockResolvedValue(null);
     mocks.updateParticipantProfile.mockResolvedValue(null);
@@ -393,5 +454,84 @@ describe('participant routes', () => {
 
     expect(response.status).toBe(400);
     expect(payload).toEqual({ ok: false, error: 'invalid_limit' });
+  });
+
+  it('rejects invalid recognition folios in admin participant updates', async () => {
+    const response = await adminParticipantsRoutes.request(
+      'http://localhost/participant-1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ recognitionEnabled: true, recognitionFolio: '<script>' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+      createEnv(),
+    );
+    const payload = await readJson(response);
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual({ ok: false, error: 'invalid_recognition_folio' });
+    expect(mocks.updateParticipantAdminFlags).not.toHaveBeenCalled();
+  });
+
+  it('normalizes valid recognition folios before updating participants', async () => {
+    mocks.updateParticipantAdminFlags.mockResolvedValue({
+      id: 'participant-1',
+      recognitionFolio: 'DDD-2026-ABC123',
+    });
+
+    const response = await adminParticipantsRoutes.request(
+      'http://localhost/participant-1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ recognitionEnabled: true, recognitionFolio: ' ddd-2026-abc123 ' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+      createEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.updateParticipantAdminFlags).toHaveBeenCalledWith(
+      expect.any(Object),
+      'participant-1',
+      expect.objectContaining({ recognitionFolio: 'DDD-2026-ABC123' }),
+    );
+  });
+
+  it('logs admin participant flag changes and clears the folio when recognition is disabled', async () => {
+    mocks.updateParticipantAdminFlags.mockResolvedValue({
+      id: 'participant-1',
+      datallerRegistered: true,
+      workshopCompleted: false,
+      profileEnabled: false,
+      recognitionEnabled: false,
+      recognitionFolio: null,
+    });
+
+    const response = await adminParticipantsRoutes.request(
+      'http://localhost/participant-1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ recognitionEnabled: false, recognitionFolio: 'DDD-2026-ABC123' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+      createEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.updateParticipantAdminFlags).toHaveBeenCalledWith(
+      expect.any(Object),
+      'participant-1',
+      expect.objectContaining({ recognitionEnabled: false, recognitionFolio: null }),
+    );
+    expect(mocks.logAdminAuditEvent).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        resourceType: 'participant',
+        resourceId: 'participant-1',
+        action: 'PATCH',
+        oldValues: expect.objectContaining({ recognitionEnabled: true, recognitionFolio: 'DDD-2026-ABC123' }),
+        newValues: expect.objectContaining({ recognitionEnabled: false, recognitionFolio: null }),
+      }),
+    );
   });
 });

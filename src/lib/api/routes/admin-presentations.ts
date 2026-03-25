@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import { requireAuth } from '../auth';
 import type { AppBindings, AppVariables } from '../types';
+import { getSafeImageUpload } from '../../server/uploads';
+import { logAdminAuditEvent, pickAuditFields } from '../../server/audit';
 import {
-  getPresentations, insertPresentation,
+  getPresentation, getPresentations, insertPresentation,
   updatePresentation, deletePresentation,
   getSlides, getSlide, getMaxSlideNumero, insertSlide, updateSlide, deleteSlide,
   reorderSlides, duplicateSlide,
@@ -11,8 +13,18 @@ import { listPresentationComments } from '../../server/db/participants';
 
 const VALID_SLUG_RE = /^[a-z0-9-]+$/;
 const VALID_ESTADOS = new Set(['borrador', 'activo', 'archivado']);
+const PRESENTATION_AUDIT_FIELDS = ['nombre', 'slug', 'descripcion', 'estado', 'pagina_url'] as const;
+const SLIDE_AUDIT_FIELDS = ['presentacion', 'numero', 'tag', 'titulo', 'subtitulo', 'duracion', 'particleState', 'accentColor', 'particleSpeed', 'imagenUrl', 'isActive'] as const;
 
 type Env = { Bindings: Partial<AppBindings>; Variables: AppVariables };
+
+function pickPresentationAuditSnapshot(presentation: Record<string, unknown> | null | undefined) {
+  return pickAuditFields(presentation, PRESENTATION_AUDIT_FIELDS);
+}
+
+function pickSlideAuditSnapshot(slide: Record<string, unknown> | null | undefined) {
+  return pickAuditFields(slide, SLIDE_AUDIT_FIELDS);
+}
 
 // ── Presentaciones ────────────────────────────────────────────────────────────
 export const presentationsRoutes = new Hono<Env>();
@@ -50,6 +62,15 @@ presentationsRoutes.post('/', requireAuth('presentations:write'), async (c) => {
       descripcion: body.descripcion?.trim() || undefined,
       pagina_url:  body.pagina_url?.trim()  || undefined,
     });
+
+    const created = await getPresentation(c.env.DB!, id);
+    await logAdminAuditEvent(c, {
+      resourceType: 'presentation',
+      resourceId: id,
+      action: 'CREATE',
+      newValues: pickPresentationAuditSnapshot(created as Record<string, unknown> | null),
+    });
+
     return c.json({ ok: true, id }, 201);
   } catch (e: any) {
     if (String(e?.message).includes('UNIQUE constraint failed')) {
@@ -60,6 +81,7 @@ presentationsRoutes.post('/', requireAuth('presentations:write'), async (c) => {
 });
 
 presentationsRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
+  const id = c.req.param('id')!;
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ ok: false, error: 'invalid_json' }, 400);
 
@@ -69,12 +91,29 @@ presentationsRoutes.patch('/:id', requireAuth('presentations:write'), async (c) 
   // Token must never be altered via PATCH
   delete body.token;
 
-  await updatePresentation(c.env.DB!, c.req.param('id')!, body);
+  const before = await getPresentation(c.env.DB!, id);
+  await updatePresentation(c.env.DB!, id, body);
+  const after = await getPresentation(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation',
+    resourceId: id,
+    action: 'PATCH',
+    oldValues: pickPresentationAuditSnapshot(before as Record<string, unknown> | null),
+    newValues: pickPresentationAuditSnapshot(after as Record<string, unknown> | null),
+  });
   return c.json({ ok: true });
 });
 
 presentationsRoutes.delete('/:id', requireAuth('presentations:delete'), async (c) => {
-  await deletePresentation(c.env.DB!, c.req.param('id')!);
+  const id = c.req.param('id')!;
+  const before = await getPresentation(c.env.DB!, id);
+  await deletePresentation(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation',
+    resourceId: id,
+    action: 'DELETE',
+    oldValues: pickPresentationAuditSnapshot(before as Record<string, unknown> | null),
+  });
   return c.json({ ok: true });
 });
 
@@ -114,6 +153,15 @@ slidesRoutes.post('/', requireAuth('presentations:write'), async (c) => {
     imagen_url: null,
     is_active: 1,
   });
+
+  const created = await getSlide(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: id,
+    action: 'CREATE',
+    newValues: pickSlideAuditSnapshot(created as Record<string, unknown> | null),
+  });
+
   return c.json({ ok: true, id }, 201);
 });
 
@@ -133,12 +181,29 @@ slidesRoutes.patch('/:id', requireAuth('presentations:write'), async (c) => {
   delete patch.referencias;
   delete patch.conceptosClave;
 
+  const before = await getSlide(c.env.DB!, id);
   await updateSlide(c.env.DB!, id, patch as any);
+  const after = await getSlide(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: id,
+    action: 'PATCH',
+    oldValues: pickSlideAuditSnapshot(before as Record<string, unknown> | null),
+    newValues: pickSlideAuditSnapshot(after as Record<string, unknown> | null),
+  });
   return c.json({ ok: true });
 });
 
 slidesRoutes.delete('/:id', requireAuth('presentations:delete'), async (c) => {
-  await deleteSlide(c.env.DB!, c.req.param('id')!);
+  const id = c.req.param('id')!;
+  const before = await getSlide(c.env.DB!, id);
+  await deleteSlide(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: id,
+    action: 'DELETE',
+    oldValues: pickSlideAuditSnapshot(before as Record<string, unknown> | null),
+  });
   return c.json({ ok: true });
 });
 
@@ -146,11 +211,30 @@ slidesRoutes.post('/reorder', requireAuth('presentations:write'), async (c) => {
   const body = await c.req.json<{ updates: Array<{ id: string; numero: number }> }>().catch(() => null);
   if (!body?.updates || !Array.isArray(body.updates)) return c.json({ ok: false, error: 'invalid_updates' }, 400);
   await reorderSlides(c.env.DB!, body.updates);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: 'reorder',
+    action: 'PATCH',
+    newValues: {
+      rowCount: body.updates.length,
+      updates: body.updates.slice(0, 20),
+    },
+  });
   return c.json({ ok: true });
 });
 
 slidesRoutes.post('/:id/duplicate', requireAuth('presentations:write'), async (c) => {
-  const newId = await duplicateSlide(c.env.DB!, c.req.param('id')!);
+  const sourceId = c.req.param('id')!;
+  const before = await getSlide(c.env.DB!, sourceId);
+  const newId = await duplicateSlide(c.env.DB!, sourceId);
+  const duplicated = await getSlide(c.env.DB!, newId);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: newId,
+    action: 'CREATE',
+    oldValues: pickSlideAuditSnapshot(before as Record<string, unknown> | null),
+    newValues: pickSlideAuditSnapshot(duplicated as Record<string, unknown> | null),
+  });
   return c.json({ ok: true, id: newId }, 201);
 });
 
@@ -158,25 +242,30 @@ slidesRoutes.post('/:id/imagen', requireAuth('presentations:write'), async (c) =
   try {
     const formData = await c.req.formData();
     const file = formData.get('imagen') as File | null;
-
-    if (!file || !file.type.startsWith('image/')) {
-      return c.json({ ok: false, error: 'invalid_file' }, 400);
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return c.json({ ok: false, error: 'file_too_large' }, 400);
+    const upload = await getSafeImageUpload(file);
+    if (!upload.ok) {
+      return c.json({ ok: false, error: upload.error }, 400);
     }
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
     const slideId = c.req.param('id')!;
-    const key = `slides/${slideId}/${crypto.randomUUID()}.${ext}`;
+    const key = `slides/${slideId}/${crypto.randomUUID()}.${upload.extension}`;
 
     if (!c.env.MEDIA) return c.json({ ok: false, error: 'storage_not_available' }, 503);
-    await c.env.MEDIA.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type },
+    await c.env.MEDIA.put(key, upload.buffer, {
+      httpMetadata: { contentType: upload.contentType },
     });
 
     const url = `/media/${key}`;
+    const before = await getSlide(c.env.DB!, slideId);
     await updateSlide(c.env.DB!, slideId, { imagen_url: url } as any);
+    const after = await getSlide(c.env.DB!, slideId);
+    await logAdminAuditEvent(c, {
+      resourceType: 'presentation_slide',
+      resourceId: slideId,
+      action: 'PATCH',
+      oldValues: pickSlideAuditSnapshot(before as Record<string, unknown> | null),
+      newValues: pickSlideAuditSnapshot(after as Record<string, unknown> | null),
+    });
     return c.json({ ok: true, url });
   } catch {
     return c.json({ ok: false, error: 'upload_failed' }, 500);
@@ -184,7 +273,17 @@ slidesRoutes.post('/:id/imagen', requireAuth('presentations:write'), async (c) =
 });
 
 slidesRoutes.delete('/:id/imagen', requireAuth('presentations:write'), async (c) => {
-  await updateSlide(c.env.DB!, c.req.param('id')!, { imagen_url: null } as any);
+  const id = c.req.param('id')!;
+  const before = await getSlide(c.env.DB!, id);
+  await updateSlide(c.env.DB!, id, { imagen_url: null } as any);
+  const after = await getSlide(c.env.DB!, id);
+  await logAdminAuditEvent(c, {
+    resourceType: 'presentation_slide',
+    resourceId: id,
+    action: 'PATCH',
+    oldValues: pickSlideAuditSnapshot(before as Record<string, unknown> | null),
+    newValues: pickSlideAuditSnapshot(after as Record<string, unknown> | null),
+  });
   return c.json({ ok: true });
 });
 

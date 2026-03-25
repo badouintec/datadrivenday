@@ -5,7 +5,6 @@ export function createAuthFlow({
   renderLoggedOut,
   setPageMode,
   setStatus,
-  setVerificationDirectUrl,
   state,
 }) {
   function showVerifyUI(participant, options = {}) {
@@ -13,7 +12,6 @@ export function createAuthFlow({
     state.verificationEmailAvailable = options.available ?? state.verificationEmailAvailable;
     state.verificationEmailSent = options.sent ?? true;
     state.verificationError = options.error ?? null;
-    setVerificationDirectUrl(options.directUrl ?? null);
     setPageMode('auth');
     dom.authShell.hidden = true;
     dom.verifyShell.hidden = false;
@@ -24,25 +22,20 @@ export function createAuthFlow({
       dom.verifyEmail.textContent = `Tu cuenta quedó creada con ${participant.email}, pero el envío de correo no está disponible ahora mismo.`;
       setStatus(
         dom.verifyStatus,
-        state.verificationDirectUrl
-          ? 'Este entorno local no puede mandar correo ahora mismo. Usa el link directo para verificar la cuenta.'
-          : 'No fue posible enviar el correo de verificación. Intenta más tarde o solicita soporte.',
-        state.verificationDirectUrl ? 'warn' : 'error',
+        'No fue posible enviar el correo de verificación. Intenta más tarde o solicita soporte.',
+        'error',
       );
       return;
     }
 
     if (!state.verificationEmailSent) {
       dom.verifyEmail.textContent = `Tu cuenta quedó creada con ${participant.email}, pero no pude entregar el primer correo de verificación.`;
-      const usesDirectLink = Boolean(state.verificationDirectUrl);
-      const message = usesDirectLink
-        ? 'Resend bloqueó el envío en este entorno. Usa el link directo para verificar la cuenta.'
-        : state.verificationError === 'domain_not_verified'
-          ? 'El dominio remitente todavía no está verificado en Resend.'
-          : state.verificationError === 'testing_recipient_restricted'
-            ? 'La cuenta de Resend está en modo de prueba y no puede enviar a ese destinatario.'
-            : 'Usa "Reenviar correo" para intentar otra vez.';
-      setStatus(dom.verifyStatus, message, usesDirectLink ? 'warn' : 'error');
+      const message = state.verificationError === 'domain_not_verified'
+        ? 'El dominio remitente todavía no está verificado en Resend.'
+        : state.verificationError === 'testing_recipient_restricted'
+          ? 'La cuenta de Resend está en modo de prueba y no puede enviar a ese destinatario.'
+          : 'Usa "Reenviar correo" para intentar otra vez.';
+      setStatus(dom.verifyStatus, message, 'error');
       return;
     }
 
@@ -141,12 +134,10 @@ export function createAuthFlow({
         state.verificationEmailAvailable = data.verificationEmailAvailable !== false;
         state.verificationEmailSent = data.verificationEmailSent !== false;
         state.verificationError = data.verificationError || null;
-        setVerificationDirectUrl(data.verificationDirectUrl || null);
         setStatus(dom.signupStatus, '', 'info');
         showVerifyUI(data.participant, {
           available: state.verificationEmailAvailable,
           sent: state.verificationEmailSent,
-          directUrl: state.verificationDirectUrl,
           error: state.verificationError,
         });
       } catch {
@@ -211,7 +202,6 @@ export function createAuthFlow({
         }
 
         if (!response.ok) {
-          setVerificationDirectUrl(data.verificationDirectUrl || null);
           const message = data.error === 'email_not_configured'
             ? 'El correo de verificación no está disponible en este momento.'
             : data.verificationError === 'domain_not_verified'
@@ -224,14 +214,7 @@ export function createAuthFlow({
         }
 
         state.verificationError = data.verificationError || null;
-        setVerificationDirectUrl(data.verificationDirectUrl || null);
-        setStatus(
-          dom.verifyStatus,
-          data.delivered === false && state.verificationDirectUrl
-            ? 'No se pudo mandar el correo desde este entorno, pero ya tienes un link directo de verificación.'
-            : 'Correo reenviado. Revisa tu bandeja.',
-          data.delivered === false ? 'warn' : 'success',
-        );
+        setStatus(dom.verifyStatus, 'Correo reenviado. Revisa tu bandeja.', 'success');
       } catch {
         setStatus(dom.verifyStatus, 'Error de red al reenviar.', 'error');
       } finally {

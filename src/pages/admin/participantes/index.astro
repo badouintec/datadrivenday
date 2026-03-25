@@ -1,10 +1,9 @@
 ---
 import AdminLayout from '../../../components/admin/AdminLayout.astro';
+import { getAdminUserFromRequest } from '../../../lib/server/admin-session';
 
-const cookie = Astro.request.headers.get('cookie') ?? '';
-if (!/ddd_session=/.test(cookie)) return Astro.redirect('/admin/login');
-
-const usuario = { username: '...', rol: 'editor', nombre: null };
+const usuario = await getAdminUserFromRequest(Astro.request, 'participants:read');
+if (!usuario) return Astro.redirect('/admin/login');
 ---
 
 <AdminLayout titulo="Participantes" seccion="participantes" usuario={usuario}>

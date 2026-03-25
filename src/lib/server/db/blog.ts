@@ -17,8 +17,16 @@ export interface BlogPostRow {
 function parseRow(row: BlogPostRow) {
   return {
     ...row,
-    tags: JSON.parse(row.tags_json) as string[],
+    tags: safeJsonParse<string[]>(row.tags_json, []),
   };
+}
+
+function safeJsonParse<T>(value: string, fallback: T): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 export async function getBlogPosts(db: D1Database, estado?: string) {

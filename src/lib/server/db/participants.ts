@@ -183,10 +183,16 @@ export async function updateParticipantPassword(db: D1Database, id: string, pass
 }
 
 export async function deleteParticipant(db: D1Database, id: string) {
-  await db
-    .prepare('DELETE FROM participants WHERE id = ?')
-    .bind(id)
-    .run();
+  await db.batch([
+    db.prepare('DELETE FROM participant_presentation_comments WHERE participant_id = ?').bind(id),
+    db.prepare('DELETE FROM participant_team_members WHERE participant_id = ?').bind(id),
+    db.prepare(
+      `DELETE FROM participant_team_members
+       WHERE team_id IN (SELECT id FROM participant_teams WHERE owner_id = ?)`
+    ).bind(id),
+    db.prepare('DELETE FROM participant_teams WHERE owner_id = ?').bind(id),
+    db.prepare('DELETE FROM participants WHERE id = ?').bind(id),
+  ]);
 }
 
 export async function updateParticipantProfile(

@@ -1,8 +1,11 @@
 ---
 // Presenter mode — full-screen, keyboard-driven slide viewer
 // Navegación: ← → (slides), N (notas), F (fullscreen), ESC (salir notas)
-const cookie = Astro.request.headers.get('cookie') ?? '';
-const isAdmin = /ddd_session=/.test(cookie);
+import { getAdminUserFromRequest } from '../../lib/server/admin-session';
+
+const adminUser = await getAdminUserFromRequest(Astro.request, 'presentations:read');
+if (!adminUser) return Astro.redirect('/admin/login');
+const isAdmin = true;
 ---
 
 <!DOCTYPE html>
@@ -1791,11 +1794,15 @@ function applySlide(slide) {
 
   // Notes
   const notes = slide.notas ?? '';
+  const notesEl = document.createElement('p');
   if (notes.trim()) {
-    d.notesContent.innerHTML = `<p class="notes-text">${notes.replace(/</g,'&lt;')}</p>`;
+    notesEl.className = 'notes-text';
+    notesEl.textContent = notes;
   } else {
-    d.notesContent.innerHTML = `<p class="notes-empty">Este slide no tiene notas.</p>`;
+    notesEl.className = 'notes-empty';
+    notesEl.textContent = 'Este slide no tiene notas.';
   }
+  d.notesContent.replaceChildren(notesEl);
 
   const chord = slide.chord ?? [];
   if (chord.length) playChord(chord);

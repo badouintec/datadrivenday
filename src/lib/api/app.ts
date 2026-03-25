@@ -303,7 +303,7 @@ app.route('/admin/participants', adminParticipantsRoutes);
 app.route('/participant', participantRoutes);
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
-app.get('/slides', async (c) => {
+app.get('/slides', requireAuth('presentations:read'), async (c) => {
   if (!c.env.DB) return c.json({ slides: [], presentation: null });
   const presentacion = c.req.query('presentacion') ?? 'pres-dataller-2026';
   const [slides, presentation] = await Promise.all([
@@ -317,7 +317,7 @@ app.get('/slides', async (c) => {
   return c.json({
     slides: slides.filter(s => s.isActive),
     presentation: presentation ? { nombre: presentation.nombre, descripcion: presentation.descripcion } : null,
-  }, 200, { 'Cache-Control': 'public, max-age=60' });
+  }, 200, { 'Cache-Control': 'no-store' });
 });
 
 app.post('/slides/live-graph', async (c) => {

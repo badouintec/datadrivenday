@@ -1,15 +1,11 @@
 ---
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { getAdminUserFromRequest } from '../../lib/server/admin-session';
 
-// Check session via cookie — if no cookie, redirect to login
-const cookie = Astro.request.headers.get('cookie') ?? '';
-const hasSession = /ddd_session=/.test(cookie);
-if (!hasSession) {
+const usuario = await getAdminUserFromRequest(Astro.request);
+if (!usuario) {
   return Astro.redirect('/admin/login');
 }
-
-// We pass a placeholder user — the real data is fetched client-side via /api/admin/me
-const usuario = { username: '...', rol: 'editor', nombre: null };
 ---
 
 <AdminLayout titulo="Dashboard" seccion="dashboard" usuario={usuario}>

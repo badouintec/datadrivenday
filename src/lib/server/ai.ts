@@ -236,13 +236,18 @@ export async function extractConceptGraph(
     const text = (result as { response?: string }).response ?? '';
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return buildFallbackConceptGraph(slide, transcript, existingNodes);
-    const parsed = JSON.parse(match[0]);
+    let parsed: { nodes?: Array<{ id?: string; label?: string }>; edges?: Array<{ from?: string; to?: string }> };
+    try {
+      parsed = JSON.parse(match[0]) as { nodes?: Array<{ id?: string; label?: string }>; edges?: Array<{ from?: string; to?: string }> };
+    } catch {
+      return buildFallbackConceptGraph(slide, transcript, existingNodes);
+    }
     const nodes: GraphNode[] = (parsed.nodes ?? [])
-      .filter((n: { id?: string; label?: string }) => n?.id && n?.label)
-      .map((n: { id: string; label: string }) => ({ id: String(n.id), label: String(n.label) }));
+      .filter((n): n is { id: string; label: string } => Boolean(n?.id && n?.label))
+      .map((n) => ({ id: String(n.id), label: String(n.label) }));
     const edges: GraphEdge[] = (parsed.edges ?? [])
-      .filter((e: { from?: string; to?: string }) => e?.from && e?.to)
-      .map((e: { from: string; to: string }) => ({ from: String(e.from), to: String(e.to) }));
+      .filter((e): e is { from: string; to: string } => Boolean(e?.from && e?.to))
+      .map((e) => ({ from: String(e.from), to: String(e.to) }));
     if (!nodes.length && !edges.length) {
       return buildFallbackConceptGraph(slide, transcript, existingNodes);
     }

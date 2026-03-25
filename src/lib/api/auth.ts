@@ -157,7 +157,7 @@ export async function getSession(
 }
 
 // ── Extraer session ID de cookie ──────────────────────────────────────────────
-function getSessionIdFromCookie(cookieHeader: string): string | null {
+export function getSessionIdFromCookie(cookieHeader: string): string | null {
   const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
   return match?.[1] ?? null;
 }
@@ -285,10 +285,46 @@ export async function handleMe(c: Context<{ Bindings: Partial<AppBindings>; Vari
 // Uses APP_SESSION KV for per-key attempt counters with time-window expiry.
 // Keys are namespaced with "rl:" to avoid collision with session keys.
 
+function isValidIpv4(candidate: string) {
+  const match = candidate.match(/^(\d{1,3})(?:\.(\d{1,3})){3}$/);
+  if (!match) return false;
+  return candidate.split('.').every((octet) => Number.parseInt(octet, 10) <= 255);
+}
+
+function isValidIpv6(candidate: string) {
+  return /^[0-9a-f:]+$/i.test(candidate) && candidate.includes(':');
+}
+
+function hashIdentifier(input: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
 export function getClientIp(req: { header: (name: string) => string | undefined }): string {
-  return req.header('CF-Connecting-IP')?.trim()
-    ?? req.header('X-Forwarded-For')?.split(',')[0]?.trim()
-    ?? 'unknown';
+  const candidates = [
+    req.header('CF-Connecting-IP')?.trim(),
+    req.header('True-Client-IP')?.trim(),
+    req.header('X-Real-IP')?.trim(),
+    req.header('X-Forwarded-For')?.split(',')[0]?.trim(),
+  ].filter(Boolean) as string[];
+
+  for (const candidate of candidates) {
+    if (isValidIpv4(candidate) || isValidIpv6(candidate)) {
+      return candidate;
+    }
+  }
+
+  const fingerprint = [
+    req.header('User-Agent')?.trim() || 'ua:none',
+    req.header('Accept-Language')?.trim() || 'lang:none',
+    req.header('Sec-CH-UA')?.trim() || 'ch:none',
+  ].join('|').slice(0, 512);
+
+  return `fingerprint:${hashIdentifier(fingerprint)}`;
 }
 
 export async function getRateLimitCount(
