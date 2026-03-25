@@ -471,7 +471,7 @@ const isAdmin = true;
       z-index: 210;
     }
 
-    /* Word elements */
+    /* Word elements — fast word cloud */
     :global(.schema-word) {
       position: absolute;
       font-family: var(--display);
@@ -479,68 +479,31 @@ const isAdmin = true;
       white-space: nowrap;
       transform: translate(-50%, -50%) scale(0);
       opacity: 0;
-      transition: left 1.2s cubic-bezier(0.25, 1, 0.5, 1),
-                  top 1.2s cubic-bezier(0.25, 1, 0.5, 1),
-                  opacity 0.6s ease, font-size 0.8s ease;
+      transition: left 0.3s ease-out,
+                  top 0.3s ease-out,
+                  opacity 0.15s ease,
+                  font-size 0.2s ease,
+                  color 0.3s ease;
       cursor: default;
       user-select: none;
-      text-shadow: 0 0 40px currentColor;
+      z-index: 3;
     }
     :global(.schema-word.visible) {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
-      animation: schema-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation: schema-appear 0.2s ease-out forwards;
     }
-    :global(.schema-word.root) {
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
-      color: #e6edf3;
-      text-shadow: 0 0 60px rgba(59,130,246,0.4), 0 0 120px rgba(59,130,246,0.15);
-      z-index: 5;
-      letter-spacing: -0.02em;
+    :global(.schema-word.accent) {
+      animation: schema-accent 0.4s ease-out;
     }
-    :global(.schema-word.branch) {
-      font-size: clamp(1.2rem, 2.5vw, 2rem);
-      color: #60a5fa;
-      text-shadow: 0 0 30px rgba(96,165,250,0.3);
-      z-index: 4;
-      letter-spacing: -0.01em;
-    }
-    :global(.schema-word.leaf) {
-      font-size: clamp(0.75rem, 1.4vw, 1.1rem);
-      font-weight: 500;
-      color: #34d399;
-      text-shadow: 0 0 20px rgba(52,211,153,0.25);
-      z-index: 3;
-    }
-    :global(.schema-word.whisper) {
-      font-size: clamp(0.6rem, 1vw, 0.8rem);
-      font-weight: 400;
-      font-family: var(--mono);
-      color: rgba(125,133,144,0.6);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      text-shadow: none;
-      z-index: 2;
-    }
-    :global(.schema-word.flash) {
-      animation: schema-flash 1s ease-out;
-    }
-
-    /* Connection lines (pure CSS) */
-    :global(.schema-line) {
-      position: absolute;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(96,165,250,0.3), rgba(96,165,250,0.05));
-      transform-origin: 0 0;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-    :global(.schema-line.visible) { opacity: 1; }
 
     @keyframes schema-appear {
       0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    @keyframes schema-accent {
+      0%   { transform: translate(-50%, -50%) scale(1.3); filter: brightness(1.8); }
+      100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
     }
     @keyframes schema-flash {
       0%   { filter: brightness(2); text-shadow: 0 0 40px currentColor; }
@@ -1324,13 +1287,8 @@ const SCHEMA_STOPWORDS = new Set([
   'zoom', 'some', 'zone', 'zome', 'grafo', 'graph',
 ]);
 
-const SCHEMA_TIERS = ['root', 'branch', 'leaf', 'whisper'];
-const SCHEMA_COLORS = {
-  root:    '#e6edf3',
-  branch:  '#60a5fa',
-  leaf:    '#34d399',
-  whisper: '#7d8590',
-};
+// Word cloud color palette based on weight
+const SCHEMA_COLORS = ['#475569', '#64748b', '#60a5fa', '#38bdf8', '#34d399', '#e6edf3'];
 
 function schemaUniqueTerms(values, limit = 8) {
   const unique = [];
@@ -1378,7 +1336,6 @@ function toggleSchema() {
 
 function clearSchema() {
   STATE.schemaWords.clear();
-  STATE.schemaLines.forEach(l => l.el?.remove());
   STATE.schemaLines = [];
   if (STATE.dom.schemaCanvas) STATE.dom.schemaCanvas.innerHTML = '';
 }
@@ -1387,43 +1344,60 @@ function schemaSeedFromSlide() {
   clearSchema();
   const slide = STATE.slides[STATE.idx];
   const w = window.innerWidth, h = window.innerHeight;
+  const pad = 80;
 
-  // Root = slide title
+  // Title as first word (bumped weight for emphasis)
   const rootLabel = slide?.titulo?.trim() || slide?.tag?.trim() || 'Tema';
   const rootId = normalizeSpeechText(rootLabel).replace(/\s+/g, '_') || 'tema';
-  schemaAddWord(rootId, rootLabel, w * 0.5, h * 0.38, 'root', null);
+  schemaAddWord(rootId, rootLabel, w * 0.5, h * 0.35);
+  // Bump it twice to make it prominent
+  schemaAddWord(rootId, rootLabel, 0, 0);
+  schemaAddWord(rootId, rootLabel, 0, 0);
 
-  // Branches from slide data
-  const branches = [];
-  if (slide?.tag) branches.push(slide.tag);
-  if (slide?.conceptosClave?.length) branches.push(...slide.conceptosClave);
-  if (slide?.subtitulo) branches.push(...String(slide.subtitulo).split(/[,:;|]/));
+  // Seed concepts from slide
+  const seeds = [];
+  if (slide?.tag) seeds.push(slide.tag);
+  if (slide?.conceptosClave?.length) seeds.push(...slide.conceptosClave);
+  if (slide?.subtitulo) seeds.push(...String(slide.subtitulo).split(/[,:;|]/));
 
-  const uniqueBranches = schemaUniqueTerms(branches, 6)
+  const unique = schemaUniqueTerms(seeds, 6)
     .filter(b => normalizeSpeechText(b) !== normalizeSpeechText(rootLabel));
 
-  // Place branches in a creative arc around root
-  const arcStart = -Math.PI * 0.7;
-  const arcEnd = Math.PI * 0.5;
-  uniqueBranches.forEach((label, i, arr) => {
+  unique.forEach((label) => {
     const id = normalizeSpeechText(label).replace(/\s+/g, '_');
-    const t = arr.length === 1 ? 0.5 : i / (arr.length - 1);
-    const angle = arcStart + t * (arcEnd - arcStart);
-    const rx = Math.min(w * 0.28, 350) + (i % 2) * 40;
-    const ry = Math.min(h * 0.25, 220) + (i % 2) * 30;
-    const x = w * 0.5 + Math.cos(angle) * rx;
-    const y = h * 0.38 + Math.sin(angle) * ry;
-    schemaAddWord(id, schemaDisplayLabel(label), x, y, 'branch', rootId);
-    schemaAddLine(rootId, id);
+    const x = pad + Math.random() * (w - pad * 2);
+    const y = pad + Math.random() * (h - pad * 2);
+    schemaAddWord(id, schemaDisplayLabel(label), x, y);
   });
 }
 
-function schemaAddWord(id, label, x, y, tier, parentId) {
+function schemaWordStyle(weight) {
+  // weight 1..N → size and color scale
+  const maxW = Math.max(3, [...STATE.schemaWords.values()].reduce((m, w) => Math.max(m, w.weight || 1), 1));
+  const t = Math.min((weight - 1) / Math.max(maxW - 1, 1), 1);
+  const minSize = 0.9, maxSize = 4.0;
+  const size = minSize + t * (maxSize - minSize);
+  const ci = Math.min(Math.floor(t * SCHEMA_COLORS.length), SCHEMA_COLORS.length - 1);
+  return { size, color: SCHEMA_COLORS[ci] };
+}
+
+function schemaRefreshStyles() {
+  for (const [, wd] of STATE.schemaWords) {
+    const s = schemaWordStyle(wd.weight);
+    wd.el.style.fontSize = s.size + 'rem';
+    wd.el.style.color = s.color;
+  }
+}
+
+function schemaAddWord(id, label, x, y) {
   if (STATE.schemaWords.has(id)) {
-    // Flash existing word
+    // Word exists — bump weight, accent it
     const existing = STATE.schemaWords.get(id);
-    existing.el.classList.add('flash');
-    setTimeout(() => existing.el.classList.remove('flash'), 1000);
+    existing.weight = (existing.weight || 1) + 1;
+    existing.el.classList.remove('accent');
+    void existing.el.offsetWidth;
+    existing.el.classList.add('accent');
+    schemaRefreshStyles();
     return;
   }
 
@@ -1431,78 +1405,42 @@ function schemaAddWord(id, label, x, y, tier, parentId) {
   if (!container) return;
 
   const el = document.createElement('div');
-  el.className = 'schema-word ' + tier;
+  el.className = 'schema-word';
   el.textContent = label;
   el.style.left = x + 'px';
   el.style.top = y + 'px';
   container.appendChild(el);
 
-  // Trigger animation after paint
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => el.classList.add('visible'));
-  });
+  const s = schemaWordStyle(1);
+  el.style.fontSize = s.size + 'rem';
+  el.style.color = s.color;
 
-  STATE.schemaWords.set(id, { label, x, y, el, tier, parentId });
+  requestAnimationFrame(() => el.classList.add('visible'));
 
-  // Cap at 50 words — remove oldest whispers
-  if (STATE.schemaWords.size > 50) {
-    for (const [oldId, oldWord] of STATE.schemaWords) {
-      if (oldWord.tier === 'whisper') {
-        oldWord.el.remove();
-        STATE.schemaWords.delete(oldId);
-        // Remove associated lines
-        STATE.schemaLines = STATE.schemaLines.filter(l => {
-          if (l.fromId === oldId || l.toId === oldId) { l.el?.remove(); return false; }
-          return true;
-        });
-        break;
-      }
+  STATE.schemaWords.set(id, { label, x, y, el, weight: 1 });
+
+  // Cap at 40 words — remove lowest weight
+  if (STATE.schemaWords.size > 40) {
+    let minW = Infinity, minId = null;
+    for (const [wId, w] of STATE.schemaWords) {
+      if (w.weight < minW) { minW = w.weight; minId = wId; }
+    }
+    if (minId) {
+      STATE.schemaWords.get(minId).el.remove();
+      STATE.schemaWords.delete(minId);
     }
   }
 }
 
-function schemaAddLine(fromId, toId) {
-  const from = STATE.schemaWords.get(fromId);
-  const to = STATE.schemaWords.get(toId);
-  if (!from || !to) return;
-  // No duplicate lines
-  if (STATE.schemaLines.some(l => (l.fromId === fromId && l.toId === toId) || (l.fromId === toId && l.toId === fromId))) return;
+// Kept as no-op for compatibility with chat schema injection
+function schemaAddLine() {}
 
-  const container = STATE.dom.schemaCanvas;
-  if (!container) return;
-
-  const el = document.createElement('div');
-  el.className = 'schema-line';
-  container.appendChild(el);
-  positionLine(el, from.x, from.y, to.x, to.y);
-  requestAnimationFrame(() => el.classList.add('visible'));
-
-  STATE.schemaLines.push({ fromId, toId, el });
-}
-
-function positionLine(el, x1, y1, x2, y2) {
-  const dx = x2 - x1, dy = y2 - y1;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  const angle = Math.atan2(dy, dx);
-  el.style.left = x1 + 'px';
-  el.style.top = y1 + 'px';
-  el.style.width = len + 'px';
-  el.style.transform = 'rotate(' + angle + 'rad)';
-}
-
-function schemaUpdateLinePositions() {
-  STATE.schemaLines.forEach(l => {
-    const from = STATE.schemaWords.get(l.fromId);
-    const to = STATE.schemaWords.get(l.toId);
-    if (from && to && l.el) positionLine(l.el, from.x, from.y, to.x, to.y);
-  });
-}
-
-// Soft repulsion so words don't overlap
+// Fast repulsion — no lines to update
 function schemaNudge() {
   const words = [...STATE.schemaWords.values()];
+  if (words.length < 2) return;
   const w = window.innerWidth, h = window.innerHeight;
-  const MIN_DIST = Math.min(w, h) * 0.13;
+  const MIN_DIST = 100;
 
   for (let i = 0; i < words.length; i++) {
     for (let j = i + 1; j < words.length; j++) {
@@ -1510,105 +1448,52 @@ function schemaNudge() {
       const dy = words[j].y - words[i].y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
       if (dist < MIN_DIST) {
-        const push = (MIN_DIST - dist) * 0.025;
+        const push = (MIN_DIST - dist) * 0.15;
         const nx = (dx / dist) * push;
         const ny = (dy / dist) * push;
-        // Don't push root
-        if (words[i].tier !== 'root') { words[i].x -= nx; words[i].y -= ny; }
-        if (words[j].tier !== 'root') { words[j].x += nx; words[j].y += ny; }
+        words[i].x -= nx; words[i].y -= ny;
+        words[j].x += nx; words[j].y += ny;
       }
     }
-    // Keep within viewport with padding
-    words[i].x = Math.max(80, Math.min(w - 80, words[i].x));
-    words[i].y = Math.max(60, Math.min(h - 60, words[i].y));
+    words[i].x = Math.max(60, Math.min(w - 60, words[i].x));
+    words[i].y = Math.max(50, Math.min(h - 50, words[i].y));
     words[i].el.style.left = words[i].x + 'px';
     words[i].el.style.top = words[i].y + 'px';
   }
-  schemaUpdateLinePositions();
 }
 
-// Expand schema from speech — first word spoken = root, rest = branches/leaves
+// Live word cloud from speech — words appear instantly, grow on repetition
 function schemaExpandFromSpeech(text) {
   if (!STATE.schemaActive) return;
   const normalized = normalizeSpeechText(text);
   if (!normalized) return;
 
   const w = window.innerWidth, h = window.innerHeight;
-  const cx = w * 0.5, cy = h * 0.46;
+  const pad = 80;
 
   const terms = normalized.split(' ')
-    .filter(word => word.length >= 4 && !SCHEMA_STOPWORDS.has(word));
+    .filter(word => word.length >= 3 && !SCHEMA_STOPWORDS.has(word));
   if (terms.length === 0) return;
 
-  const unique = schemaUniqueTerms(terms, 4);
-  if (unique.length === 0) return;
-
-  // No root yet → first spoken word becomes ROOT at center
-  const rootEntry = [...STATE.schemaWords.entries()].find(([, wd]) => wd.tier === 'root');
-
-  if (!rootEntry) {
-    const firstId = unique[0].replace(/\s+/g, '_');
-    schemaAddWord(firstId, schemaDisplayLabel(unique[0]), cx, cy, 'root', null);
-    // Hide the hint once first word appears
-    if (STATE.dom.schemaLabel) STATE.dom.schemaLabel.textContent = 'ESQUEMA';
-    // Remaining terms from this utterance become branches
-    unique.slice(1).forEach((term, i, arr) => {
-      const bid = term.replace(/\s+/g, '_');
-      if (STATE.schemaWords.has(bid)) return;
-      const angle = (i / Math.max(arr.length, 1)) * Math.PI * 2 - Math.PI / 2;
-      const r = Math.min(w, h) * 0.3;
-      schemaAddWord(bid, schemaDisplayLabel(term),
-        cx + Math.cos(angle) * r, cy + Math.sin(angle) * r * 0.7, 'branch', firstId);
-      schemaAddLine(firstId, bid);
-    });
-    updateDebugHud();
-    return;
+  // Hide the hint
+  if (STATE.dom.schemaLabel && STATE.schemaWords.size === 0) {
+    STATE.dom.schemaLabel.textContent = 'ESQUEMA';
   }
 
-  const rootId = rootEntry[0];
-  const rootWord = rootEntry[1];
-
-  unique.forEach((term) => {
+  terms.forEach((term) => {
     const id = term.replace(/\s+/g, '_');
+    const label = schemaDisplayLabel(term);
+
     if (STATE.schemaWords.has(id)) {
-      const wd = STATE.schemaWords.get(id);
-      wd.el.classList.add('flash');
-      setTimeout(() => wd.el.classList.remove('flash'), 1000);
+      // Bump existing word
+      schemaAddWord(id, label, 0, 0);
       return;
     }
 
-    // Decide tier: check if term shares a word with an existing branch → leaf
-    let parentId = rootId;
-    let tier = 'branch';
-    const termParts = term.split('_');
-    for (const [wId, wd] of STATE.schemaWords) {
-      if (wd.tier === 'root') continue;
-      const labelParts = normalizeSpeechText(wd.label).split(' ');
-      if (termParts.some(tp => labelParts.includes(tp))) {
-        parentId = wId;
-        tier = wd.tier === 'branch' ? 'leaf' : 'whisper';
-        break;
-      }
-    }
-
-    const parent = STATE.schemaWords.get(parentId);
-    if (!parent) return;
-
-    // Spread children evenly around parent using sibling count as angle offset
-    const siblings = [...STATE.schemaWords.values()].filter(wd => wd.parentId === parentId).length;
-    const baseAngle = Math.atan2(parent.y - cy, parent.x - cx);
-    const spread = tier === 'branch' ? 2.8 : 1.8;
-    const angle = baseAngle + (siblings - 1) * (spread / 4) + (Math.random() - 0.5) * 0.25;
-    const minDim = Math.min(w, h);
-    const r = tier === 'branch'
-      ? minDim * 0.26 + Math.random() * minDim * 0.06
-      : minDim * 0.14 + Math.random() * minDim * 0.07;
-
-    const nx = Math.max(90, Math.min(w - 90, parent.x + Math.cos(angle) * r));
-    const ny = Math.max(70, Math.min(h - 70, parent.y + Math.sin(angle) * r * 0.75));
-
-    schemaAddWord(id, schemaDisplayLabel(term), nx, ny, tier, parentId);
-    schemaAddLine(parentId, id);
+    // Place new word: random position with bias toward center
+    const x = pad + Math.random() * (w - pad * 2);
+    const y = pad + Math.random() * (h - pad * 2);
+    schemaAddWord(id, label, x, y);
   });
 
   updateDebugHud();
@@ -2904,21 +2789,18 @@ async function sendChatMessage() {
     // Stay on answer — no auto-close. User says "siguiente pregunta" or "sudo sum cerrar"
 
     // If schema overlay is active, parse ESQUEMA: pattern and inject nodes
+    // Inject words from chat response into schema if active
     const schemaMatch = accumulated.match(/ESQUEMA:\s*([^\n\u2192\-]+?)\s*(?:\u2192|->)\s*([^\n]+)/i);
     if (schemaMatch && STATE.schemaActive) {
+      const w = window.innerWidth, h = window.innerHeight;
       const root = schemaMatch[1].trim().split(/[\s_]+/).slice(0, 3).join(' ');
+      const rootId = normalizeSpeechText(root).replace(/\s+/g, '_');
+      schemaAddWord(rootId, root, w * 0.5, h * 0.4);
+      schemaAddWord(rootId, root, 0, 0); // bump weight
       const branches = schemaMatch[2].split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
-      const cx = window.innerWidth * 0.5;
-      const cy = window.innerHeight * 0.42;
-      const rootId = `chat-root-${Date.now()}`;
-      schemaAddWord(rootId, root, cx, cy, 'root', null);
-      branches.forEach((b, i) => {
-        const angle = (i / branches.length) * Math.PI * 2 - Math.PI / 2;
-        const bx = cx + Math.cos(angle) * window.innerWidth * 0.22;
-        const by = cy + Math.sin(angle) * window.innerHeight * 0.18;
-        const bid = `chat-b-${Date.now()}-${i}`;
-        schemaAddWord(bid, b, bx, by, 'branch', rootId);
-        schemaAddLine(rootId, bid);
+      branches.forEach((b) => {
+        const bid = normalizeSpeechText(b).replace(/\s+/g, '_');
+        schemaAddWord(bid, b, 60 + Math.random() * (w - 120), 60 + Math.random() * (h - 120));
       });
     }
 
