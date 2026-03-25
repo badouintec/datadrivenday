@@ -399,149 +399,124 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .summary-close:hover { color: var(--text); }
 
-    /* ── CONCEPT GRAPH ────────────────────────────────────── */
-    .graph-overlay {
-      position: fixed; inset: 0; z-index: 15;
+    /* ── SCHEMA / WORD MAP ──────────────────────────────── */
+    .schema-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      visibility: hidden; opacity: 0;
       pointer-events: none;
-      opacity: 0; transition: opacity 0.5s ease;
-    }
-    .graph-overlay::before {
-      content: '';
-      position: absolute;
-      inset: 0;
       background:
-        radial-gradient(circle at 50% 45%, rgba(52,211,153,0.12), transparent 28%),
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05), transparent 22%),
-        linear-gradient(180deg, rgba(13,17,23,0.94), rgba(8,12,18,0.98));
-      opacity: 0;
-      transition: opacity 0.35s ease;
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(59,130,246,0.10), transparent),
+        radial-gradient(circle at 15% 80%, rgba(52,211,153,0.06), transparent 40%),
+        linear-gradient(180deg, #06080d 0%, #0a0f1a 100%);
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      overflow: hidden;
     }
-    .graph-overlay.active { opacity: 1; }
-    body.graph-focus .graph-overlay { opacity: 1; }
-    body.graph-focus .graph-overlay::before { opacity: 1; }
-    body.graph-focus canvas {
-      opacity: 0.06;
-      filter: blur(4px);
-      transition: opacity 0.25s ease, filter 0.25s ease;
+    .schema-overlay.active {
+      visibility: visible; opacity: 1; pointer-events: auto;
     }
-    body.graph-focus .pres-topbar,
-    body.graph-focus .slide-hud,
-    body.graph-focus .pres-nav,
-    body.graph-focus .next-preview,
-    body.graph-focus .notes-panel,
-    body.graph-focus .pres-timer,
-    body.graph-focus .subtitle-bar {
-      opacity: 0;
-      pointer-events: none;
+    body.schema-active canvas,
+    body.schema-active .pres-topbar,
+    body.schema-active .slide-hud,
+    body.schema-active .pres-nav,
+    body.schema-active .next-preview,
+    body.schema-active .notes-panel,
+    body.schema-active .pres-timer,
+    body.schema-active .subtitle-bar {
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
-    body.graph-focus .pres-topbar {
-      transform: translateY(-100%);
-    }
-    .graph-svg {
+    .schema-canvas {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
     }
-    .graph-svg line {
-      stroke: var(--accent, #34d399);
-      stroke-width: 1.8;
-      stroke-opacity: 0.42;
-      stroke-dasharray: 200;
-      stroke-dashoffset: 200;
-      filter: drop-shadow(0 0 8px rgba(52,211,153,0.2));
-      animation: edge-draw 0.8s ease-out forwards;
-      transition: stroke-opacity 0.25s ease, stroke-width 0.25s ease;
+    .schema-label {
+      position: fixed; top: 1.2rem; left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono); font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(96,165,250,0.5);
+      border: 1px solid rgba(96,165,250,0.2);
+      border-radius: 999px;
+      padding: 0.45rem 1.2rem;
+      background: rgba(13,17,23,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 210;
     }
-    .graph-svg line.active {
-      stroke-opacity: 0.9;
-      stroke-width: 2.6;
-    }
-    @keyframes edge-draw {
-      to { stroke-dashoffset: 0; }
-    }
-    .graph-nodes {
-      position: absolute; inset: 0;
-    }
-    .graph-node {
+
+    /* Word elements */
+    .schema-word {
       position: absolute;
-      font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--accent, #34d399);
-      border: 1px solid var(--accent, #34d399);
-      background: rgba(13,17,23,0.82);
-      backdrop-filter: blur(4px);
-      border-radius: 4px;
-      padding: 0.3em 0.7em;
+      font-family: var(--display);
+      font-weight: 700;
       white-space: nowrap;
       transform: translate(-50%, -50%) scale(0);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.28);
-      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-float 7s ease-in-out infinite;
-      transition: left 0.6s ease, top 0.6s ease;
+      opacity: 0;
+      transition: left 1.2s cubic-bezier(0.25, 1, 0.5, 1),
+                  top 1.2s cubic-bezier(0.25, 1, 0.5, 1),
+                  opacity 0.6s ease, font-size 0.8s ease;
+      cursor: default;
+      user-select: none;
+      text-shadow: 0 0 40px currentColor;
     }
-    .graph-node.root {
-      font-size: 1.15rem;
-      padding: 0.55em 1.1em;
-      border-width: 2px;
-      background: rgba(13,17,23,0.98);
-      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.12), 0 0 28px rgba(52,211,153,0.16), 0 18px 44px rgba(0,0,0,0.38);
-      z-index: 2;
-      animation: node-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-root-pulse 2.8s ease-in-out infinite;
-    }
-    .graph-node.seed {
-      border-style: dashed;
-      opacity: 0.55;
+    .schema-word.visible {
       transform: translate(-50%, -50%) scale(1);
-      animation: node-float 8s ease-in-out infinite;
-    }
-    .graph-node.seed.mentioned {
       opacity: 1;
-      border-style: solid;
-      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-float 6.5s ease-in-out infinite;
+      animation: schema-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
-    .graph-node.incoming {
-      animation: node-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, node-flash 1.2s ease-out, node-float 6.8s ease-in-out infinite;
+    .schema-word.root {
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      color: #e6edf3;
+      text-shadow: 0 0 60px rgba(59,130,246,0.4), 0 0 120px rgba(59,130,246,0.15);
+      z-index: 5;
+      letter-spacing: -0.02em;
     }
-    .graph-node.active {
-      opacity: 1;
-      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2), 0 0 22px rgba(52,211,153,0.28), 0 14px 34px rgba(0,0,0,0.36);
+    .schema-word.branch {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      color: #60a5fa;
+      text-shadow: 0 0 30px rgba(96,165,250,0.3);
+      z-index: 4;
+      letter-spacing: -0.01em;
     }
-    @keyframes node-pop {
+    .schema-word.leaf {
+      font-size: clamp(0.75rem, 1.4vw, 1.1rem);
+      font-weight: 500;
+      color: #34d399;
+      text-shadow: 0 0 20px rgba(52,211,153,0.25);
+      z-index: 3;
+    }
+    .schema-word.whisper {
+      font-size: clamp(0.6rem, 1vw, 0.8rem);
+      font-weight: 400;
+      font-family: var(--mono);
+      color: rgba(125,133,144,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-shadow: none;
+      z-index: 2;
+    }
+    .schema-word.flash {
+      animation: schema-flash 1s ease-out;
+    }
+
+    /* Connection lines (pure CSS) */
+    .schema-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(96,165,250,0.3), rgba(96,165,250,0.05));
+      transform-origin: 0 0;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .schema-line.visible { opacity: 1; }
+
+    @keyframes schema-appear {
       0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
-    @keyframes node-flash {
-      0% { filter: brightness(1.8); }
+    @keyframes schema-flash {
+      0%   { filter: brightness(2); text-shadow: 0 0 40px currentColor; }
       100% { filter: brightness(1); }
-    }
-    @keyframes node-float {
-      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-      50% { transform: translate(-50%, -50%) translateY(-6px); }
-    }
-    @keyframes node-root-pulse {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); }
-      50% { transform: translate(-50%, -50%) scale(1.03); }
-    }
-    .graph-mode-banner {
-      position: fixed;
-      top: 1.25rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 120;
-      padding: 0.55rem 1rem;
-      border: 1px solid rgba(52, 211, 153, 0.35);
-      border-radius: 999px;
-      background: rgba(13,17,23,0.84);
-      color: var(--accent, #34d399);
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-    }
-    body.graph-focus .graph-mode-banner {
-      opacity: 1;
     }
 
     /* ── SUBTITLES ────────────────────────────────────────── */
@@ -778,12 +753,11 @@ const isAdmin = /ddd_session=/.test(cookie);
     </div>
   </div>
 
-  <!-- Live concept graph -->
-  <div class="graph-overlay" id="graphOverlay">
-    <svg class="graph-svg" id="graphSvg"></svg>
-    <div class="graph-nodes" id="graphNodes"></div>
+  <!-- Fullscreen schema / word map -->
+  <div class="schema-overlay" id="schemaOverlay">
+    <div class="schema-canvas" id="schemaCanvas"></div>
+    <div class="schema-label" id="schemaLabel">ESQUEMA</div>
   </div>
-  <div class="graph-mode-banner" id="graphModeBanner">Modo grafo · 10s</div>
 
   <!-- Live subtitles -->
   <div class="subtitle-bar" id="subtitleBar" hidden></div>
@@ -918,23 +892,15 @@ const STATE = {
   atencionTimer: null,
   subtitlesOn: false,
   subtitleTimer: null,
-  graphOn: false,
-  graphPinned: false,
-  graphFocusActive: false,
-  graphFocusTimer: null,
-  graphNodes: new Map(),
-  graphEdges: [],
-  graphTranscriptBuffer: '',
-  graphTimer: null,
-  graphBusy: false,
+  schemaActive: false,
+  schemaWords: new Map(),   // id → { label, x, y, el, tier, parentId }
+  schemaLines: [],          // { fromId, toId, el }
   debugVisible: false,
   debugSpeechAvailable: false,
   debugVoiceStatus: 'inactiva',
   debugMicStatus: 'pendiente',
   debugRecognitionStatus: 'sin inicializar',
   debugLastCommand: 'ninguno',
-  debugGraphStatus: 'inactivo',
-  debugGraphSource: 'sin datos',
   debugTranscript: 'sin texto',
   debugLastError: 'sin errores',
   // Timer
@@ -967,13 +933,31 @@ function normalizeSpeechText(value) {
     .trim();
 }
 
-function uniqueGraphTerms(values, limit = 6) {
+// ── SCHEMA / WORD MAP SYSTEM ──────────────────────────────────
+const SCHEMA_STOPWORDS = new Set([
+  'para', 'como', 'esta', 'este', 'estos', 'estas', 'vamos', 'puede', 'pueden', 'hacer', 'desde', 'hasta',
+  'porque', 'tambien', 'entre', 'cada', 'todos', 'todas', 'solo', 'algo', 'nada', 'digamos', 'bueno',
+  'pues', 'entonces', 'tener', 'tiene', 'modo', 'grafo', 'decir', 'hablar', 'habla', 'ahora', 'aqui',
+  'sudo', 'suma', 'esto', 'esos', 'esas', 'otro', 'otra', 'pero', 'cuando', 'donde', 'quien',
+  'sobre', 'bajo', 'tras', 'ante', 'contra', 'durante', 'mediante', 'segun', 'hacia',
+  'sido', 'sera', 'sido', 'siendo', 'estan', 'estar', 'estamos', 'seria', 'fueron',
+]);
+
+const SCHEMA_TIERS = ['root', 'branch', 'leaf', 'whisper'];
+const SCHEMA_COLORS = {
+  root:    '#e6edf3',
+  branch:  '#60a5fa',
+  leaf:    '#34d399',
+  whisper: '#7d8590',
+};
+
+function schemaUniqueTerms(values, limit = 8) {
   const unique = [];
   const seen = new Set();
   for (const raw of values) {
     const cleaned = String(raw ?? '').trim();
     const normalized = normalizeSpeechText(cleaned);
-    if (!cleaned || !normalized || seen.has(normalized)) continue;
+    if (!cleaned || !normalized || normalized.length < 3 || seen.has(normalized)) continue;
     seen.add(normalized);
     unique.push(cleaned);
     if (unique.length >= limit) break;
@@ -981,118 +965,240 @@ function uniqueGraphTerms(values, limit = 6) {
   return unique;
 }
 
-const GRAPH_WORD_STOPWORDS = new Set([
-  'para', 'como', 'esta', 'este', 'estos', 'estas', 'vamos', 'puede', 'pueden', 'hacer', 'desde', 'hasta',
-  'porque', 'tambien', 'entre', 'cada', 'todos', 'todas', 'solo', 'algo', 'nada', 'digamos', 'bueno',
-  'pues', 'entonces', 'tener', 'tiene', 'modo', 'grafo', 'decir', 'hablar', 'habla', 'ahora', 'aqui',
-]);
-
-function toDisplayGraphLabel(value) {
-  return String(value ?? '')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 3)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+function schemaDisplayLabel(value) {
+  return String(value ?? '').trim()
+    .split(/\s+/).slice(0, 4)
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
     .join(' ');
 }
 
-function getRootGraphNodeEntry() {
-  return [...STATE.graphNodes.entries()].find(([, node]) => node.root) ?? null;
-}
+function toggleSchema() {
+  STATE.schemaActive = !STATE.schemaActive;
+  const overlay = STATE.dom.schemaOverlay;
+  if (!overlay) return;
 
-function activateGraphNode(id) {
-  const node = STATE.graphNodes.get(id);
-  if (!node) return;
-  node.el.classList.add('active');
-  clearTimeout(node.activeTimer);
-  node.activeTimer = setTimeout(() => {
-    node.el.classList.remove('active');
-  }, 1200);
-}
-
-function activateGraphEdge(fromId, toId) {
-  const edge = STATE.graphEdges.find((item) =>
-    (item.from === fromId && item.to === toId) || (item.from === toId && item.to === fromId));
-  if (!edge) return;
-  edge.el.classList.add('active');
-  clearTimeout(edge.activeTimer);
-  edge.activeTimer = setTimeout(() => {
-    edge.el.classList.remove('active');
-  }, 900);
-}
-
-// Find an existing non-root node whose label shares a word with `termWords`.
-// Returns the node entry [id, node] if found, otherwise null.
-function findPeerNode(termWords) {
-  for (const [id, node] of STATE.graphNodes.entries()) {
-    if (node.root) continue;
-    const labelWords = normalizeSpeechText(node.label).split(' ');
-    if (termWords.some((w) => labelWords.includes(w))) return [id, node];
+  if (STATE.schemaActive) {
+    overlay.classList.add('active');
+    document.body.classList.add('schema-active');
+    schemaSeedFromSlide(); // always re-seed for current slide
+    if (!STATE.voiceActive) toggleVoice();
+    showVoiceFlash('Esquema ON');
+  } else {
+    overlay.classList.remove('active');
+    document.body.classList.remove('schema-active');
+    showVoiceFlash('Esquema OFF');
   }
-  return null;
+  STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.schemaActive);
+  updateDebugHud();
 }
 
-function expandGraphFromSpeech(text) {
+function clearSchema() {
+  STATE.schemaWords.clear();
+  STATE.schemaLines.forEach(l => l.el?.remove());
+  STATE.schemaLines = [];
+  if (STATE.dom.schemaCanvas) STATE.dom.schemaCanvas.innerHTML = '';
+}
+
+function schemaSeedFromSlide() {
+  clearSchema();
+  const slide = STATE.slides[STATE.idx];
+  const w = window.innerWidth, h = window.innerHeight;
+
+  // Root = slide title
+  const rootLabel = slide?.titulo?.trim() || slide?.tag?.trim() || 'Tema';
+  const rootId = normalizeSpeechText(rootLabel).replace(/\s+/g, '_') || 'tema';
+  schemaAddWord(rootId, rootLabel, w * 0.5, h * 0.38, 'root', null);
+
+  // Branches from slide data
+  const branches = [];
+  if (slide?.tag) branches.push(slide.tag);
+  if (slide?.conceptosClave?.length) branches.push(...slide.conceptosClave);
+  if (slide?.subtitulo) branches.push(...String(slide.subtitulo).split(/[,:;|]/));
+
+  const uniqueBranches = schemaUniqueTerms(branches, 6)
+    .filter(b => normalizeSpeechText(b) !== normalizeSpeechText(rootLabel));
+
+  // Place branches in a creative arc around root
+  const arcStart = -Math.PI * 0.7;
+  const arcEnd = Math.PI * 0.5;
+  uniqueBranches.forEach((label, i, arr) => {
+    const id = normalizeSpeechText(label).replace(/\s+/g, '_');
+    const t = arr.length === 1 ? 0.5 : i / (arr.length - 1);
+    const angle = arcStart + t * (arcEnd - arcStart);
+    const rx = Math.min(w * 0.28, 350) + (i % 2) * 40;
+    const ry = Math.min(h * 0.25, 220) + (i % 2) * 30;
+    const x = w * 0.5 + Math.cos(angle) * rx;
+    const y = h * 0.38 + Math.sin(angle) * ry;
+    schemaAddWord(id, schemaDisplayLabel(label), x, y, 'branch', rootId);
+    schemaAddLine(rootId, id);
+  });
+}
+
+function schemaAddWord(id, label, x, y, tier, parentId) {
+  if (STATE.schemaWords.has(id)) {
+    // Flash existing word
+    const existing = STATE.schemaWords.get(id);
+    existing.el.classList.add('flash');
+    setTimeout(() => existing.el.classList.remove('flash'), 1000);
+    return;
+  }
+
+  const container = STATE.dom.schemaCanvas;
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'schema-word ' + tier;
+  el.textContent = label;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  container.appendChild(el);
+
+  // Trigger animation after paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => el.classList.add('visible'));
+  });
+
+  STATE.schemaWords.set(id, { label, x, y, el, tier, parentId });
+
+  // Cap at 50 words — remove oldest whispers
+  if (STATE.schemaWords.size > 50) {
+    for (const [oldId, oldWord] of STATE.schemaWords) {
+      if (oldWord.tier === 'whisper') {
+        oldWord.el.remove();
+        STATE.schemaWords.delete(oldId);
+        // Remove associated lines
+        STATE.schemaLines = STATE.schemaLines.filter(l => {
+          if (l.fromId === oldId || l.toId === oldId) { l.el?.remove(); return false; }
+          return true;
+        });
+        break;
+      }
+    }
+  }
+}
+
+function schemaAddLine(fromId, toId) {
+  const from = STATE.schemaWords.get(fromId);
+  const to = STATE.schemaWords.get(toId);
+  if (!from || !to) return;
+  // No duplicate lines
+  if (STATE.schemaLines.some(l => (l.fromId === fromId && l.toId === toId) || (l.fromId === toId && l.toId === fromId))) return;
+
+  const container = STATE.dom.schemaCanvas;
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'schema-line';
+  container.appendChild(el);
+  positionLine(el, from.x, from.y, to.x, to.y);
+  requestAnimationFrame(() => el.classList.add('visible'));
+
+  STATE.schemaLines.push({ fromId, toId, el });
+}
+
+function positionLine(el, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx);
+  el.style.left = x1 + 'px';
+  el.style.top = y1 + 'px';
+  el.style.width = len + 'px';
+  el.style.transform = 'rotate(' + angle + 'rad)';
+}
+
+function schemaUpdateLinePositions() {
+  STATE.schemaLines.forEach(l => {
+    const from = STATE.schemaWords.get(l.fromId);
+    const to = STATE.schemaWords.get(l.toId);
+    if (from && to && l.el) positionLine(l.el, from.x, from.y, to.x, to.y);
+  });
+}
+
+// Soft repulsion so words don't overlap
+function schemaNudge() {
+  const words = [...STATE.schemaWords.values()];
+  const w = window.innerWidth, h = window.innerHeight;
+  const MIN_DIST = 80;
+
+  for (let i = 0; i < words.length; i++) {
+    for (let j = i + 1; j < words.length; j++) {
+      const dx = words[j].x - words[i].x;
+      const dy = words[j].y - words[i].y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      if (dist < MIN_DIST) {
+        const push = (MIN_DIST - dist) * 0.025;
+        const nx = (dx / dist) * push;
+        const ny = (dy / dist) * push;
+        // Don't push root
+        if (words[i].tier !== 'root') { words[i].x -= nx; words[i].y -= ny; }
+        if (words[j].tier !== 'root') { words[j].x += nx; words[j].y += ny; }
+      }
+    }
+    // Keep within viewport with padding
+    words[i].x = Math.max(80, Math.min(w - 80, words[i].x));
+    words[i].y = Math.max(60, Math.min(h - 60, words[i].y));
+    words[i].el.style.left = words[i].x + 'px';
+    words[i].el.style.top = words[i].y + 'px';
+  }
+  schemaUpdateLinePositions();
+}
+
+// Expand schema from speech — add new concepts as they're spoken
+function schemaExpandFromSpeech(text) {
+  if (!STATE.schemaActive) return;
   const normalized = normalizeSpeechText(text);
   if (!normalized) return;
 
-  const rootEntry = getRootGraphNodeEntry();
+  // Find root
+  const rootEntry = [...STATE.schemaWords.entries()].find(([, w]) => w.tier === 'root');
   if (!rootEntry) return;
-
   const rootId = rootEntry[0];
-  const rootNode = rootEntry[1];
-  const terms = normalized
-    .split(' ')
-    .filter((word) => word.length >= 4 && !GRAPH_WORD_STOPWORDS.has(word));
 
-  const uniqueTerms = uniqueGraphTerms(terms, 4);
-  uniqueTerms.forEach((term, index) => {
+  const terms = normalized.split(' ')
+    .filter(word => word.length >= 4 && !SCHEMA_STOPWORDS.has(word));
+
+  const unique = schemaUniqueTerms(terms, 3);
+  unique.forEach((term) => {
     const id = normalizeSpeechText(term).replace(/\s+/g, '_');
-    if (!id) return;
-    if (STATE.graphNodes.has(id)) {
-      activateSeedNode(id);
-      activateGraphNode(id);
-      // also light up the edge connecting it
-      const peer = findPeerNode(normalizeSpeechText(id).split('_'));
-      const parentId = peer ? peer[0] : rootId;
-      activateGraphEdge(parentId, id);
-      if (!STATE.graphEdges.some(e => (e.from === parentId && e.to === id) || (e.from === id && e.to === parentId))) {
-        activateGraphEdge(rootId, id);
+    if (!id || STATE.schemaWords.has(id)) {
+      // Flash if exists
+      if (STATE.schemaWords.has(id)) {
+        const w = STATE.schemaWords.get(id);
+        w.el.classList.add('flash');
+        setTimeout(() => w.el.classList.remove('flash'), 1000);
       }
       return;
     }
 
-    // Decide parent: attach to a semantically related existing node if possible,
-    // otherwise fall back to root.
+    // Decide tier: if related to a branch, become leaf. Otherwise whisper.
+    let parentId = rootId;
+    let tier = 'whisper';
     const termWords = normalizeSpeechText(term).split(' ');
-    const peerEntry = findPeerNode(termWords);
-    const parentId = peerEntry ? peerEntry[0] : rootId;
-    const parentNode = peerEntry ? peerEntry[1] : rootNode;
 
-    const angle = -Math.PI / 3 + Math.random() * (Math.PI * 1.25);
-    const distance = (peerEntry ? 110 : 150) + index * 36 + Math.random() * 40;
-    const x = parentNode.x + Math.cos(angle) * distance;
-    const y = parentNode.y + Math.sin(angle) * distance;
-    addGraphNode(id, toDisplayGraphLabel(term), x, y, false);
-    addGraphEdge(parentId, id);
-    activateGraphNode(id);
-    activateGraphEdge(parentId, id);
+    for (const [wId, w] of STATE.schemaWords) {
+      if (w.tier === 'root') continue;
+      const labelWords = normalizeSpeechText(w.label).split(' ');
+      if (termWords.some(tw => labelWords.includes(tw))) {
+        parentId = wId;
+        tier = w.tier === 'branch' ? 'leaf' : 'whisper';
+        break;
+      }
+    }
+
+    const parent = STATE.schemaWords.get(parentId);
+    if (!parent) return;
+
+    // Position near parent with some randomness
+    const angle = -Math.PI + Math.random() * Math.PI * 2;
+    const dist = tier === 'leaf' ? (100 + Math.random() * 80) : (60 + Math.random() * 100);
+    const x = parent.x + Math.cos(angle) * dist;
+    const y = parent.y + Math.sin(angle) * dist;
+
+    schemaAddWord(id, schemaDisplayLabel(term), x, y, tier, parentId);
+    schemaAddLine(parentId, id);
   });
 
   updateDebugHud();
-}
-
-function extractSlideSeedTerms(slide) {
-  const chunks = [];
-  if (slide?.tag) chunks.push(slide.tag);
-  if (slide?.conceptosClave?.length) chunks.push(...slide.conceptosClave);
-  if (slide?.subtitulo) {
-    chunks.push(...String(slide.subtitulo).split(/[,:;|]/));
-  }
-  if (slide?.titulo) {
-    chunks.push(...String(slide.titulo).split(/[,:;|]/));
-  }
-  return uniqueGraphTerms(chunks, 6);
 }
 
 // ── INIT ─────────────────────────────────────────────────
@@ -1119,8 +1225,7 @@ async function init() {
     debugGraphSource: $('debugGraphSource'), debugGraphNodes: $('debugGraphNodes'),
     debugTranscript: $('debugTranscript'), debugLastError: $('debugLastError'),
     atencionOverlay: $('atencionOverlay'),
-    graphModeBanner: $('graphModeBanner'),
-    graphOverlay: $('graphOverlay'), graphNodes: $('graphNodes'), graphSvg: $('graphSvg'),
+    schemaOverlay: $('schemaOverlay'), schemaCanvas: $('schemaCanvas'), schemaLabel: $('schemaLabel'),
   };
 
   STATE.canvas = $('presCanvas');
@@ -1178,16 +1283,16 @@ function updateDebugHud() {
   d.debugRecognitionStatus.textContent = STATE.debugRecognitionStatus;
   d.debugRestartAttempts.textContent = String(STATE.voiceRestartAttempts);
   d.debugLastCommand.textContent = STATE.debugLastCommand;
-  d.debugGraphStatus.textContent = STATE.debugGraphStatus;
-  d.debugGraphSource.textContent = STATE.debugGraphSource;
-  d.debugGraphNodes.textContent = String(STATE.graphNodes.size);
+  d.debugGraphStatus.textContent = STATE.schemaActive ? 'activo' : 'inactivo';
+  d.debugGraphSource.textContent = STATE.schemaWords.size ? 'con datos' : 'sin datos';
+  d.debugGraphNodes.textContent = String(STATE.schemaWords.size);
   d.debugTranscript.textContent = STATE.debugTranscript;
   d.debugLastError.textContent = STATE.debugLastError;
 
   d.debugVoiceStatus.className = 'debug-value' + (STATE.voiceActive ? ' is-good' : '');
   d.debugMicStatus.className = 'debug-value' + (STATE.debugMicStatus === 'listo' ? ' is-good' : STATE.debugMicStatus.includes('bloqueado') || STATE.debugMicStatus.includes('no disponible') ? ' is-error' : '');
   d.debugRecognitionStatus.className = 'debug-value' + (STATE.debugRecognitionStatus.includes('escuchando') ? ' is-good' : STATE.debugRecognitionStatus.includes('error') ? ' is-error' : '');
-  d.debugGraphStatus.className = 'debug-value' + ((STATE.graphOn || STATE.graphFocusActive) ? ' is-good' : '');
+  d.debugGraphStatus.className = 'debug-value' + (STATE.schemaActive ? ' is-good' : '');
   d.debugLastError.className = 'debug-transcript-text' + (STATE.debugLastError !== 'sin errores' ? ' is-error' : '');
 }
 
@@ -1198,12 +1303,6 @@ function setDebugCommand(value) {
 
 function setDebugError(value) {
   STATE.debugLastError = value;
-  updateDebugHud();
-}
-
-function setDebugGraphStatus(value, source) {
-  STATE.debugGraphStatus = value;
-  if (source) STATE.debugGraphSource = source;
   updateDebugHud();
 }
 
@@ -1218,7 +1317,7 @@ function renderSlide(idx, direction) {
   const slides = STATE.slides;
   if (!slides.length) return;
   STATE.idx = idx;
-  if (STATE.graphOn || STATE.graphFocusActive) seedGraphFromSlide();
+  if (STATE.schemaActive) schemaSeedFromSlide();
 
   const slide = slides[idx];
   const hud = document.getElementById('slideHud');
@@ -1303,7 +1402,7 @@ function bindEvents() {
   document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
   document.getElementById('btnVoice').addEventListener('click', toggleVoice);
   document.getElementById('btnSubtitles').addEventListener('click', toggleSubtitles);
-  document.getElementById('btnGraph').addEventListener('click', toggleGraph);
+  document.getElementById('btnGraph').addEventListener('click', toggleSchema);
   document.getElementById('atencionOverlay').addEventListener('click', dismissAtencion);
   document.getElementById('summaryClose').addEventListener('click', closeSummary);
 
@@ -1315,9 +1414,9 @@ function bindEvents() {
     if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     if (e.key === 'v' || e.key === 'V') toggleVoice();
     if (e.key === 's' || e.key === 'S') toggleSubtitles();
-    if (e.key === 'g' || e.key === 'G') toggleGraph();
+    if (e.key === 'g' || e.key === 'G') toggleSchema();
     if ((e.key === 'd' || e.key === 'D') && STATE.dom.debugPanel) toggleDebugHud();
-    if (e.key === 'Escape') { dismissAtencion(); closeNotes(); closeSummary(); }
+    if (e.key === 'Escape') { dismissAtencion(); closeNotes(); closeSummary(); if (STATE.schemaActive) toggleSchema(); }
     showUI();
   });
 
@@ -1532,7 +1631,7 @@ function initVoice() {
         STATE.debugTranscript = result[0].transcript.trim();
         handleVoiceTranscript(transcripts);
         updateSubtitle(result[0].transcript.trim(), false);
-        feedGraphTranscript(result[0].transcript);
+        feedSchemaTranscript(result[0].transcript);
         STATE.allTranscripts += ' ' + result[0].transcript.trim();
         updateDebugHud();
       } else {
@@ -1540,10 +1639,8 @@ function initVoice() {
       }
     }
     if (interimText) {
-      if (STATE.graphFocusActive) {
-        feedGraphTranscript(interimText.trim());
-        expandGraphFromSpeech(interimText.trim());
-      }
+      // Schema only grows from final transcripts (not interim partials)
+      // to avoid polluting the map with partial/truncated words.
       updateSubtitle(interimText.trim(), true);
     }
   };
@@ -1709,298 +1806,14 @@ function updateSubtitleButton() {
 }
 
 // ── LIVE CONCEPT GRAPH ───────────────────────────────────
-function toggleGraph() {
-  const nextPinned = !STATE.graphPinned;
-  setGraphPinned(nextPinned);
-  setDebugCommand(nextPinned ? 'toggle_grafo_on' : 'toggle_grafo_off');
-  showVoiceFlash(nextPinned ? 'Grafo ON' : 'Grafo OFF');
-}
-
-function syncGraphUi() {
-  const graphVisible = STATE.graphOn || STATE.graphFocusActive;
-  STATE.dom.graphOverlay?.classList.toggle('active', graphVisible);
-  STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.graphPinned || STATE.graphFocusActive);
-  document.body.classList.toggle('graph-focus', STATE.graphFocusActive);
-  STATE.debugGraphStatus = graphVisible
-    ? STATE.graphFocusActive ? 'focus' : STATE.graphPinned ? 'fijado' : 'activo'
-    : 'inactivo';
-  updateDebugHud();
-}
-
-function setGraphPinned(enabled) {
-  STATE.graphPinned = enabled;
-  if (enabled) {
-    STATE.graphOn = true;
-    if (!STATE.graphNodes.size) seedGraphFromSlide();
-    if (!STATE.voiceActive) toggleVoice();
-  } else if (!STATE.graphFocusActive) {
-    STATE.graphOn = false;
-    clearGraph();
-  }
-  syncGraphUi();
-}
-
-function activateGraphFocus() {
-  clearTimeout(STATE.graphFocusTimer);
-  STATE.graphFocusTimer = null;
-  STATE.graphOn = true;
-  STATE.graphFocusActive = true;
-  if (!STATE.graphNodes.size) seedGraphFromSlide();
-  if (!STATE.voiceActive) toggleVoice();
-  syncGraphUi();
-}
-
-function deactivateGraphFocus() {
-  clearTimeout(STATE.graphFocusTimer);
-  STATE.graphFocusTimer = null;
-  STATE.graphFocusActive = false;
-  if (!STATE.graphPinned) {
-    STATE.graphOn = false;
-    clearGraph();
-  }
-  syncGraphUi();
-}
-
-function clearGraph() {
-  STATE.graphNodes.clear();
-  STATE.graphEdges = [];
-  STATE.graphTranscriptBuffer = '';
-  clearTimeout(STATE.graphTimer);
-  STATE.graphTimer = null;
-  STATE.graphBusy = false;
-  if (STATE.dom.graphNodes) STATE.dom.graphNodes.innerHTML = '';
-  if (STATE.dom.graphSvg) STATE.dom.graphSvg.innerHTML = '';
-  updateDebugHud();
-}
-
-function seedGraphFromSlide() {
-  clearGraph();
-  const slide = STATE.slides[STATE.idx];
-  const seedTerms = extractSlideSeedTerms(slide);
-  const w = window.innerWidth, h = window.innerHeight;
-  const rootLabel = slide?.titulo?.trim() || slide?.tag?.trim() || 'Tema actual';
-  const rootId = normalizeSpeechText(rootLabel).replace(/\s+/g, '_') || 'tema_actual';
-  const rootX = w * 0.5;
-  const rootY = h * 0.42;
-
-  addGraphNode(rootId, rootLabel, rootX, rootY, true, true);
-
-  if (!seedTerms.length) {
-    const fallback = slide?.subtitulo?.trim() || slide?.cuerpo?.trim()?.split('.').at(0) || 'Contexto';
-    if (fallback) seedTerms.push(fallback);
-  }
-
-  const radiusX = Math.min(w * 0.22, 240);
-  const radiusY = Math.min(h * 0.2, 180);
-  seedTerms
-    .filter((label) => normalizeSpeechText(label) !== normalizeSpeechText(rootLabel))
-    .forEach((label, index, list) => {
-      const id = normalizeSpeechText(label).replace(/\s+/g, '_');
-      const angle = (-Math.PI / 2) + ((index + 1) / (list.length + 1)) * Math.PI;
-      const cx = rootX + Math.cos(angle) * radiusX;
-      const cy = rootY + Math.sin(angle) * radiusY;
-      addGraphNode(id, label, cx, cy, true, false);
-      addGraphEdge(rootId, id);
-    });
-
-  STATE.debugGraphSource = 'seed';
-  updateDebugHud();
-}
-
-function addGraphNode(id, label, x, y, isSeed, isRoot = false) {
-  if (STATE.graphNodes.has(id)) return;
-  const container = STATE.dom.graphNodes;
-  const el = document.createElement('div');
-  el.className = ['graph-node', isSeed ? 'seed' : '', isRoot ? 'root' : ''].filter(Boolean).join(' ');
-  el.textContent = label;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  container.appendChild(el);
-  STATE.graphNodes.set(id, { label, x, y, el, seed: isSeed, root: isRoot });
-  if (!isSeed || isRoot) activateGraphNode(id);
-}
-
-function activateSeedNode(id) {
-  const node = STATE.graphNodes.get(id);
-  if (!node) return;
-  if (node.seed && !node.el.classList.contains('mentioned')) {
-    node.el.classList.add('mentioned');
-  }
-  activateGraphNode(id);
-}
-
-function addGraphEdge(fromId, toId) {
-  const from = STATE.graphNodes.get(fromId);
-  const to = STATE.graphNodes.get(toId);
-  if (!from || !to) return;
-  // Avoid duplicate edges
-  if (STATE.graphEdges.some(e => (e.from === fromId && e.to === toId) || (e.from === toId && e.to === fromId))) return;
-  const svg = STATE.dom.graphSvg;
-  if (!svg) return;
-  const ns = 'http://www.w3.org/2000/svg';
-  const line = document.createElementNS(ns, 'line');
-  line.setAttribute('x1', from.x);
-  line.setAttribute('y1', from.y);
-  line.setAttribute('x2', to.x);
-  line.setAttribute('y2', to.y);
-  svg.appendChild(line);
-  STATE.graphEdges.push({ from: fromId, to: toId, el: line });
-  activateGraphEdge(fromId, toId);
-}
-
-function updateGraphEdgePositions() {
-  STATE.graphEdges.forEach(e => {
-    const from = STATE.graphNodes.get(e.from);
-    const to = STATE.graphNodes.get(e.to);
-    if (!from || !to) return;
-    e.el.setAttribute('x1', from.x);
-    e.el.setAttribute('y1', from.y);
-    e.el.setAttribute('x2', to.x);
-    e.el.setAttribute('y2', to.y);
-  });
-}
-
-// Lightweight force-directed push — keeps nodes from overlapping
-function nudgeGraphNodes() {
-  const nodes = [...STATE.graphNodes.values()];
-  const w = window.innerWidth, h = window.innerHeight;
-  for (let i = 0; i < nodes.length; i++) {
-    for (let j = i + 1; j < nodes.length; j++) {
-      const dx = nodes[j].x - nodes[i].x;
-      const dy = nodes[j].y - nodes[i].y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      if (dist < 120) {
-        const push = (120 - dist) * 0.03;
-        const nx = (dx / dist) * push;
-        const ny = (dy / dist) * push;
-        nodes[i].x -= nx; nodes[i].y -= ny;
-        nodes[j].x += nx; nodes[j].y += ny;
-      }
-    }
-    // Keep within viewport
-    nodes[i].x = Math.max(60, Math.min(w - 60, nodes[i].x));
-    nodes[i].y = Math.max(60, Math.min(h - 60, nodes[i].y));
-    nodes[i].el.style.left = nodes[i].x + 'px';
-    nodes[i].el.style.top = nodes[i].y + 'px';
-  }
-  updateGraphEdgePositions();
-}
-
-// Feed transcript to graph AI (throttled)
-function feedGraphTranscript(text) {
-  if (!STATE.graphOn && !STATE.graphFocusActive) return;
-  const cleanedText = sanitizeGraphTranscript(text);
-  if (!cleanedText) return;
-  const normalizedTranscript = normalizeSpeechText(cleanedText);
-
-  if (STATE.graphFocusActive) {
-    expandGraphFromSpeech(cleanedText);
-  }
-
-  STATE.graphTranscriptBuffer += ' ' + cleanedText;
-  if (STATE.graphTranscriptBuffer.length > 500) {
-    STATE.graphTranscriptBuffer = STATE.graphTranscriptBuffer.slice(-500);
-  }
-
-  // Check if any seed node is mentioned
-  STATE.graphNodes.forEach((node, id) => {
-    if (node.seed && normalizedTranscript.includes(normalizeSpeechText(node.label))) {
-      activateSeedNode(id);
-    }
-  });
-
-  // Throttle AI calls enough to feel live in graph mode.
-  if (STATE.graphBusy || STATE.graphTimer) return;
-  STATE.graphTimer = setTimeout(() => {
-    STATE.graphTimer = null;
-    requestGraphUpdate();
-  }, STATE.graphFocusActive ? 1800 : 3000);
-}
-
-function sanitizeGraphTranscript(text) {
-  return String(text ?? '')
-    .replace(/\b(?:modo|vista)\s+grafo\b/gi, ' ')
-    .replace(/\b(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo\b/gi, ' ')
-    .replace(/\b(?:cerrar|cierra|quitar|ocultar|salir\s+de)\s+(?:modo\s+)?grafo\b/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-async function requestGraphUpdate() {
-  const transcript = STATE.graphTranscriptBuffer.trim();
-  STATE.graphTranscriptBuffer = '';
-  if (!transcript || transcript.length < 15) return;
-  if (STATE.graphBusy) return;
-  STATE.graphBusy = true;
-  setDebugGraphStatus('procesando', STATE.debugGraphSource);
-
-  const slide = STATE.slides[STATE.idx];
-  try {
-    const res = await fetch('/api/slides/live-graph', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        slide: {
-          titulo: slide?.titulo ?? '',
-          subtitulo: slide?.subtitulo ?? '',
-          cuerpo: slide?.cuerpo ?? '',
-          conceptosClave: slide?.conceptosClave ?? [],
-          tag: slide?.tag ?? '',
-        },
-        transcript,
-        existingNodes: [...STATE.graphNodes.keys()],
-      }),
-    });
-    const data = await res.json();
-    if (data.ok && data.graph) {
-      mergeGraph(data.graph);
-      setDebugGraphStatus(`ok (${data.graph.nodes?.length ?? 0} nodos)`, data.source ?? 'desconocida');
-    } else {
-      setDebugGraphStatus('sin respuesta', 'desconocida');
-    }
-  } catch {
-    setDebugGraphStatus('error de red', 'desconocida');
-    setDebugError('graph_network_error');
-  }
-  STATE.graphBusy = false;
-  updateDebugHud();
-}
-
-function mergeGraph(graph) {
-  const w = window.innerWidth, h = window.innerHeight;
-  const rootNode = [...STATE.graphNodes.entries()].find(([, node]) => node.root);
-  (graph.nodes ?? []).forEach(n => {
-    if (STATE.graphNodes.has(n.id)) {
-      activateSeedNode(n.id);
-      return;
-    }
-    // Position near existing connected nodes, or random right side
-    let x = w * 0.55 + Math.random() * w * 0.35;
-    let y = h * 0.15 + Math.random() * h * 0.7;
-    const connected = (graph.edges ?? []).find(e => e.from === n.id || e.to === n.id);
-    if (connected) {
-      const otherId = connected.from === n.id ? connected.to : connected.from;
-      const other = STATE.graphNodes.get(otherId);
-      if (other) {
-        x = other.x + (Math.random() - 0.5) * 160;
-        y = other.y + (Math.random() - 0.5) * 120;
-      }
-    } else if (rootNode) {
-      x = rootNode[1].x + (Math.random() - 0.5) * 220;
-      y = rootNode[1].y + (Math.random() - 0.5) * 180;
-    }
-    addGraphNode(n.id, n.label, x, y, false);
-  });
-  (graph.edges ?? []).forEach(e => {
-    addGraphEdge(e.from, e.to);
-  });
-  if (rootNode && graph.nodes?.length && !(graph.edges ?? []).length) {
-    graph.nodes.forEach((node) => {
-      if (node.id !== rootNode[0]) addGraphEdge(rootNode[0], node.id);
-    });
-  }
-  nudgeGraphNodes();
-  updateDebugHud();
+// Feed transcript text to the schema — expand words from speech
+function feedSchemaTranscript(text) {
+  if (!STATE.schemaActive) return;
+  const cleaned = String(text ?? '')
+    .replace(/\bsudo\s+sum\b/gi, '')
+    .replace(/\s+/g, ' ').trim();
+  if (!cleaned) return;
+  schemaExpandFromSpeech(cleaned);
 }
 
 function handleVoiceTranscript(transcripts) {
@@ -2009,17 +1822,10 @@ function handleVoiceTranscript(transcripts) {
     .filter(Boolean);
   const match = (re) => normalizedTranscripts.some(t => re.test(t));
 
-  if (match(/(?:modo|vista)\s+grafo|(?:activar|activa|abre|mostrar|muestra|ver)\s+(?:el\s+)?grafo/)) {
-    setDebugCommand('modo_grafo');
-    activateGraphFocus();
-    showVoiceFlash('Modo grafo');
-    return;
-  }
-
-  if (match(/(?:cerrar|cierra|quitar|ocultar|salir\s+de)\s+(?:modo\s+)?grafo/)) {
-    setDebugCommand('cerrar_grafo');
-    deactivateGraphFocus();
-    showVoiceFlash('Vista normal');
+  // "Sudo sum Grafo" — toggle schema mode
+  if (match(/sudo\s*su[mn]\s*grafo/) || match(/su\s*do\s*su[mn]\s*grafo/)) {
+    setDebugCommand('sudo_sum_grafo');
+    toggleSchema();
     return;
   }
 
@@ -2209,7 +2015,7 @@ function startLoop() {
     STATE.animTime += dt;
     updateVoiceMetrics();
     drawParticles();
-    if (STATE.graphOn && STATE.graphNodes.size > 1) nudgeGraphNodes();
+    if (STATE.schemaActive && STATE.schemaWords.size > 1) schemaNudge();
     updateTimerDisplay(now);
     STATE.animFrame = requestAnimationFrame(frame);
   }
