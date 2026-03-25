@@ -368,6 +368,102 @@ app.get('/recursos', async (c) => {
   return c.json({ recursos }, 200, { 'Cache-Control': 'public, max-age=60' });
 });
 
+// ── AI Chat (streaming SSE) ───────────────────────────────────────────────────
+app.post('/chat', async (c) => {
+  const body = await c.req.json<{
+    mode: string;
+    messages: Array<{ role: string; content: string }>;
+    context?: Record<string, unknown>;
+  }>().catch(() => null);
+
+  if (!body || !Array.isArray(body.messages) || body.messages.length === 0) {
+    return c.json({ ok: false, error: 'invalid_body' }, 400);
+  }
+
+  // Validate and sanitize input
+  const mode = body.mode === 'presenter' ? 'presenter' : 'participant';
+  const sanitizedMessages = body.messages
+    .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .slice(-10)
+    .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 2000) }));
+
+  if (sanitizedMessages.length === 0) {
+    return c.json({ ok: false, error: 'no_messages' }, 400);
+  }
+
+  // Rate limit: 20 requests per minute per IP
+  if (c.env.APP_SESSION) {
+    const ip = getClientIp(c.req);
+    const count = await getRateLimitCount(c.env.APP_SESSION, `chat:${ip}`, 60);
+    if (count >= 20) {
+      return c.json({ ok: false, error: 'Demasiadas solicitudes. Intenta en un momento.' }, 429);
+    }
+    await incrementRateLimitCount(c.env.APP_SESSION, `chat:${ip}`, 60);
+  }
+
+  // Build system prompt
+  let systemPrompt: string;
+  if (mode === 'presenter') {
+    const ctx = (body.context ?? {}) as Record<string, unknown>;
+    const slideTitle = String(ctx.slideTitle ?? '').slice(0, 200);
+    const slideSubtitulo = String(ctx.slideSubtitulo ?? '').slice(0, 200);
+    const rawConcepts = ctx.conceptosClave;
+    const conceptosClave = Array.isArray(rawConcepts)
+      ? rawConcepts.map(x => String(x).slice(0, 50)).slice(0, 10).join(', ')
+      : '';
+    const slideInfo = slideTitle
+      ? `\nDiapositiva actual: "${slideTitle}"${slideSubtitulo ? ` — ${slideSubtitulo}` : ''}${conceptosClave ? `\nConceptos clave: ${conceptosClave}` : ''}`
+      : '';
+    systemPrompt = `Eres un asistente de presentaciones en vivo para Data Driven Day 2026, un evento de datos y tecnología en Hermosillo, Sonora, México. Tu rol es ayudar al presentador con:
+- Explicar ecuaciones matemáticas y conceptos técnicos con claridad
+- Generar esquemas conceptuales y mapas de ideas
+- Responder preguntas técnicas sobre datos, IA, urbanismo y tecnología
+- Ser conciso: el presentador está en escena en tiempo real
+
+Cuando expliques una ecuación, usa notación matemática clara (ejemplo: E = mc², ȳ = Σxᵢ/n).
+Cuando sugieras un esquema de conceptos, incluye exactamente esta línea al final de tu respuesta:
+ESQUEMA: concepto_raiz → rama1, rama2, rama3
+(Usa términos breves, sin tildes, máximo 4 ramas)${slideInfo}
+
+Responde en español. Sé breve y preciso.`;
+  } else {
+    systemPrompt = `Eres un asistente inteligente de Data Driven Day 2026, un evento de datos, tecnología e inteligencia urbana en Hermosillo, Sonora, México.
+
+El evento incluye:
+- Conferencias sobre IA, datos urbanos, movilidad, agua y economía digital
+- Un Dataller (taller intensivo) de análisis y visualización de datos
+- Herramientas: Python, SQL, visualización de datos, LLMs
+- Ponentes expertos en tecnología y política pública
+
+Tu rol:
+- Responder preguntas sobre el programa, actividades y logística del evento
+- Explicar conceptos técnicos de forma accesible
+- Orientar sobre el Dataller y sus recursos
+- Ser amigable, conciso y útil
+
+Responde en español.`;
+  }
+
+  const ai = c.env.AI;
+  if (!ai) {
+    return c.json({ ok: false, error: 'El chat de IA no está disponible en este entorno.' }, 503);
+  }
+
+  const allMessages = [
+    { role: 'system' as const, content: systemPrompt },
+    ...sanitizedMessages,
+  ];
+
+  const stream = await ai.run('@cf/meta/llama-3.1-8b-instruct-fp8' as keyof AiModels, {
+    messages: allMessages,
+    stream: true,
+  });
+
+  return new Response(stream as unknown as ReadableStream, {
+    headers: { 'content-type': 'text/event-stream' },
+  });
+});
+
 // ── Serve media from R2 ──────────────────────────────────────────────────────
 app.get('/media/*', async (c) => {
   const key = c.req.path.replace('/media/', '');
