@@ -472,7 +472,7 @@ const isAdmin = true;
     }
 
     /* Word elements */
-    .schema-word {
+    :global(.schema-word) {
       position: absolute;
       font-family: var(--display);
       font-weight: 700;
@@ -486,33 +486,33 @@ const isAdmin = true;
       user-select: none;
       text-shadow: 0 0 40px currentColor;
     }
-    .schema-word.visible {
+    :global(.schema-word.visible) {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
       animation: schema-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
-    .schema-word.root {
+    :global(.schema-word.root) {
       font-size: clamp(2.5rem, 5vw, 4.5rem);
       color: #e6edf3;
       text-shadow: 0 0 60px rgba(59,130,246,0.4), 0 0 120px rgba(59,130,246,0.15);
       z-index: 5;
       letter-spacing: -0.02em;
     }
-    .schema-word.branch {
+    :global(.schema-word.branch) {
       font-size: clamp(1.2rem, 2.5vw, 2rem);
       color: #60a5fa;
       text-shadow: 0 0 30px rgba(96,165,250,0.3);
       z-index: 4;
       letter-spacing: -0.01em;
     }
-    .schema-word.leaf {
+    :global(.schema-word.leaf) {
       font-size: clamp(0.75rem, 1.4vw, 1.1rem);
       font-weight: 500;
       color: #34d399;
       text-shadow: 0 0 20px rgba(52,211,153,0.25);
       z-index: 3;
     }
-    .schema-word.whisper {
+    :global(.schema-word.whisper) {
       font-size: clamp(0.6rem, 1vw, 0.8rem);
       font-weight: 400;
       font-family: var(--mono);
@@ -522,12 +522,12 @@ const isAdmin = true;
       text-shadow: none;
       z-index: 2;
     }
-    .schema-word.flash {
+    :global(.schema-word.flash) {
       animation: schema-flash 1s ease-out;
     }
 
     /* Connection lines (pure CSS) */
-    .schema-line {
+    :global(.schema-line) {
       position: absolute;
       height: 1px;
       background: linear-gradient(90deg, rgba(96,165,250,0.3), rgba(96,165,250,0.05));
@@ -536,7 +536,7 @@ const isAdmin = true;
       opacity: 0;
       transition: opacity 0.8s ease;
     }
-    .schema-line.visible { opacity: 1; }
+    :global(.schema-line.visible) { opacity: 1; }
 
     @keyframes schema-appear {
       0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
@@ -948,46 +948,53 @@ const isAdmin = true;
       position: fixed; inset: 0; z-index: 610;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 2.5rem;
-      background: var(--overlay-heavy);
+      gap: 0;
+      background: rgba(0,0,0,0.85);
       backdrop-filter: blur(22px);
       padding: 3rem clamp(2rem, 8vw, 8rem);
       opacity: 0; pointer-events: none;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.25s ease, background 0.4s ease;
     }
     .chat-voice-overlay.show { opacity: 1; pointer-events: auto; }
+    .chat-voice-overlay.phase-question { background: #0f2b5e; }
+    .chat-voice-overlay.phase-answer { background: rgba(0,0,0,0.92); }
+    .chat-voice-overlay.phase-listening { background: rgba(0,0,0,0.85); }
     .chat-vo-block {
       width: 100%; max-width: 960px;
       display: flex; flex-direction: column; gap: 0.6rem;
+      align-items: center; text-align: center;
     }
+    .chat-vo-block.hidden { display: none; }
     .chat-vo-label {
       font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
       letter-spacing: 0.14em; text-transform: uppercase;
-      color: #34d399;
+      color: #60a5fa;
     }
+    .chat-vo-label.answer-label { color: #34d399; }
     .chat-vo-text {
       font-family: var(--display);
-      font-size: clamp(1.8rem, 4.5vw, 3.6rem);
+      font-size: clamp(2rem, 5vw, 4rem);
       font-weight: 600; line-height: 1.3;
-      color: var(--text); white-space: pre-wrap;
+      color: #fff; white-space: pre-wrap;
     }
     .chat-vo-text.answer {
-      font-size: clamp(1.3rem, 3vw, 2.6rem);
+      font-size: clamp(1.5rem, 3.5vw, 3rem);
       font-weight: 400;
     }
-    .chat-vo-text.muted { color: var(--muted); font-weight: 400; }
+    .chat-vo-text.muted { color: rgba(255,255,255,0.4); font-weight: 400; }
     .chat-vo-text.streaming::after {
       content: '▊'; animation: blink-cursor 0.8s step-end infinite;
     }
     .chat-vo-divider {
       width: 100%; max-width: 960px;
-      border: none; border-top: 1px solid var(--border);
+      border: none; border-top: 1px solid rgba(255,255,255,0.15);
+      display: none;
     }
     .chat-vo-hint {
       position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
       font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
       letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); pointer-events: none; white-space: nowrap;
+      color: rgba(255,255,255,0.3); pointer-events: none; white-space: nowrap;
     }
 
     @media (max-width: 720px) {
@@ -1114,17 +1121,17 @@ const isAdmin = true;
 
   <!-- Voice chat fullscreen overlay (admin only) -->
   {isAdmin && (
-    <div class="chat-voice-overlay" id="chatVoiceOverlay" aria-live="polite">
-      <div class="chat-vo-block">
+    <div class="chat-voice-overlay phase-listening" id="chatVoiceOverlay" aria-live="polite">
+      <div class="chat-vo-block" id="chatVoQuestionBlock">
         <span class="chat-vo-label">Pregunta</span>
         <p class="chat-vo-text muted" id="chatVoQuestion">Escuchando pregunta...</p>
       </div>
-      <hr class="chat-vo-divider" id="chatVoDivider" style="display:none" />
-      <div class="chat-vo-block" id="chatVoAnswerBlock" style="display:none">
-        <span class="chat-vo-label">Respuesta</span>
+      <hr class="chat-vo-divider" id="chatVoDivider" />
+      <div class="chat-vo-block hidden" id="chatVoAnswerBlock">
+        <span class="chat-vo-label answer-label">Respuesta</span>
         <p class="chat-vo-text answer" id="chatVoAnswer"></p>
       </div>
-      <span class="chat-vo-hint">sudo sum chat para cerrar · cierra en 20 s sin actividad</span>
+      <span class="chat-vo-hint">"siguiente pregunta" · "sudo sum cerrar" para salir</span>
     </div>
   )}
 
@@ -2077,7 +2084,7 @@ function initVoice() {
         const normalized = normalizeSpeechText(transcript);
         // Broad variant regex (covers zoom/some/son/sun/zone/etc. from Web Speech API)
         const sudoVariant = '(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)';
-        const sudoCmds = '(grafo|chat|pausa|resumen|foco|timer\\s*\\d+|siguiente|anterior)';
+        const sudoCmds = '(grafo|chat|pausa|resumen|foco|timer\\s*\\d+|siguiente|anterior|cerrar)';
         const sudoRe = new RegExp(`sudo\\s*${sudoVariant}\\s*${sudoCmds}`);
         const sudoRe2 = new RegExp(`su\\s*do\\s*${sudoVariant}\\s*${sudoCmds}`);
         const sudoTriggerRe = new RegExp(`sudo\\s*${sudoVariant}\\s*$`);
@@ -2104,6 +2111,8 @@ function initVoice() {
             handleVoiceTranscript(['sudo sum siguiente']);
           } else if (/\banterior\b/.test(sub)) {
             handleVoiceTranscript(['sudo sum anterior']);
+          } else if (/\bcerrar\b/.test(sub)) {
+            handleVoiceTranscript(['sudo sum cerrar']);
           } else if (/\btimer\b/.test(sub)) {
             var mins = sub.match(/(\d+)/);
             handleVoiceTranscript(['sudo sum timer ' + (mins ? mins[1] : '3')]);
@@ -2124,6 +2133,10 @@ function initVoice() {
             showVoiceFlash('sudo · tiempo agotado');
             updateDebugHud();
           }, 4000);
+        } else if (STATE.chatVoiceMode && /\bsiguiente\s*pregunta\b/.test(normalized)) {
+          // "siguiente pregunta" — reset overlay for next question
+          resetChatVoForNextQuestion();
+          showVoiceFlash('Chat · siguiente pregunta');
         } else if (STATE.chatVoiceCapture) {
           // Feed voice into chat input buffer
           STATE.chatVoiceBuffer += (STATE.chatVoiceBuffer ? ' ' : '') + transcript;
@@ -2140,13 +2153,6 @@ function initVoice() {
           STATE.chatVoiceSilenceTimer = setTimeout(() => {
             if (STATE.chatVoiceCapture && STATE.chatVoiceBuffer.trim()) {
               sendChatMessage();
-              // Keep capture ON — reset buffer so overlay accepts next question
-              STATE.chatVoiceBuffer = '';
-              if (STATE.dom.chatInput) STATE.dom.chatInput.value = '';
-              if (STATE.chatVoiceMode && STATE.dom.chatVoQuestion) {
-                STATE.dom.chatVoQuestion.textContent = 'Escuchando siguiente pregunta...';
-                STATE.dom.chatVoQuestion.className = 'chat-vo-text muted';
-              }
               showVoiceFlash('Chat · enviado');
             }
           }, 2500);
@@ -2302,6 +2308,25 @@ function hideSudoIndicator() {
   STATE.sudoListening = false;
 }
 
+function setChatVoPhase(phase) {
+  const overlay = STATE.dom.chatVoiceOverlay;
+  if (!overlay) return;
+  overlay.classList.remove('phase-question', 'phase-answer', 'phase-listening');
+  overlay.classList.add('phase-' + phase);
+  const qBlock = document.getElementById('chatVoQuestionBlock');
+  const aBlock = STATE.dom.chatVoAnswerBlock;
+  if (phase === 'listening') {
+    if (qBlock) qBlock.classList.remove('hidden');
+    if (aBlock) aBlock.classList.add('hidden');
+  } else if (phase === 'question') {
+    if (qBlock) qBlock.classList.remove('hidden');
+    if (aBlock) aBlock.classList.add('hidden');
+  } else if (phase === 'answer') {
+    if (qBlock) qBlock.classList.add('hidden');
+    if (aBlock) aBlock.classList.remove('hidden');
+  }
+}
+
 function openChatVoiceOverlay() {
   STATE.chatVoiceMode = true;
   clearTimeout(STATE.chatVoiceInactivityTimer);
@@ -2309,9 +2334,19 @@ function openChatVoiceOverlay() {
   const voA = STATE.dom.chatVoAnswer;
   if (voQ) { voQ.textContent = 'Escuchando pregunta...'; voQ.className = 'chat-vo-text muted'; }
   if (voA) { voA.textContent = ''; voA.className = 'chat-vo-text answer'; }
-  if (STATE.dom.chatVoDivider) STATE.dom.chatVoDivider.style.display = 'none';
-  if (STATE.dom.chatVoAnswerBlock) STATE.dom.chatVoAnswerBlock.style.display = 'none';
+  setChatVoPhase('listening');
   STATE.dom.chatVoiceOverlay?.classList.add('show');
+}
+
+function resetChatVoForNextQuestion() {
+  STATE.chatVoiceBuffer = '';
+  if (STATE.dom.chatInput) STATE.dom.chatInput.value = '';
+  const voQ = STATE.dom.chatVoQuestion;
+  const voA = STATE.dom.chatVoAnswer;
+  if (voQ) { voQ.textContent = 'Escuchando pregunta...'; voQ.className = 'chat-vo-text muted'; }
+  if (voA) { voA.textContent = ''; voA.className = 'chat-vo-text answer'; }
+  setChatVoPhase('listening');
+  STATE.chatVoiceCapture = true;
 }
 
 function closeChatVoiceOverlay() {
@@ -2418,6 +2453,21 @@ function handleVoiceTranscript(transcripts) {
       openChatVoiceOverlay();
       showVoiceFlash('Chat · escuchando...');
     }
+    return;
+  }
+
+  // "Sudo sum Cerrar" — close any active overlay mode (chat, schema, etc.)
+  if (match(/sudo\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*cerrar/) || match(/su\s*do\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*cerrar/)) {
+    setDebugCommand('sudo_sum_cerrar');
+    if (STATE.chatVoiceMode) {
+      closeChatVoiceOverlay();
+      STATE.chatVoiceCapture = false;
+      STATE.chatVoiceBuffer = '';
+      if (STATE.dom.chatInput) STATE.dom.chatInput.value = '';
+    }
+    if (STATE.schemaActive) toggleSchema();
+    if (STATE.chatOpen) toggleChat();
+    showVoiceFlash('Cerrado');
     return;
   }
 
@@ -2775,12 +2825,13 @@ async function sendChatMessage() {
   userEl.textContent = text;
   STATE.dom.chatMessages.appendChild(userEl);
 
-  // Voice overlay: show confirmed question + prepare answer section
+  // Voice overlay: show question in blue fullscreen, then switch to answer
   if (isVoiceMode) {
     const voQ = STATE.dom.chatVoQuestion;
     if (voQ) { voQ.textContent = text; voQ.classList.remove('muted'); }
-    if (STATE.dom.chatVoDivider) STATE.dom.chatVoDivider.style.display = '';
-    if (STATE.dom.chatVoAnswerBlock) STATE.dom.chatVoAnswerBlock.style.display = '';
+    setChatVoPhase('question');
+    // Pause voice capture while processing
+    STATE.chatVoiceCapture = false;
     const voA = STATE.dom.chatVoAnswer;
     if (voA) { voA.textContent = ''; voA.className = 'chat-vo-text answer streaming'; }
   }
@@ -2838,7 +2889,11 @@ async function sendChatMessage() {
           const token = JSON.parse(payload).response ?? '';
           accumulated += token;
           asstEl.textContent = accumulated;
-          if (isVoiceMode && STATE.dom.chatVoAnswer) STATE.dom.chatVoAnswer.textContent = accumulated;
+          if (isVoiceMode && STATE.dom.chatVoAnswer) {
+            // Switch to answer phase on first token
+            if (accumulated === token) setChatVoPhase('answer');
+            STATE.dom.chatVoAnswer.textContent = accumulated;
+          }
           STATE.dom.chatMessages.scrollTop = STATE.dom.chatMessages.scrollHeight;
         } catch { /* malformed chunk, skip */ }
       }
@@ -2846,13 +2901,7 @@ async function sendChatMessage() {
 
     asstEl.classList.remove('streaming');
     if (isVoiceMode && STATE.dom.chatVoAnswer) STATE.dom.chatVoAnswer.classList.remove('streaming');
-    if (isVoiceMode) {
-      clearTimeout(STATE.chatVoiceInactivityTimer);
-      STATE.chatVoiceInactivityTimer = setTimeout(() => {
-        closeChatVoiceOverlay();
-        showVoiceFlash('Chat · cerrado');
-      }, 20000);
-    }
+    // Stay on answer — no auto-close. User says "siguiente pregunta" or "sudo sum cerrar"
 
     // If schema overlay is active, parse ESQUEMA: pattern and inject nodes
     const schemaMatch = accumulated.match(/ESQUEMA:\s*([^\n\u2192\-]+?)\s*(?:\u2192|->)\s*([^\n]+)/i);
