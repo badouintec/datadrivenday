@@ -2013,14 +2013,16 @@ function handleVoiceTranscript(transcripts) {
   const match = (re) => normalizedTranscripts.some(t => re.test(t));
 
   // "Sudo sum Grafo" — toggle schema mode
-  if (match(/sudo\s*su[mn]\s*grafo/) || match(/su\s*do\s*su[mn]\s*grafo/)) {
+  // Variants: "sum", "zoom", "some", "son", "sun", "zone", "zom", "som"
+  if (match(/sudo\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*grafo/) || match(/su\s*do\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*grafo/)) {
     setDebugCommand('sudo_sum_grafo');
     toggleSchema();
     return;
   }
 
   // "Sudo sum Chat" — toggle AI chat + voice input
-  if (match(/sudo\s*su[mn]\s*chat/) || match(/su\s*do\s*su[mn]\s*chat/)) {
+  // Variants: "sum", "zoom", "some", "son", "sun", "zone", "zom", "som"
+  if (match(/sudo\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*chat/) || match(/su\s*do\s*(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)\s*chat/)) {
     setDebugCommand('sudo_sum_chat');
     toggleChat();
     if (STATE.chatOpen) {
