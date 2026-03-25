@@ -1054,6 +1054,9 @@ const STATE = {
   // AI Chat
   chatOpen: false,
   chatHistory: [],
+  chatVoiceCapture: false,
+  chatVoiceBuffer: '',
+  chatVoiceSilenceTimer: null,
   // DOM cache (populated in init)
   dom: {},
 };
@@ -1782,23 +1785,52 @@ function initVoice() {
     for (let i = event.resultIndex; i < event.results.length; i += 1) {
       const result = event.results[i];
       if (result.isFinal) {
+        const transcript = result[0].transcript.trim();
         const transcripts = [];
         for (let j = 0; j < result.length; j += 1) {
           transcripts.push(result[j].transcript.toLowerCase().trim());
         }
-        STATE.debugTranscript = result[0].transcript.trim();
-        handleVoiceTranscript(transcripts);
-        updateSubtitle(result[0].transcript.trim(), false);
-        feedSchemaTranscript(result[0].transcript);
-        STATE.allTranscripts += ' ' + result[0].transcript.trim();
+        STATE.debugTranscript = transcript;
+
+        // Check for sudo commands FIRST (even during chat capture)
+        const normalized = normalizeSpeechText(transcript);
+        const isSudoCmd = /sudo\s*su[mn]\s*(grafo|chat)/.test(normalized) || /su\s*do\s*su[mn]\s*(grafo|chat)/.test(normalized);
+
+        if (isSudoCmd) {
+          handleVoiceTranscript(transcripts);
+        } else if (STATE.chatVoiceCapture && STATE.chatOpen) {
+          // Feed voice into chat input buffer
+          STATE.chatVoiceBuffer += (STATE.chatVoiceBuffer ? ' ' : '') + transcript;
+          if (STATE.dom.chatInput) STATE.dom.chatInput.value = STATE.chatVoiceBuffer;
+          STATE.dom.chatMessages && (STATE.dom.chatMessages.scrollTop = STATE.dom.chatMessages.scrollHeight);
+          showVoiceFlash('Chat · ' + (STATE.chatVoiceBuffer.length > 40 ? '...' + STATE.chatVoiceBuffer.slice(-40) : STATE.chatVoiceBuffer));
+          // Auto-send after 2.5s silence
+          clearTimeout(STATE.chatVoiceSilenceTimer);
+          STATE.chatVoiceSilenceTimer = setTimeout(() => {
+            if (STATE.chatVoiceCapture && STATE.chatVoiceBuffer.trim()) {
+              sendChatMessage();
+              STATE.chatVoiceBuffer = '';
+              STATE.chatVoiceCapture = false;
+              showVoiceFlash('Chat · enviado');
+            }
+          }, 2500);
+        } else {
+          handleVoiceTranscript(transcripts);
+        }
+
+        updateSubtitle(transcript, false);
+        feedSchemaTranscript(transcript);
+        STATE.allTranscripts += ' ' + transcript;
         updateDebugHud();
       } else {
         interimText += result[0].transcript;
       }
     }
     if (interimText) {
-      // Schema only grows from final transcripts (not interim partials)
-      // to avoid polluting the map with partial/truncated words.
+      if (STATE.chatVoiceCapture && STATE.chatOpen && STATE.dom.chatInput) {
+        // Show live interim in the input
+        STATE.dom.chatInput.value = STATE.chatVoiceBuffer + (STATE.chatVoiceBuffer ? ' ' : '') + interimText.trim();
+      }
       updateSubtitle(interimText.trim(), true);
     }
   };
@@ -1987,6 +2019,22 @@ function handleVoiceTranscript(transcripts) {
     return;
   }
 
+  // "Sudo sum Chat" — toggle AI chat + voice input
+  if (match(/sudo\s*su[mn]\s*chat/) || match(/su\s*do\s*su[mn]\s*chat/)) {
+    setDebugCommand('sudo_sum_chat');
+    toggleChat();
+    if (STATE.chatOpen) {
+      STATE.chatVoiceCapture = true;
+      STATE.chatVoiceBuffer = '';
+      showVoiceFlash('Chat · escuchando pregunta...');
+    } else {
+      STATE.chatVoiceCapture = false;
+      STATE.chatVoiceBuffer = '';
+      showVoiceFlash('Chat OFF');
+    }
+    return;
+  }
+
   // "oigan atención" — full-screen yellow overlay for 5 seconds
   if (match(/oigan\s*atenci[oó]n/)) {
     setDebugCommand('oigan_atencion');
@@ -2161,6 +2209,9 @@ function toggleChat() {
 function closeChat() {
   if (!STATE.dom.chatPanel) return;
   STATE.chatOpen = false;
+  STATE.chatVoiceCapture = false;
+  STATE.chatVoiceBuffer = '';
+  clearTimeout(STATE.chatVoiceSilenceTimer);
   STATE.dom.chatPanel.classList.remove('visible');
   STATE.dom.btnChat?.classList.remove('voice-active');
   if (_chatAbort) { _chatAbort.abort(); _chatAbort = null; }
