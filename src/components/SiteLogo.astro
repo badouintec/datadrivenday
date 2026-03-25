@@ -7,14 +7,20 @@ interface Props {
 const { class: className = '', title = 'datadriven.day' } = Astro.props;
 ---
 
-<svg viewBox="0 0 860 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label={title} class={className}>
-  <g fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M36 130V92c0-4.4 3.6-8 8-8h12c4.4 0 8 3.6 8 8v30" />
-    <path d="M74 108V70c0-4.4 3.6-8 8-8h12c4.4 0 8 3.6 8 8v18" />
-    <path d="M112 98V46c0-4.4 3.6-8 8-8h12c4.4 0 8 3.6 8 8v34" />
-    <path d="M150 76V18c0-4.4 3.6-8 8-8h12c4.4 0 8 3.6 8 8v58" />
-  </g>
-  <text x="214" y="134" fill="currentColor" font-family="DM Sans, Inter, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-4.5">
-    datadriven.day
-  </text>
-</svg>
+<img
+  src="/logo-datadriven-day.png"
+  alt={title}
+  class:list={['site-logo', className]}
+/>
+
+<style is:global>
+  .site-logo {
+    display: block;
+    height: auto;
+    max-width: 100%;
+  }
+
+  [data-theme="light"] .site-logo {
+    filter: invert(1);
+  }
+</style>
