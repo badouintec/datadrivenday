@@ -987,6 +987,7 @@ function toggleSchema() {
     overlay.classList.remove('active');
     document.body.classList.remove('schema-active');
     showVoiceFlash('Esquema OFF');
+    showUI(); // restore topbar/nav that may have been hidden while schema was active
   }
   STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.schemaActive);
   updateDebugHud();
@@ -1231,7 +1232,10 @@ async function init() {
   STATE.canvas = $('presCanvas');
   STATE.ctx = STATE.canvas.getContext('2d');
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    if (STATE.schemaActive) schemaSeedFromSlide();
+  });
   initParticles();
 
   const params = new URLSearchParams(location.search);
@@ -1317,7 +1321,6 @@ function renderSlide(idx, direction) {
   const slides = STATE.slides;
   if (!slides.length) return;
   STATE.idx = idx;
-  if (STATE.schemaActive) schemaSeedFromSlide();
 
   const slide = slides[idx];
   const hud = document.getElementById('slideHud');
@@ -1330,9 +1333,12 @@ function renderSlide(idx, direction) {
       applySlide(slide);
       hud.classList.remove('exit-left', 'exit-right');
       hud.classList.add('enter');
+      // Seed schema after slide HUD has finished transitioning to the new content
+      if (STATE.schemaActive) schemaSeedFromSlide();
     }, 220);
   } else {
     applySlide(slide);
+    if (STATE.schemaActive) schemaSeedFromSlide();
   }
 
   // Reset slide timer
