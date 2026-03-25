@@ -27,11 +27,11 @@ const isAdmin = /ddd_session=/.test(cookie);
       --border: rgba(255,255,255,0.08);
       --text: #e6edf3;
       --muted: #8b949e;
-      --overlay-heavy: var(--overlay-heavy);
-      --overlay-medium: var(--overlay-medium);
-      --overlay-light: var(--overlay-light);
-      --overlay-subtle: var(--overlay-subtle);
-      --shadow-color: var(--shadow-color);
+      --overlay-heavy: rgba(13,17,23,0.97);
+      --overlay-medium: rgba(13,17,23,0.94);
+      --overlay-light: rgba(13,17,23,0.88);
+      --overlay-subtle: rgba(13,17,23,0.75);
+      --shadow-color: rgba(0,0,0,0.35);
       --mono: 'DM Mono', 'Fira Code', monospace;
       --display: 'DM Sans', system-ui, sans-serif;
     }
@@ -101,7 +101,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       background: transparent; color: var(--muted);
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
-    .topbar-btn:hover { background: var(--surface); color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .topbar-btn:hover { background: var(--surface); color: var(--text); border-color: var(--border); }
     .slide-counter {
       font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
     }
@@ -192,7 +192,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, border-color 0.15s;
     }
-    .nav-btn:hover { background: var(--surface); border-color: rgba(255,255,255,0.2); }
+    .nav-btn:hover { background: var(--surface); border-color: var(--border); }
     .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .nav-progress {
       font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
@@ -552,7 +552,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       padding: 0.6em 1.4em;
       font-family: var(--display); font-size: clamp(1rem, 2.2vw, 1.45rem);
       font-weight: 500; line-height: 1.5;
-      color: #fff;
+      color: var(--text);
       background: var(--overlay-light);
       backdrop-filter: blur(6px);
       border-radius: 6px;
@@ -561,7 +561,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       opacity: 1; transition: opacity 0.35s ease;
     }
     .subtitle-bar:empty, .subtitle-bar[hidden] { opacity: 0; }
-    .subtitle-bar .interim { color: rgba(255,255,255,0.55); }
+    .subtitle-bar .interim { color: var(--muted); }
 
     /* ── VOICE ───────────────────────────────────────────── */
     .voice-dot {
@@ -599,7 +599,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       z-index: 160;
       width: min(360px, calc(100vw - 2rem));
       padding: 0.8rem 0.9rem;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid var(--border);
       border-radius: 10px;
       background: var(--overlay-medium);
       backdrop-filter: blur(12px);
@@ -631,7 +631,7 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .debug-pill {
       padding: 0.2rem 0.5rem;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid var(--border);
       border-radius: 999px;
       font-family: var(--mono);
       font-size: 0.55rem;
@@ -674,7 +674,7 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .debug-transcript {
       padding-top: 0.65rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid var(--border);
     }
     .debug-transcript-text {
       margin-top: 0.3rem;
