@@ -592,6 +592,34 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .voice-flash.show { opacity: 1; }
 
+    /* ── SUDO LISTENING INDICATOR ───────────────────────── */
+    .sudo-indicator {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.88);
+      z-index: 550;
+      display: flex; align-items: center; gap: 0.9em;
+      background: var(--overlay-heavy);
+      border: 2px solid #34d399;
+      border-radius: 0.75rem;
+      padding: 1.1rem 2.4rem;
+      font-family: var(--mono); font-size: 1.1rem; font-weight: 700;
+      color: #34d399; letter-spacing: 0.08em; text-transform: uppercase;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      backdrop-filter: blur(8px);
+    }
+    .sudo-indicator.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .sudo-indicator__dot {
+      width: 10px; height: 10px;
+      background: #34d399; border-radius: 50%;
+      animation: pulse-dot 0.9s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
     .debug-panel {
       position: fixed;
       top: 54px;
@@ -920,6 +948,10 @@ const isAdmin = /ddd_session=/.test(cookie);
   <!-- Keyboard hint -->
   <div class="hint-bar" id="hintBar"></div>
   <div class="voice-flash" id="voiceFlash"></div>
+  <div class="sudo-indicator" id="sudoIndicator" aria-live="assertive" aria-atomic="true">
+    <span class="sudo-indicator__dot"></span>
+    <span id="sudoIndicatorText">sudo · ¿chat o grafo?</span>
+  </div>
 
   <!-- AI Chat panel (admin only) -->
   {isAdmin && (
@@ -1057,6 +1089,8 @@ const STATE = {
   chatVoiceCapture: false,
   chatVoiceBuffer: '',
   chatVoiceSilenceTimer: null,
+  sudoListening: false,
+  sudoListenTimer: null,
   // DOM cache (populated in init)
   dom: {},
 };
@@ -1375,6 +1409,7 @@ async function init() {
     schemaOverlay: $('schemaOverlay'), schemaCanvas: $('schemaCanvas'), schemaLabel: $('schemaLabel'),
     chatPanel: $('chatPanel'), chatMessages: $('chatMessages'),
     chatInput: $('chatInput'), chatSendBtn: $('chatSendBtn'), btnChat: $('btnChat'),
+    sudoIndicator: $('sudoIndicator'), sudoIndicatorText: $('sudoIndicatorText'),
   };
 
   STATE.canvas = $('presCanvas');
@@ -1794,10 +1829,41 @@ function initVoice() {
 
         // Check for sudo commands FIRST (even during chat capture)
         const normalized = normalizeSpeechText(transcript);
-        const isSudoCmd = /sudo\s*su[mn]\s*(grafo|chat)/.test(normalized) || /su\s*do\s*su[mn]\s*(grafo|chat)/.test(normalized);
+        // Broad variant regex (covers zoom/some/son/sun/zone/etc. from Web Speech API)
+        const sudoVariant = '(su[mn]|zoom?|som[e]?|zon[e]?|son|sun)';
+        const sudoRe = new RegExp(`sudo\\s*${sudoVariant}\\s*(grafo|chat)`);
+        const sudoRe2 = new RegExp(`su\\s*do\\s*${sudoVariant}\\s*(grafo|chat)`);
+        const sudoTriggerRe = new RegExp(`sudo\\s*${sudoVariant}\\s*$`);
+        const sudoTriggerRe2 = new RegExp(`su\\s*do\\s*${sudoVariant}\\s*$`);
+        const isSudoCmd = sudoRe.test(normalized) || sudoRe2.test(normalized);
+        const isSudoTrigger = !isSudoCmd && (sudoTriggerRe.test(normalized) || sudoTriggerRe2.test(normalized));
 
-        if (isSudoCmd) {
+        if (STATE.sudoListening) {
+          // Step 2: received the sub-command
+          clearTimeout(STATE.sudoListenTimer);
+          hideSudoIndicator();
+          const sub = normalizeSpeechText(transcript);
+          if (/\bgrafo\b|\bgraph\b/.test(sub)) {
+            handleVoiceTranscript(['sudo sum grafo']);
+          } else if (/\bchat\b/.test(sub)) {
+            handleVoiceTranscript(['sudo sum chat']);
+          } else {
+            showVoiceFlash('sudo · cancelado');
+          }
+          updateDebugHud();
+        } else if (isSudoCmd) {
+          // Full phrase in one utterance — immediate execution
           handleVoiceTranscript(transcripts);
+        } else if (isSudoTrigger) {
+          // Step 1: heard "sudo sum" — wait for sub-command
+          STATE.sudoListening = true;
+          showSudoIndicator('sudo · ¿chat o grafo?');
+          clearTimeout(STATE.sudoListenTimer);
+          STATE.sudoListenTimer = setTimeout(() => {
+            hideSudoIndicator();
+            showVoiceFlash('sudo · tiempo agotado');
+            updateDebugHud();
+          }, 4000);
         } else if (STATE.chatVoiceCapture && STATE.chatOpen) {
           // Feed voice into chat input buffer
           STATE.chatVoiceBuffer += (STATE.chatVoiceBuffer ? ' ' : '') + transcript;
@@ -1922,6 +1988,7 @@ async function toggleVoice() {
     try {
       STATE.recognition.stop();
     } catch {}
+    hideSudoIndicator();
     STATE.debugVoiceStatus = 'inactiva';
     STATE.debugRecognitionStatus = 'detenida';
     updateDebugHud();
@@ -1944,6 +2011,18 @@ function showVoiceFlash(message) {
   STATE.voiceFlashTimer = setTimeout(() => {
     flash.classList.remove('show');
   }, 1800);
+}
+
+function showSudoIndicator(text = 'sudo · ¿chat o grafo?') {
+  if (STATE.dom.sudoIndicatorText) STATE.dom.sudoIndicatorText.textContent = text;
+  STATE.dom.sudoIndicator?.classList.add('show');
+}
+
+function hideSudoIndicator() {
+  STATE.dom.sudoIndicator?.classList.remove('show');
+  clearTimeout(STATE.sudoListenTimer);
+  STATE.sudoListenTimer = null;
+  STATE.sudoListening = false;
 }
 
 function showAtencion() {
