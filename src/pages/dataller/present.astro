@@ -1309,6 +1309,9 @@ const SCHEMA_STOPWORDS = new Set([
   'sudo', 'suma', 'esto', 'esos', 'esas', 'otro', 'otra', 'pero', 'cuando', 'donde', 'quien',
   'sobre', 'bajo', 'tras', 'ante', 'contra', 'durante', 'mediante', 'segun', 'hacia',
   'sido', 'sera', 'sido', 'siendo', 'estan', 'estar', 'estamos', 'seria', 'fueron',
+  // Voice command words — must not appear as schema nodes
+  'chat', 'pausa', 'pause', 'foco', 'focus', 'timer', 'resumen', 'siguiente', 'anterior',
+  'zoom', 'some', 'zone', 'zome', 'grafo', 'graph',
 ]);
 
 const SCHEMA_TIERS = ['root', 'branch', 'leaf', 'whisper'];
@@ -2142,11 +2145,13 @@ function initVoice() {
           }, 2500);
         } else {
           handleVoiceTranscript(transcripts);
+          // Only feed schema and transcripts for normal speech (not commands)
+          feedSchemaTranscript(transcript);
+          STATE.allTranscripts += ' ' + transcript;
         }
 
+        // Subtitles run for all speech including commands
         updateSubtitle(transcript, false);
-        feedSchemaTranscript(transcript);
-        STATE.allTranscripts += ' ' + transcript;
         updateDebugHud();
       } else {
         interimText += result[0].transcript;
@@ -2365,8 +2370,10 @@ function updateSubtitleButton() {
 // Feed transcript text to the schema — expand words from speech
 function feedSchemaTranscript(text) {
   if (!STATE.schemaActive) return;
+  // Strip all sudo command variants before passing to schema
+  const sudoVariantRe = /sudo\s*(?:su[mn]|zoom?|som[e]?|zon[e]?|son|sun)|su\s*do\s*(?:su[mn]|zoom?|som[e]?|zon[e]?|son|sun)/gi;
   const cleaned = String(text ?? '')
-    .replace(/\bsudo\s+sum\b/gi, '')
+    .replace(sudoVariantRe, '')
     .replace(/\s+/g, ' ').trim();
   if (!cleaned) return;
   schemaExpandFromSpeech(cleaned);
@@ -2591,7 +2598,7 @@ function checkVoiceGesture() {
       document.body.classList.remove('voice-emphasis');
       STATE.voiceGestureMode = null;
     }, 3000);
-  } else if (level > 0.005 && level < 0.05 && STATE.voiceGestureMode !== 'whisper') {
+  } else if (level > 0.02 && level < 0.05 && STATE.voiceGestureMode !== 'whisper') {
     STATE.voiceGestureMode = 'whisper';
     clearTimeout(STATE.voiceGestureTimer);
     document.body.classList.add('voice-whisper');
