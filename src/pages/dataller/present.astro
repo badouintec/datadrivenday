@@ -471,38 +471,59 @@ const isAdmin = true;
       z-index: 210;
     }
 
-    /* Word elements — fast word cloud */
+    /* ── SCHEMA WORD: splash at center → fly to position ── */
     :global(.schema-word) {
       position: absolute;
       font-family: var(--display);
       font-weight: 700;
       white-space: nowrap;
-      transform: translate(-50%, -50%) scale(0);
+      transform: translate(-50%, -50%);
       opacity: 0;
-      transition: left 0.3s ease-out,
-                  top 0.3s ease-out,
-                  opacity 0.15s ease,
-                  font-size 0.2s ease,
-                  color 0.3s ease;
       cursor: default;
       user-select: none;
       z-index: 3;
+      text-shadow: 0 0 30px currentColor;
+      will-change: left, top, font-size, opacity;
     }
-    :global(.schema-word.visible) {
-      transform: translate(-50%, -50%) scale(1);
+    /* Phase 1: splash — word appears big at center */
+    :global(.schema-word.splash) {
       opacity: 1;
-      animation: schema-appear 0.2s ease-out forwards;
+      font-size: clamp(2.5rem, 5vw, 4rem) !important;
+      color: #fff !important;
+      z-index: 10;
+      animation: schema-splash-in 0.25s ease-out forwards;
     }
+    /* Phase 2: settle — word flies to its slot, shrinks */
+    :global(.schema-word.settle) {
+      opacity: 1;
+      z-index: 3;
+      transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  font-size 0.5s ease,
+                  color 0.5s ease;
+    }
+    /* Accent pulse when word is repeated */
     :global(.schema-word.accent) {
-      animation: schema-accent 0.4s ease-out;
+      animation: schema-accent 0.35s ease-out;
     }
+    /* Connection lines */
+    :global(.schema-line) {
+      position: absolute;
+      height: 1px;
+      background: rgba(96,165,250,0.25);
+      transform-origin: 0 0;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.4s ease, width 0.6s ease;
+    }
+    :global(.schema-line.visible) { opacity: 1; }
 
-    @keyframes schema-appear {
-      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    @keyframes schema-splash-in {
+      0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
     @keyframes schema-accent {
-      0%   { transform: translate(-50%, -50%) scale(1.3); filter: brightness(1.8); }
+      0%   { transform: translate(-50%, -50%) scale(1.4); filter: brightness(2); }
       100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
     }
     @keyframes schema-flash {
@@ -910,49 +931,98 @@ const isAdmin = true;
     .chat-voice-overlay {
       position: fixed; inset: 0; z-index: 610;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 0;
-      background: rgba(0,0,0,0.85);
+      align-items: center; justify-content: flex-start;
+      gap: clamp(0.9rem, 1.8vh, 1.6rem);
+      background: rgba(2, 8, 21, 0.94);
       backdrop-filter: blur(22px);
-      padding: 3rem clamp(2rem, 8vw, 8rem);
+      padding: clamp(1rem, 2.8vh, 2.4rem) clamp(1rem, 4vw, 3rem);
       opacity: 0; pointer-events: none;
       transition: opacity 0.25s ease, background 0.4s ease;
     }
     .chat-voice-overlay.show { opacity: 1; pointer-events: auto; }
-    .chat-voice-overlay.phase-question { background: #0f2b5e; }
-    .chat-voice-overlay.phase-answer { background: rgba(0,0,0,0.92); }
-    .chat-voice-overlay.phase-listening { background: rgba(0,0,0,0.85); }
+    .chat-voice-overlay.phase-question,
+    .chat-voice-overlay.phase-listening,
+    .chat-voice-overlay.phase-answer { background: rgba(2, 8, 21, 0.94); }
     .chat-vo-block {
-      width: 100%; max-width: 960px;
+      width: min(1100px, 96vw);
       display: flex; flex-direction: column; gap: 0.6rem;
       align-items: center; text-align: center;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.35);
+      padding: clamp(0.9rem, 1.8vh, 1.4rem) clamp(1rem, 2.2vw, 2rem);
     }
-    .chat-vo-block.hidden { display: none; }
+    .chat-vo-block.question {
+      min-height: min(32vh, 290px);
+      max-height: min(36vh, 340px);
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(29, 78, 216, 0.92), rgba(30, 64, 175, 0.84));
+      border-color: rgba(147, 197, 253, 0.45);
+    }
+    .chat-vo-block.answer {
+      min-height: min(50vh, 470px);
+      max-height: min(52vh, 500px);
+      justify-content: flex-start;
+      background: rgba(3, 7, 18, 0.86);
+      border-color: rgba(148, 163, 184, 0.28);
+    }
     .chat-vo-label {
       font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
       letter-spacing: 0.14em; text-transform: uppercase;
-      color: #60a5fa;
+      color: rgba(219, 234, 254, 0.9);
     }
-    .chat-vo-label.answer-label { color: #34d399; }
+    .chat-vo-label.answer-label { color: rgba(167, 243, 208, 0.88); }
     .chat-vo-text {
       font-family: var(--display);
-      font-size: clamp(2rem, 5vw, 4rem);
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
       font-weight: 600; line-height: 1.3;
       color: #fff; white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      width: 100%;
     }
     .chat-vo-text.answer {
-      font-size: clamp(1.5rem, 3.5vw, 3rem);
+      font-size: clamp(1rem, 2.2vw, 1.65rem);
       font-weight: 400;
+      text-align: left;
+      line-height: 1.5;
+      max-height: min(39vh, 380px);
+      overflow: hidden;
     }
     .chat-vo-text.muted { color: rgba(255,255,255,0.4); font-weight: 400; }
     .chat-vo-text.streaming::after {
       content: '▊'; animation: blink-cursor 0.8s step-end infinite;
     }
-    .chat-vo-divider {
-      width: 100%; max-width: 960px;
-      border: none; border-top: 1px solid rgba(255,255,255,0.15);
-      display: none;
+    .chat-vo-divider { display: none; }
+    .chat-vo-answer-copy {
+      margin-bottom: 0.65rem;
+      font-size: clamp(1rem, 2.2vw, 1.6rem);
+      line-height: 1.45;
+      color: rgba(226, 232, 240, 0.96);
+      white-space: pre-wrap;
     }
+    .chat-vo-code {
+      margin: 0;
+      width: 100%;
+      max-height: min(28vh, 280px);
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(96,165,250,0.38);
+      background: #020617;
+      padding: 0.9rem 1rem;
+      box-shadow: inset 0 0 0 1px rgba(14, 116, 144, 0.25);
+    }
+    .chat-vo-code code {
+      display: block;
+      font-family: var(--mono);
+      font-size: clamp(0.68rem, 1.35vw, 0.9rem);
+      line-height: 1.45;
+      white-space: pre;
+      color: #e2e8f0;
+    }
+    .tok-key { color: #93c5fd; font-weight: 700; }
+    .tok-str { color: #86efac; }
+    .tok-num { color: #fca5a5; }
+    .tok-cmt { color: #94a3b8; font-style: italic; }
     .chat-vo-hint {
       position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
       font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
@@ -965,6 +1035,24 @@ const isAdmin = true;
         top: auto; right: 0; left: 0; bottom: 0;
         width: 100%; border-radius: 10px 10px 0 0;
         max-height: 60vh;
+      }
+      .chat-voice-overlay {
+        padding: 0.85rem;
+        gap: 0.65rem;
+      }
+      .chat-vo-block.question {
+        min-height: 30vh;
+        max-height: 34vh;
+      }
+      .chat-vo-block.answer {
+        min-height: 54vh;
+        max-height: 58vh;
+      }
+      .chat-vo-answer-copy {
+        font-size: clamp(0.95rem, 4vw, 1.2rem);
+      }
+      .chat-vo-code {
+        max-height: 24vh;
       }
     }
   </style>
@@ -1085,16 +1173,16 @@ const isAdmin = true;
   <!-- Voice chat fullscreen overlay (admin only) -->
   {isAdmin && (
     <div class="chat-voice-overlay phase-listening" id="chatVoiceOverlay" aria-live="polite">
-      <div class="chat-vo-block" id="chatVoQuestionBlock">
+      <div class="chat-vo-block question" id="chatVoQuestionBlock">
         <span class="chat-vo-label">Pregunta</span>
         <p class="chat-vo-text muted" id="chatVoQuestion">Escuchando pregunta...</p>
       </div>
       <hr class="chat-vo-divider" id="chatVoDivider" />
-      <div class="chat-vo-block hidden" id="chatVoAnswerBlock">
+      <div class="chat-vo-block answer" id="chatVoAnswerBlock">
         <span class="chat-vo-label answer-label">Respuesta</span>
-        <p class="chat-vo-text answer" id="chatVoAnswer"></p>
+        <div class="chat-vo-text answer" id="chatVoAnswer"></div>
       </div>
-      <span class="chat-vo-hint">"siguiente pregunta" · "sudo sum cerrar" para salir</span>
+      <span class="chat-vo-hint">"incluye código" para snippet · "siguiente pregunta" para reset</span>
     </div>
   )}
 
@@ -1287,8 +1375,10 @@ const SCHEMA_STOPWORDS = new Set([
   'zoom', 'some', 'zone', 'zome', 'grafo', 'graph',
 ]);
 
-// Word cloud color palette based on weight
-const SCHEMA_COLORS = ['#475569', '#64748b', '#60a5fa', '#38bdf8', '#34d399', '#e6edf3'];
+// Schema colors: branches get blue, leaves green, repeated words brighten
+const SCHEMA_SIZE_ROOT = 'clamp(2rem, 4vw, 3.2rem)';
+const SCHEMA_SIZE_BRANCH = 'clamp(1.1rem, 2.2vw, 1.7rem)';
+const SCHEMA_SIZE_LEAF = 'clamp(0.8rem, 1.4vw, 1.1rem)';
 
 function schemaUniqueTerms(values, limit = 8) {
   const unique = [];
@@ -1344,17 +1434,13 @@ function schemaSeedFromSlide() {
   clearSchema();
   const slide = STATE.slides[STATE.idx];
   const w = window.innerWidth, h = window.innerHeight;
-  const pad = 80;
 
-  // Title as first word (bumped weight for emphasis)
+  // Title as root (first word, will get center position)
   const rootLabel = slide?.titulo?.trim() || slide?.tag?.trim() || 'Tema';
   const rootId = normalizeSpeechText(rootLabel).replace(/\s+/g, '_') || 'tema';
-  schemaAddWord(rootId, rootLabel, w * 0.5, h * 0.35);
-  // Bump it twice to make it prominent
-  schemaAddWord(rootId, rootLabel, 0, 0);
-  schemaAddWord(rootId, rootLabel, 0, 0);
+  schemaAddWord(rootId, rootLabel, w * 0.5, h * 0.45);
 
-  // Seed concepts from slide
+  // Seed concepts from slide, staggered
   const seeds = [];
   if (slide?.tag) seeds.push(slide.tag);
   if (slide?.conceptosClave?.length) seeds.push(...slide.conceptosClave);
@@ -1363,96 +1449,198 @@ function schemaSeedFromSlide() {
   const unique = schemaUniqueTerms(seeds, 6)
     .filter(b => normalizeSpeechText(b) !== normalizeSpeechText(rootLabel));
 
-  unique.forEach((label) => {
-    const id = normalizeSpeechText(label).replace(/\s+/g, '_');
-    const x = pad + Math.random() * (w - pad * 2);
-    const y = pad + Math.random() * (h - pad * 2);
-    schemaAddWord(id, schemaDisplayLabel(label), x, y);
+  unique.forEach((label, i) => {
+    setTimeout(() => {
+      const id = normalizeSpeechText(label).replace(/\s+/g, '_');
+      schemaAddWord(id, schemaDisplayLabel(label), w * 0.5, h * 0.45);
+    }, (i + 1) * 500);
   });
 }
 
-function schemaWordStyle(weight) {
-  // weight 1..N → size and color scale
-  const maxW = Math.max(3, [...STATE.schemaWords.values()].reduce((m, w) => Math.max(m, w.weight || 1), 1));
-  const t = Math.min((weight - 1) / Math.max(maxW - 1, 1), 1);
-  const minSize = 0.9, maxSize = 4.0;
-  const size = minSize + t * (maxSize - minSize);
-  const ci = Math.min(Math.floor(t * SCHEMA_COLORS.length), SCHEMA_COLORS.length - 1);
-  return { size, color: SCHEMA_COLORS[ci] };
+// ── Splash → settle → connect schema engine ──
+
+function schemaSlotPosition(index, total) {
+  // Arrange words in expanding spiral from center
+  const w = window.innerWidth, h = window.innerHeight;
+  const cx = w * 0.5, cy = h * 0.45;
+  if (index === 0) return { x: cx, y: cy }; // root at center
+  const angle = index * 2.4; // golden angle in radians
+  const r = Math.min(w, h) * 0.12 * Math.sqrt(index);
+  return {
+    x: Math.max(80, Math.min(w - 80, cx + Math.cos(angle) * r)),
+    y: Math.max(60, Math.min(h - 60, cy + Math.sin(angle) * r * 0.7)),
+  };
 }
 
-function schemaRefreshStyles() {
-  for (const [, wd] of STATE.schemaWords) {
-    const s = schemaWordStyle(wd.weight);
-    wd.el.style.fontSize = s.size + 'rem';
-    wd.el.style.color = s.color;
-  }
+function schemaRecalcLayout() {
+  // Reassign positions for all words based on order
+  const entries = [...STATE.schemaWords.entries()];
+  const total = entries.length;
+  entries.forEach(([id, wd], i) => {
+    const pos = schemaSlotPosition(i, total);
+    wd.x = pos.x; wd.y = pos.y;
+    // Only move words already in settle phase
+    if (wd.el.classList.contains('settle')) {
+      wd.el.style.left = pos.x + 'px';
+      wd.el.style.top = pos.y + 'px';
+    }
+  });
+  schemaUpdateLinePositions();
 }
 
-function schemaAddWord(id, label, x, y) {
+function schemaGetTierStyle(wd) {
+  const idx = [...STATE.schemaWords.keys()].indexOf(wd.id || '');
+  if (idx === 0) return { size: SCHEMA_SIZE_ROOT, color: '#e6edf3' };
+  if (wd.weight > 2) return { size: SCHEMA_SIZE_BRANCH, color: '#60a5fa' };
+  if (idx < 6) return { size: SCHEMA_SIZE_BRANCH, color: '#60a5fa' };
+  return { size: SCHEMA_SIZE_LEAF, color: '#34d399' };
+}
+
+function schemaAddWord(id, label, targetX, targetY) {
   if (STATE.schemaWords.has(id)) {
-    // Word exists — bump weight, accent it
+    // Word exists — accent it (pulse + brighten)
     const existing = STATE.schemaWords.get(id);
     existing.weight = (existing.weight || 1) + 1;
     existing.el.classList.remove('accent');
     void existing.el.offsetWidth;
     existing.el.classList.add('accent');
-    schemaRefreshStyles();
+    // Update style if weight crossed threshold
+    const s = schemaGetTierStyle(existing);
+    existing.el.style.fontSize = s.size;
+    existing.el.style.color = s.color;
     return;
   }
 
   const container = STATE.dom.schemaCanvas;
   if (!container) return;
 
+  const w = window.innerWidth, h = window.innerHeight;
+  const cx = w * 0.5, cy = h * 0.45;
+
   const el = document.createElement('div');
   el.className = 'schema-word';
   el.textContent = label;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
+  // Start at center (splash position)
+  el.style.left = cx + 'px';
+  el.style.top = cy + 'px';
   container.appendChild(el);
 
-  const s = schemaWordStyle(1);
-  el.style.fontSize = s.size + 'rem';
-  el.style.color = s.color;
+  const wd = { id, label, x: targetX, y: targetY, el, weight: 1 };
+  STATE.schemaWords.set(id, wd);
 
-  requestAnimationFrame(() => el.classList.add('visible'));
+  // Phase 1: Splash — big at center
+  requestAnimationFrame(() => {
+    el.classList.add('splash');
+  });
 
-  STATE.schemaWords.set(id, { label, x, y, el, weight: 1 });
+  // Phase 2: After splash, settle to final position
+  setTimeout(() => {
+    el.classList.remove('splash');
+    // Recalculate layout with new word
+    schemaRecalcLayout();
+    const s = schemaGetTierStyle(wd);
+    el.style.fontSize = s.size;
+    el.style.color = s.color;
+    el.classList.add('settle');
+    el.style.left = wd.x + 'px';
+    el.style.top = wd.y + 'px';
 
-  // Cap at 40 words — remove lowest weight
-  if (STATE.schemaWords.size > 40) {
+    // Phase 3: Connect to nearest word
+    setTimeout(() => {
+      const nearest = schemaNearestWord(id);
+      if (nearest) schemaAddLine(id, nearest);
+    }, 300);
+  }, 600);
+
+  // Cap at 35 words — remove oldest low-weight
+  if (STATE.schemaWords.size > 35) {
     let minW = Infinity, minId = null;
-    for (const [wId, w] of STATE.schemaWords) {
-      if (w.weight < minW) { minW = w.weight; minId = wId; }
+    for (const [wId, wData] of STATE.schemaWords) {
+      if (wData.weight < minW && wId !== [...STATE.schemaWords.keys()][0]) {
+        minW = wData.weight; minId = wId;
+      }
     }
     if (minId) {
       STATE.schemaWords.get(minId).el.remove();
       STATE.schemaWords.delete(minId);
+      STATE.schemaLines = STATE.schemaLines.filter(l => {
+        if (l.fromId === minId || l.toId === minId) { l.el?.remove(); return false; }
+        return true;
+      });
     }
   }
 }
 
-// Kept as no-op for compatibility with chat schema injection
-function schemaAddLine() {}
+function schemaNearestWord(id) {
+  const wd = STATE.schemaWords.get(id);
+  if (!wd) return null;
+  let best = null, bestDist = Infinity;
+  for (const [otherId, other] of STATE.schemaWords) {
+    if (otherId === id) continue;
+    const dx = wd.x - other.x, dy = wd.y - other.y;
+    const d = dx * dx + dy * dy;
+    if (d < bestDist) { bestDist = d; best = otherId; }
+  }
+  return best;
+}
 
-// Fast repulsion — no lines to update
+function schemaAddLine(fromId, toId) {
+  if (STATE.schemaLines.some(l =>
+    (l.fromId === fromId && l.toId === toId) || (l.fromId === toId && l.toId === fromId))) return;
+  const from = STATE.schemaWords.get(fromId);
+  const to = STATE.schemaWords.get(toId);
+  if (!from || !to) return;
+  const container = STATE.dom.schemaCanvas;
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'schema-line';
+  container.insertBefore(el, container.firstChild); // lines behind words
+  positionLine(el, from.x, from.y, to.x, to.y);
+  requestAnimationFrame(() => el.classList.add('visible'));
+  STATE.schemaLines.push({ fromId, toId, el });
+}
+
+function positionLine(el, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx);
+  el.style.left = x1 + 'px';
+  el.style.top = y1 + 'px';
+  el.style.width = len + 'px';
+  el.style.transform = 'rotate(' + angle + 'rad)';
+}
+
+function schemaUpdateLinePositions() {
+  STATE.schemaLines.forEach(l => {
+    const from = STATE.schemaWords.get(l.fromId);
+    const to = STATE.schemaWords.get(l.toId);
+    if (from && to && l.el) positionLine(l.el, from.x, from.y, to.x, to.y);
+  });
+}
+
+// Light nudge to prevent overlap (runs in animation loop)
 function schemaNudge() {
   const words = [...STATE.schemaWords.values()];
   if (words.length < 2) return;
   const w = window.innerWidth, h = window.innerHeight;
-  const MIN_DIST = 100;
+  const MIN_DIST = 90;
+  let moved = false;
 
   for (let i = 0; i < words.length; i++) {
+    if (!words[i].el.classList.contains('settle')) continue;
     for (let j = i + 1; j < words.length; j++) {
+      if (!words[j].el.classList.contains('settle')) continue;
       const dx = words[j].x - words[i].x;
       const dy = words[j].y - words[i].y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
       if (dist < MIN_DIST) {
-        const push = (MIN_DIST - dist) * 0.15;
+        const push = (MIN_DIST - dist) * 0.08;
         const nx = (dx / dist) * push;
         const ny = (dy / dist) * push;
-        words[i].x -= nx; words[i].y -= ny;
-        words[j].x += nx; words[j].y += ny;
+        if (i > 0) { words[i].x -= nx; words[i].y -= ny; }
+        if (j > 0) { words[j].x += nx; words[j].y += ny; }
+        moved = true;
       }
     }
     words[i].x = Math.max(60, Math.min(w - 60, words[i].x));
@@ -1460,40 +1648,33 @@ function schemaNudge() {
     words[i].el.style.left = words[i].x + 'px';
     words[i].el.style.top = words[i].y + 'px';
   }
+  if (moved) schemaUpdateLinePositions();
 }
 
-// Live word cloud from speech — words appear instantly, grow on repetition
+// Live schema from speech — word splashes at center, then flies to position
 function schemaExpandFromSpeech(text) {
   if (!STATE.schemaActive) return;
   const normalized = normalizeSpeechText(text);
   if (!normalized) return;
 
   const w = window.innerWidth, h = window.innerHeight;
-  const pad = 80;
 
   const terms = normalized.split(' ')
     .filter(word => word.length >= 3 && !SCHEMA_STOPWORDS.has(word));
   if (terms.length === 0) return;
 
-  // Hide the hint
   if (STATE.dom.schemaLabel && STATE.schemaWords.size === 0) {
     STATE.dom.schemaLabel.textContent = 'ESQUEMA';
   }
 
-  terms.forEach((term) => {
+  // Stagger words so each gets its own splash moment
+  terms.forEach((term, i) => {
     const id = term.replace(/\s+/g, '_');
     const label = schemaDisplayLabel(term);
-
-    if (STATE.schemaWords.has(id)) {
-      // Bump existing word
-      schemaAddWord(id, label, 0, 0);
-      return;
-    }
-
-    // Place new word: random position with bias toward center
-    const x = pad + Math.random() * (w - pad * 2);
-    const y = pad + Math.random() * (h - pad * 2);
-    schemaAddWord(id, label, x, y);
+    // Stagger by 400ms so each word gets a splash
+    setTimeout(() => {
+      schemaAddWord(id, label, w * 0.5, h * 0.45);
+    }, i * 400);
   });
 
   updateDebugHud();
@@ -2198,18 +2379,6 @@ function setChatVoPhase(phase) {
   if (!overlay) return;
   overlay.classList.remove('phase-question', 'phase-answer', 'phase-listening');
   overlay.classList.add('phase-' + phase);
-  const qBlock = document.getElementById('chatVoQuestionBlock');
-  const aBlock = STATE.dom.chatVoAnswerBlock;
-  if (phase === 'listening') {
-    if (qBlock) qBlock.classList.remove('hidden');
-    if (aBlock) aBlock.classList.add('hidden');
-  } else if (phase === 'question') {
-    if (qBlock) qBlock.classList.remove('hidden');
-    if (aBlock) aBlock.classList.add('hidden');
-  } else if (phase === 'answer') {
-    if (qBlock) qBlock.classList.add('hidden');
-    if (aBlock) aBlock.classList.remove('hidden');
-  }
 }
 
 function openChatVoiceOverlay() {
@@ -2668,6 +2837,83 @@ function closeSummary() {
 // ── AI CHAT ───────────────────────────────────────────────
 let _chatAbort = null;
 
+const CHAT_CODE_TRIGGER_RE = /\b(codigo|code|snippet|incluye codigo|con codigo|ejemplo de codigo)\b/;
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function wantsCodeSnippet(question) {
+  const normalized = normalizeSpeechText(question);
+  return CHAT_CODE_TRIGGER_RE.test(normalized);
+}
+
+function trimToSlide(text, maxChars = 520, maxLines = 10) {
+  const lines = String(text ?? '')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, maxLines);
+  let output = lines.join('\n');
+  if (output.length > maxChars) output = output.slice(0, maxChars).trimEnd() + '…';
+  return output || 'Sin respuesta.';
+}
+
+function extractFencedCode(text) {
+  const match = String(text ?? '').match(/```([a-zA-Z0-9_+-]*)\n?([\s\S]*?)```/);
+  if (!match) return null;
+  return {
+    language: String(match[1] ?? '').trim().toLowerCase(),
+    code: String(match[2] ?? '').trim(),
+  };
+}
+
+function highlightCodeSnippet(code) {
+  let html = escapeHtml(code);
+  html = html.replace(/(\/\/.*$)/gm, '<span class="tok-cmt">$1</span>');
+  html = html.replace(/(^\s*#.*$)/gm, '<span class="tok-cmt">$1</span>');
+  html = html.replace(/\b(const|let|var|function|return|if|else|for|while|switch|case|break|continue|async|await|import|from|export|class|new|try|catch|throw|def|print|lambda|SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|GROUP|BY|ORDER|LIMIT|INSERT|UPDATE|DELETE|CREATE|TABLE|VALUES)\b/gi, '<span class="tok-key">$1</span>');
+  html = html.replace(/("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')/g, '<span class="tok-str">$1</span>');
+  html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+  return html;
+}
+
+function formatAssistantForSlide(rawText, withCode) {
+  const text = String(rawText ?? '').trim();
+  const withoutFences = text.replace(/```[\s\S]*?```/g, '').trim();
+  if (!withCode) {
+    return {
+      panelText: trimToSlide(withoutFences || text, 560, 10),
+      overlayHtml: `<div class="chat-vo-answer-copy">${escapeHtml(trimToSlide(withoutFences || text, 560, 10))}</div>`,
+    };
+  }
+
+  const codeBlock = extractFencedCode(text);
+  if (!codeBlock?.code) {
+    return {
+      panelText: trimToSlide(withoutFences || text, 560, 10),
+      overlayHtml: `<div class="chat-vo-answer-copy">${escapeHtml(trimToSlide(withoutFences || text, 560, 10))}</div>`,
+    };
+  }
+
+  const summary = trimToSlide(withoutFences || 'Snippet solicitado:', 280, 4);
+  const codeLines = codeBlock.code.split('\n').slice(0, 16);
+  const safeCode = codeLines.join('\n') + (codeBlock.code.split('\n').length > 16 ? '\n// …' : '');
+
+  return {
+    panelText: trimToSlide(summary + '\n\n' + safeCode, 560, 14),
+    overlayHtml:
+      `<div class="chat-vo-answer-copy">${escapeHtml(summary)}</div>` +
+      `<pre class="chat-vo-code"><code>${highlightCodeSnippet(safeCode)}</code></pre>`,
+  };
+}
+
 function toggleChat() {
   if (!STATE.dom.chatPanel) return;
   STATE.chatOpen = !STATE.chatOpen;
@@ -2703,6 +2949,7 @@ async function sendChatMessage() {
   if (emptyEl) emptyEl.style.display = 'none';
 
   const isVoiceMode = STATE.chatVoiceMode;
+  const includeCode = wantsCodeSnippet(text);
 
   // Add user bubble (side panel — always, for history)
   const userEl = document.createElement('div');
@@ -2742,10 +2989,19 @@ async function sendChatMessage() {
 
   try {
     _chatAbort = new AbortController();
+    const presenterHint = includeCode
+      ? 'Responde para una sola diapositiva: 1 idea breve y un snippet corto en bloque de código. Sin explicación larga.'
+      : 'Responde para una sola diapositiva: máximo 90 palabras, claro y concreto, sin bloques de código.';
+    const requestMessages = STATE.chatHistory.slice(-10).map((msg) => ({ ...msg }));
+    const lastMsg = requestMessages[requestMessages.length - 1];
+    if (lastMsg?.role === 'user') {
+      lastMsg.content = `${lastMsg.content}\n\n[Formato presenter]\n${presenterHint}`;
+    }
+
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'presenter', messages: STATE.chatHistory.slice(-10), context }),
+      body: JSON.stringify({ mode: 'presenter', messages: requestMessages, context }),
       signal: _chatAbort.signal,
     });
 
@@ -2773,11 +3029,11 @@ async function sendChatMessage() {
         try {
           const token = JSON.parse(payload).response ?? '';
           accumulated += token;
-          asstEl.textContent = accumulated;
+          asstEl.textContent = trimToSlide(accumulated, 560, 10);
           if (isVoiceMode && STATE.dom.chatVoAnswer) {
             // Switch to answer phase on first token
             if (accumulated === token) setChatVoPhase('answer');
-            STATE.dom.chatVoAnswer.textContent = accumulated;
+            STATE.dom.chatVoAnswer.textContent = trimToSlide(accumulated, includeCode ? 320 : 560, includeCode ? 6 : 10);
           }
           STATE.dom.chatMessages.scrollTop = STATE.dom.chatMessages.scrollHeight;
         } catch { /* malformed chunk, skip */ }
@@ -2785,22 +3041,27 @@ async function sendChatMessage() {
     }
 
     asstEl.classList.remove('streaming');
-    if (isVoiceMode && STATE.dom.chatVoAnswer) STATE.dom.chatVoAnswer.classList.remove('streaming');
+    const formatted = formatAssistantForSlide(accumulated, includeCode);
+    asstEl.textContent = formatted.panelText;
+    if (isVoiceMode && STATE.dom.chatVoAnswer) {
+      STATE.dom.chatVoAnswer.classList.remove('streaming');
+      STATE.dom.chatVoAnswer.innerHTML = formatted.overlayHtml;
+    }
     // Stay on answer — no auto-close. User says "siguiente pregunta" or "sudo sum cerrar"
 
-    // If schema overlay is active, parse ESQUEMA: pattern and inject nodes
-    // Inject words from chat response into schema if active
+    // Inject chat schema words with splash animation
     const schemaMatch = accumulated.match(/ESQUEMA:\s*([^\n\u2192\-]+?)\s*(?:\u2192|->)\s*([^\n]+)/i);
     if (schemaMatch && STATE.schemaActive) {
       const w = window.innerWidth, h = window.innerHeight;
       const root = schemaMatch[1].trim().split(/[\s_]+/).slice(0, 3).join(' ');
       const rootId = normalizeSpeechText(root).replace(/\s+/g, '_');
-      schemaAddWord(rootId, root, w * 0.5, h * 0.4);
-      schemaAddWord(rootId, root, 0, 0); // bump weight
+      schemaAddWord(rootId, root, w * 0.5, h * 0.45);
       const branches = schemaMatch[2].split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
-      branches.forEach((b) => {
-        const bid = normalizeSpeechText(b).replace(/\s+/g, '_');
-        schemaAddWord(bid, b, 60 + Math.random() * (w - 120), 60 + Math.random() * (h - 120));
+      branches.forEach((b, i) => {
+        setTimeout(() => {
+          const bid = normalizeSpeechText(b).replace(/\s+/g, '_');
+          schemaAddWord(bid, b, w * 0.5, h * 0.45);
+        }, (i + 1) * 400);
       });
     }
 
