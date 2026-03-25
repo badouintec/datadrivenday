@@ -15,7 +15,7 @@ const {
   hideFooter = false,
 } = Astro.props;
 
-const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
+const socialImageUrl = new URL('/logo-datadriven-day.png', Astro.url).href;
 ---
 
 <!doctype html>
@@ -36,7 +36,7 @@ const socialImageUrl = new URL('/og-image.svg', Astro.url).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImageUrl} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/logo-datadriven-day.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
