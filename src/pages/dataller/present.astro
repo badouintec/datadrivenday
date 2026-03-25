@@ -1346,16 +1346,18 @@ function toggleSchema() {
   if (!overlay) return;
 
   if (STATE.schemaActive) {
+    clearSchema(); // always start blank — words come from voice
     overlay.classList.add('active');
     document.body.classList.add('schema-active');
-    schemaSeedFromSlide(); // always re-seed for current slide
+    if (STATE.dom.schemaLabel) STATE.dom.schemaLabel.textContent = 'ESQUEMA · habla para crear el mapa';
     if (!STATE.voiceActive) toggleVoice();
     showVoiceFlash('Esquema ON');
   } else {
     overlay.classList.remove('active');
     document.body.classList.remove('schema-active');
+    if (STATE.dom.schemaLabel) STATE.dom.schemaLabel.textContent = 'ESQUEMA';
     showVoiceFlash('Esquema OFF');
-    showUI(); // restore topbar/nav that may have been hidden while schema was active
+    showUI();
   }
   STATE.dom.btnGraph?.classList.toggle('voice-active', STATE.schemaActive);
   updateDebugHud();
@@ -1487,7 +1489,7 @@ function schemaUpdateLinePositions() {
 function schemaNudge() {
   const words = [...STATE.schemaWords.values()];
   const w = window.innerWidth, h = window.innerHeight;
-  const MIN_DIST = 80;
+  const MIN_DIST = Math.min(w, h) * 0.13;
 
   for (let i = 0; i < words.length; i++) {
     for (let j = i + 1; j < words.length; j++) {
@@ -1512,44 +1514,66 @@ function schemaNudge() {
   schemaUpdateLinePositions();
 }
 
-// Expand schema from speech — add new concepts as they're spoken
+// Expand schema from speech — first word spoken = root, rest = branches/leaves
 function schemaExpandFromSpeech(text) {
   if (!STATE.schemaActive) return;
   const normalized = normalizeSpeechText(text);
   if (!normalized) return;
 
-  // Find root
-  const rootEntry = [...STATE.schemaWords.entries()].find(([, w]) => w.tier === 'root');
-  if (!rootEntry) return;
-  const rootId = rootEntry[0];
+  const w = window.innerWidth, h = window.innerHeight;
+  const cx = w * 0.5, cy = h * 0.46;
 
   const terms = normalized.split(' ')
     .filter(word => word.length >= 4 && !SCHEMA_STOPWORDS.has(word));
+  if (terms.length === 0) return;
 
-  const unique = schemaUniqueTerms(terms, 3);
+  const unique = schemaUniqueTerms(terms, 4);
+  if (unique.length === 0) return;
+
+  // No root yet → first spoken word becomes ROOT at center
+  const rootEntry = [...STATE.schemaWords.entries()].find(([, wd]) => wd.tier === 'root');
+
+  if (!rootEntry) {
+    const firstId = unique[0].replace(/\s+/g, '_');
+    schemaAddWord(firstId, schemaDisplayLabel(unique[0]), cx, cy, 'root', null);
+    // Hide the hint once first word appears
+    if (STATE.dom.schemaLabel) STATE.dom.schemaLabel.textContent = 'ESQUEMA';
+    // Remaining terms from this utterance become branches
+    unique.slice(1).forEach((term, i, arr) => {
+      const bid = term.replace(/\s+/g, '_');
+      if (STATE.schemaWords.has(bid)) return;
+      const angle = (i / Math.max(arr.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      const r = Math.min(w, h) * 0.3;
+      schemaAddWord(bid, schemaDisplayLabel(term),
+        cx + Math.cos(angle) * r, cy + Math.sin(angle) * r * 0.7, 'branch', firstId);
+      schemaAddLine(firstId, bid);
+    });
+    updateDebugHud();
+    return;
+  }
+
+  const rootId = rootEntry[0];
+  const rootWord = rootEntry[1];
+
   unique.forEach((term) => {
-    const id = normalizeSpeechText(term).replace(/\s+/g, '_');
-    if (!id || STATE.schemaWords.has(id)) {
-      // Flash if exists
-      if (STATE.schemaWords.has(id)) {
-        const w = STATE.schemaWords.get(id);
-        w.el.classList.add('flash');
-        setTimeout(() => w.el.classList.remove('flash'), 1000);
-      }
+    const id = term.replace(/\s+/g, '_');
+    if (STATE.schemaWords.has(id)) {
+      const wd = STATE.schemaWords.get(id);
+      wd.el.classList.add('flash');
+      setTimeout(() => wd.el.classList.remove('flash'), 1000);
       return;
     }
 
-    // Decide tier: if related to a branch, become leaf. Otherwise whisper.
+    // Decide tier: check if term shares a word with an existing branch → leaf
     let parentId = rootId;
-    let tier = 'whisper';
-    const termWords = normalizeSpeechText(term).split(' ');
-
-    for (const [wId, w] of STATE.schemaWords) {
-      if (w.tier === 'root') continue;
-      const labelWords = normalizeSpeechText(w.label).split(' ');
-      if (termWords.some(tw => labelWords.includes(tw))) {
+    let tier = 'branch';
+    const termParts = term.split('_');
+    for (const [wId, wd] of STATE.schemaWords) {
+      if (wd.tier === 'root') continue;
+      const labelParts = normalizeSpeechText(wd.label).split(' ');
+      if (termParts.some(tp => labelParts.includes(tp))) {
         parentId = wId;
-        tier = w.tier === 'branch' ? 'leaf' : 'whisper';
+        tier = wd.tier === 'branch' ? 'leaf' : 'whisper';
         break;
       }
     }
@@ -1557,13 +1581,20 @@ function schemaExpandFromSpeech(text) {
     const parent = STATE.schemaWords.get(parentId);
     if (!parent) return;
 
-    // Position near parent with some randomness
-    const angle = -Math.PI + Math.random() * Math.PI * 2;
-    const dist = tier === 'leaf' ? (100 + Math.random() * 80) : (60 + Math.random() * 100);
-    const x = parent.x + Math.cos(angle) * dist;
-    const y = parent.y + Math.sin(angle) * dist;
+    // Spread children evenly around parent using sibling count as angle offset
+    const siblings = [...STATE.schemaWords.values()].filter(wd => wd.parentId === parentId).length;
+    const baseAngle = Math.atan2(parent.y - cy, parent.x - cx);
+    const spread = tier === 'branch' ? 2.8 : 1.8;
+    const angle = baseAngle + (siblings - 1) * (spread / 4) + (Math.random() - 0.5) * 0.25;
+    const minDim = Math.min(w, h);
+    const r = tier === 'branch'
+      ? minDim * 0.26 + Math.random() * minDim * 0.06
+      : minDim * 0.14 + Math.random() * minDim * 0.07;
 
-    schemaAddWord(id, schemaDisplayLabel(term), x, y, tier, parentId);
+    const nx = Math.max(90, Math.min(w - 90, parent.x + Math.cos(angle) * r));
+    const ny = Math.max(70, Math.min(h - 70, parent.y + Math.sin(angle) * r * 0.75));
+
+    schemaAddWord(id, schemaDisplayLabel(term), nx, ny, tier, parentId);
     schemaAddLine(parentId, id);
   });
 
@@ -1796,6 +1827,13 @@ function bindEvents() {
 
   document.addEventListener('keydown', (e) => {
     ensureAudioContext();
+    // Skip shortcuts when typing in an input/textarea
+    var tag = e.target?.tagName;
+    var isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
+    if (isTyping) {
+      if (e.key === 'Escape') { e.target.blur(); }
+      return;
+    }
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
     if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { e.preventDefault(); go(-1); }
     if (e.key === 'n' || e.key === 'N') toggleNotes();
