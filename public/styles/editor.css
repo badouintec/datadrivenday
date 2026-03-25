@@ -700,7 +700,7 @@
 
 .prop-toggle-input:checked + .prop-toggle-track::after {
   transform: translateX(16px);
-  background: white;
+  background: var(--color-surface);
 }
 
 /* ── ACTIONS ─────────────────────────────────────────────────── */

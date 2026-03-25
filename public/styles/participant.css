@@ -62,7 +62,7 @@
 .registro-auth-card,
 .registro-account-card {
   border: 1px solid var(--color-border);
-  background: linear-gradient(180deg, rgba(22, 27, 34, 0.98), rgba(13, 17, 23, 0.98));
+  background: var(--color-surface);
   border-radius: 1rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
   padding: 1.25rem;
@@ -74,7 +74,7 @@
   gap: 0.25rem;
   padding: 0.25rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border-soft);
   margin-bottom: 1rem;
 }
@@ -138,7 +138,7 @@
   width: 100%;
   border: 1px solid var(--color-border-soft);
   border-radius: 0.75rem;
-  background: rgba(12, 18, 30, 0.78);
+  background: var(--color-bg);
   color: var(--color-text-primary);
   padding: 0.85rem 0.95rem;
   font: inherit;
@@ -147,7 +147,7 @@
 
 .registro-input:focus {
   outline: none;
-  border-color: rgba(96, 165, 250, 0.55);
+  border-color: var(--color-accent-blue);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
 }
 
@@ -244,7 +244,7 @@
   border-radius: 0.75rem;
   border: 1px solid var(--color-border-soft);
   color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-surface-2);
   line-height: 1.5;
 }
 
@@ -750,7 +750,7 @@
   padding: 0.85rem var(--space-md);
   border: 1px solid var(--color-border-soft);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-surface);
 }
 
 .participant-lockbox--compact {
@@ -828,7 +828,7 @@
 .participant-link-item:hover {
   transform: translateY(-1px);
   border-color: rgba(96, 165, 250, 0.32);
-  background: rgba(19, 27, 42, 0.74);
+  background: var(--color-surface-2);
 }
 
 /* ── PRESENTATION ─────────────────────────────────────────────── */

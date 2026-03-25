@@ -92,7 +92,7 @@
 
 .sidebar-link:hover {
   color: var(--color-text-primary);
-  background: rgba(255,255,255,0.04);
+  background: var(--color-surface-2);
 }
 
 .sidebar-link.is-active {

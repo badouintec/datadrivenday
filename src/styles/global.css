@@ -172,7 +172,7 @@
 }
 .theme-toggle:hover {
   color: var(--color-text-primary);
-  background: rgba(255,255,255,0.04);
+  background: var(--color-surface-2);
   border-color: var(--color-border-soft);
 }
 [data-theme="light"] .theme-toggle:hover {
@@ -264,7 +264,7 @@ a:hover { color: var(--color-accent-data); }
   text-decoration: none; border-radius: 4px;
   transition: color 0.18s, background 0.18s;
 }
-.nav-links a:hover { color: var(--color-text-primary); background: rgba(255,255,255,0.04); }
+.nav-links a:hover { color: var(--color-text-primary); background: var(--color-surface-2); }
 .nav-cta { color: var(--color-accent-sky) !important; }
 
 /* MOBILE NAV */
@@ -274,7 +274,7 @@ a:hover { color: var(--color-accent-data); }
   background: none; border: none; cursor: pointer; border-radius: 4px;
   color: var(--color-text-muted);
 }
-.mobile-nav-toggle:hover { background: rgba(255,255,255,0.04); }
+.mobile-nav-toggle:hover { background: var(--color-surface-2); }
 .hamburger-bar {
   display: block; width: 22px; height: 2px;
   background: currentColor; border-radius: 2px;
@@ -298,7 +298,7 @@ a:hover { color: var(--color-accent-data); }
   text-decoration: none; border-radius: 4px;
   transition: color 0.18s, background 0.18s; display: block;
 }
-.mobile-nav-links a:hover { color: var(--color-text-primary); background: rgba(255,255,255,0.04); }
+.mobile-nav-links a:hover { color: var(--color-text-primary); background: var(--color-surface-2); }
 .mobile-nav-links .nav-cta { color: var(--color-accent-sky) !important; }
 
 /* FOOTER */
@@ -780,7 +780,7 @@ h1 em { font-style: normal; color: var(--color-accent-sky); }
   padding: 0.5em 1.1em; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s;
   border-radius: 3px;
 }
-.filter-btn:hover { color: var(--color-text-primary); border-color: var(--color-border-soft); background: rgba(255,255,255,0.03); }
+.filter-btn:hover { color: var(--color-text-primary); border-color: var(--color-border-soft); background: var(--color-surface-2); }
 .filter-btn.is-active { color: #fff; background: var(--color-accent-blue); border-color: var(--color-accent-blue); }
 .resources-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

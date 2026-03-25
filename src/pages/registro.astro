@@ -536,13 +536,17 @@ const staticDashboardData = {
     var history = [];
     var abortCtrl = null;
 
-    // Show widget only when participant is authenticated (after auth event)
-    function showWidget() { widget.style.display = 'block'; }
-    document.addEventListener('ddd:participant:auth', showWidget);
-    // Also show if already logged in 1s after load
-    setTimeout(function () {
-      if (document.getElementById('registroPage')?.classList.contains('is-authenticated')) showWidget();
-    }, 800);
+    // Show widget when participant dashboard is visible
+    // The dashboard script sets registro-page--dashboard on #registroPage when authenticated
+    var registroPage = document.getElementById('registroPage');
+    function checkAuthState() {
+      if (registroPage && registroPage.classList.contains('registro-page--dashboard')) showWidget();
+    }
+    if (registroPage) {
+      new MutationObserver(checkAuthState).observe(registroPage, { attributes: true, attributeFilter: ['class'] });
+    }
+    // Check in case already authenticated on load (page refresh)
+    setTimeout(checkAuthState, 500);
 
     fab.addEventListener('click', function () {
       var isOpen = box.style.display === 'flex';

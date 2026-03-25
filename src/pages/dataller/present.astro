@@ -2247,17 +2247,18 @@ async function sendChatMessage() {
     asstEl.classList.remove('streaming');
 
     // If schema overlay is active, parse ESQUEMA: pattern and inject nodes
-    const schemaMatch = accumulated.match(/ESQUEMA:\s*([^\n\u2192]+)\s*\u2192\s*([^\n]+)/i);
+    const schemaMatch = accumulated.match(/ESQUEMA:\s*([^\n\u2192\-]+?)\s*(?:\u2192|->)\s*([^\n]+)/i);
     if (schemaMatch && STATE.schemaActive) {
       const root = schemaMatch[1].trim().split(/[\s_]+/).slice(0, 3).join(' ');
       const branches = schemaMatch[2].split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
-      const cx = 50, cy = 50;
+      const cx = window.innerWidth * 0.5;
+      const cy = window.innerHeight * 0.42;
       const rootId = `chat-root-${Date.now()}`;
       schemaAddWord(rootId, root, cx, cy, 'root', null);
       branches.forEach((b, i) => {
         const angle = (i / branches.length) * Math.PI * 2 - Math.PI / 2;
-        const bx = cx + Math.cos(angle) * 26;
-        const by = cy + Math.sin(angle) * 16;
+        const bx = cx + Math.cos(angle) * window.innerWidth * 0.22;
+        const by = cy + Math.sin(angle) * window.innerHeight * 0.18;
         const bid = `chat-b-${Date.now()}-${i}`;
         schemaAddWord(bid, b, bx, by, 'branch', rootId);
         schemaAddLine(rootId, bid);
