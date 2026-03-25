@@ -153,7 +153,7 @@ const isAdmin = /ddd_session=/.test(cookie);
     }
     .slide-cuerpo {
       font-size: clamp(0.85rem, 1.4vw, 1.05rem);
-      color: rgba(230,237,243,0.65);
+      color: var(--muted);
       line-height: 1.7; max-width: 680px;
       margin-bottom: 1.5rem;
     }
@@ -185,7 +185,7 @@ const isAdmin = /ddd_session=/.test(cookie);
     .pres-nav.hidden { opacity: 0; pointer-events: none; }
     .nav-btn {
       width: 40px; height: 40px;
-      background: rgba(22,27,34,0.9);
+      background: var(--overlay-heavy);
       border: 1px solid var(--border);
       border-radius: 4px; cursor: pointer;
       color: var(--text); font-size: 1rem;
@@ -708,7 +708,7 @@ const isAdmin = /ddd_session=/.test(cookie);
       margin-top: 0.3rem;
       font-size: 0.72rem;
       line-height: 1.5;
-      color: rgba(230,237,243,0.88);
+      color: var(--text);
       white-space: pre-wrap;
     }
 
@@ -1641,7 +1641,6 @@ async function init() {
   resizeCanvas();
   window.addEventListener('resize', () => {
     resizeCanvas();
-    if (STATE.schemaActive) schemaSeedFromSlide();
   });
   initParticles();
 
@@ -1740,12 +1739,9 @@ function renderSlide(idx, direction) {
       applySlide(slide);
       hud.classList.remove('exit-left', 'exit-right');
       hud.classList.add('enter');
-      // Seed schema after slide HUD has finished transitioning to the new content
-      if (STATE.schemaActive) schemaSeedFromSlide();
     }, 220);
   } else {
     applySlide(slide);
-    if (STATE.schemaActive) schemaSeedFromSlide();
   }
 
   // Reset slide timer
@@ -2134,8 +2130,13 @@ function initVoice() {
           STATE.chatVoiceSilenceTimer = setTimeout(() => {
             if (STATE.chatVoiceCapture && STATE.chatVoiceBuffer.trim()) {
               sendChatMessage();
+              // Keep capture ON — reset buffer so overlay accepts next question
               STATE.chatVoiceBuffer = '';
-              STATE.chatVoiceCapture = false;
+              if (STATE.dom.chatInput) STATE.dom.chatInput.value = '';
+              if (STATE.chatVoiceMode && STATE.dom.chatVoQuestion) {
+                STATE.dom.chatVoQuestion.textContent = 'Escuchando siguiente pregunta...';
+                STATE.dom.chatVoQuestion.className = 'chat-vo-text muted';
+              }
               showVoiceFlash('Chat · enviado');
             }
           }, 2500);
@@ -2303,6 +2304,9 @@ function openChatVoiceOverlay() {
 
 function closeChatVoiceOverlay() {
   STATE.chatVoiceMode = false;
+  STATE.chatVoiceCapture = false;
+  STATE.chatVoiceBuffer = '';
+  clearTimeout(STATE.chatVoiceSilenceTimer);
   clearTimeout(STATE.chatVoiceInactivityTimer);
   STATE.chatVoiceInactivityTimer = null;
   STATE.dom.chatVoiceOverlay?.classList.remove('show');
@@ -2456,7 +2460,7 @@ function handleVoiceTranscript(transcripts) {
     return t.match(new RegExp('su\\s*do\\s*(?:' + sv.slice(1,-1) + ')\\s*timer\\s*(\\d+)'));
   }).find(Boolean);
   if (timerMatch) {
-    var mins = parseInt(timerMatch[2], 10);
+    var mins = parseInt(timerMatch[1], 10);
     if (mins > 0 && mins <= 120) {
       setDebugCommand('sudo_sum_timer_' + mins);
       if (STATE.countdownActive) stopCountdown();
