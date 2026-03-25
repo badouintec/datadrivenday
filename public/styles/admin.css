@@ -219,6 +219,25 @@
   color: var(--color-accent-heat);
 }
 
+.topbar-theme-toggle {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, border-color 0.15s;
+}
+.topbar-theme-toggle:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-soft);
+}
+.topbar-theme-toggle .icon-sun  { display: none; }
+.topbar-theme-toggle .icon-moon { display: block; }
+[data-theme="light"] .topbar-theme-toggle .icon-sun  { display: block; }
+[data-theme="light"] .topbar-theme-toggle .icon-moon { display: none; }
+
 .admin-content {
   flex: 1;
   overflow-y: auto;

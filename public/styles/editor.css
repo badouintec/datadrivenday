@@ -173,7 +173,7 @@
 }
 
 .slide-item:hover {
-  background: rgba(255,255,255,0.04);
+  background: var(--color-surface-2);
 }
 .slide-item.is-selected {
   background: color-mix(in srgb, var(--color-accent-blue) 10%, transparent);
@@ -367,7 +367,7 @@
 
 .canvas-tool:hover {
   color: var(--color-text-primary);
-  background: rgba(255,255,255,0.04);
+  background: var(--color-surface-2);
 }
 .canvas-tool[aria-pressed="true"] { color: var(--color-accent-sky); }
 

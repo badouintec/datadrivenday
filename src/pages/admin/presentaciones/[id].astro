@@ -14,8 +14,15 @@ const presId = Astro.params.id;
   <title>Editor · DDD Admin</title>
   <link rel="stylesheet" href="/styles/admin.css" />
   <link rel="stylesheet" href="/styles/editor.css" />
+  <script is:inline>
+    (function(){
+      var t = localStorage.getItem('ddd-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
-<body class="editor-body" data-theme="dark" data-pres-id={presId}>
+<body class="editor-body" data-pres-id={presId}>
 
   <!-- TOP BAR -->
   <div class="editor-topbar">

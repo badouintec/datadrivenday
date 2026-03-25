@@ -14,8 +14,15 @@ if (!redirect.startsWith('/') || redirect.startsWith('//')) redirect = '/admin';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Acceso · Data Driven Day</title>
   <link rel="stylesheet" href="/styles/admin.css" />
+  <script is:inline>
+    (function(){
+      var t = localStorage.getItem('ddd-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
-<body class="login-body" data-theme="dark">
+<body class="login-body">
 
   <div class="login-container">
     <header class="login-header">
